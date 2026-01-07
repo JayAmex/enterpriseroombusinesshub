@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .container {
+            max-width: 1600px;
+        }
+        .section {
+            padding: 80px 3%;
+        }
+        .events-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--border);
+            background: var(--white);
+            color: var(--text);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+        .filter-btn:hover {
+            background: var(--light);
+            border-color: var(--accent);
+        }
+        .filter-btn.active {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+        .events-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .events-search {
+            margin-bottom: 20px;
+        }
+        .events-search input {
+            width: 100%;
+            max-width: 500px;
+            padding: 12px 20px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        .events-search input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .event-card {
+                flex-direction: column !important;
+                padding: 20px !important;
+                gap: 20px !important;
+            }
+            .event-date-time {
+                min-width: 100% !important;
+                max-width: 100% !important;
+                padding-right: 0 !important;
+                padding-bottom: 20px !important;
+                border-right: none !important;
+                border-bottom: 2px solid var(--border) !important;
+                align-items: flex-start !important;
+            }
+            .event-title-left {
+                width: 100% !important;
+                font-size: 1.8rem !important;
+                margin-bottom: 15px !important;
+            }
+            .date-time-container {
+                margin-bottom: 15px !important;
+            }
+            .event-date-time .date {
+                font-size: 1.5rem !important;
+            }
+            .event-date-time .time {
+                font-size: 1.2rem !important;
+            }
+            .event-content {
+                min-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+            .event-description {
+                font-size: 1rem !important;
+            }
+            .event-action {
+                width: 100% !important;
+            }
+            .event-social-links {
+                flex-wrap: wrap !important;
+            }
+            .social-link-btn {
+                min-width: 100px !important;
+                font-size: 0.85rem !important;
+                padding: 10px 15px !important;
+            }
+            .events-filter {
+                justify-content: center;
+            }
+            .filter-btn {
+                font-size: 0.85rem;
+                padding: 8px 15px;
+            }
+        }
+        .event-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            width: 100%;
+            max-width: 100%;
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .event-date-time {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: space-between;
+            min-width: 300px;
+            max-width: 300px;
+            padding-right: 60px;
+            border-right: 2px solid var(--border);
+            flex-shrink: 0;
+            align-self: stretch;
+        }
+        .event-title-left {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+            line-height: 1.2;
+            width: 240px;
+            max-width: 240px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+            overflow: visible;
+            hyphens: auto;
+            box-sizing: border-box;
+        }
+        .date-time-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            flex: 1;
+            justify-content: center;
+            margin: 0;
+        }
+        .event-date-time .date {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            white-space: nowrap;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+        .event-date-time .time {
+            font-size: 1.5rem;
+            color: var(--text-light);
+            font-weight: 500;
+            line-height: 1.3;
+            margin-bottom: 0;
+        }
+        .event-action {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-top: 0;
+            flex-shrink: 0;
+        }
+        .event-content {
+            flex: 1;
+            min-width: 0;
+            padding-left: 40px;
+            padding-right: 30px;
+        }
+        .event-description {
+            color: var(--text);
+            margin: 0 0 18px 0;
+            line-height: 1.7;
+            font-size: 1.15rem;
+        }
+        .description-preview {
+            display: inline;
+        }
+        .description-full {
+            display: none;
+        }
+        .see-more-btn {
+            background: transparent;
+            border: none;
+            color: #2563eb;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0;
+            margin-left: 5px;
+            text-decoration: underline;
+            transition: color 0.3s;
+        }
+        .see-more-btn:hover {
+            color: #1d4ed8;
+        }
+        .event-social-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            margin-top: 15px;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .social-link-btn {
+            padding: 12px 20px;
+            background: #2563eb;
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: background 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            min-width: 130px;
+            text-align: center;
+        }
+        .social-link-btn:hover {
+            background: #1d4ed8;
+        }
+        .social-link-btn.disabled {
+            background: #2563eb;
+            cursor: default;
+            opacity: 0.6;
+        }
+        .social-link-btn.disabled:hover {
+            background: #2563eb;
+        }
+        .watch-live-btn {
+            padding: 12px 20px;
+            background: var(--live);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.3s;
+            white-space: nowrap;
+            min-width: 130px;
+            text-align: center;
+        }
+        .watch-live-btn:hover {
+            background: #d32f2f;
+        }
+        .rsvp-btn {
+            padding: 12px 20px;
+            background: #2563eb;
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: background 0.3s;
+            white-space: nowrap;
+            min-width: 130px;
+            text-align: center;
+        }
+        .rsvp-btn:hover {
+            background: var(--accent);
+        }
+        .rsvp-btn.rsvped {
+            background: var(--success);
+        }
+        .event-flier {
+            margin-top: 15px;
+            margin-left: -40px;
+            margin-right: -30px;
+            width: calc(100% + 70px);
+        }
+        .event-flier img {
+            width: 100%;
+            max-width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            display: block;
+            border: none;
+            border-radius: 0;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+        .rsvp-count {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        .no-events {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+        .events-section-header {
+            margin: 40px 0 25px 0;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+        .events-section-header:first-child {
+            margin-top: 0;
+        }
+        .events-section-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+        <div style="position: relative;">
+            <input type="text" id="globalSearch" placeholder="Search..." style="padding: 8px 35px 8px 12px; border-radius: 20px; border: 1px solid var(--border); width: 200px; font-size: 0.9rem;" onkeyup="handleGlobalSearch(event)">
+            <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-light);">🔍</span>
+            <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border: 1px solid var(--border); border-radius: 8px; margin-top: 5px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
+        </div>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="eventspage.html">Events</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="tools.html">Tools</a></li>
+            <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+            <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+            <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <span>Events</span>
+</div>
+
+<section class="section" style="padding-top: 20px;">
+    <div class="container">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="margin-top: 0; margin-bottom: 10px;">Diary of Events</h1>
+            <p style="color: var(--text-light); margin-bottom: 20px;">Discover and join our business events, workshops, and networking opportunities.</p>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                <button onclick="saveAllEvents()" class="btn btn-primary" style="padding: 10px 20px;">Save All Events</button>
+                <button onclick="exportEvents()" class="btn btn-success" style="padding: 10px 20px;">Export Events</button>
+                <button onclick="printEvents()" class="btn" style="padding: 10px 20px; background: var(--white); border: 1px solid var(--border);">Print</button>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <div class="events-search" style="flex: 1; min-width: 250px; max-width: 600px; position: relative;">
+                <input type="text" id="eventSearchInput" placeholder="Search events by title or description..." onkeyup="handleEventSearch(event)" oninput="handleEventSearch(event)" style="width: 100%; padding-right: 40px;">
+                <span id="clearSearchBtn" onclick="clearEventSearch()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-light); font-size: 1.2rem; display: none; padding: 5px;">&times;</span>
+            </div>
+        </div>
+
+        <!-- Filter Buttons -->
+        <div class="events-filter">
+            <button class="filter-btn active" onclick="filterEvents('all')" data-filter="all">All Events</button>
+            <button class="filter-btn" onclick="filterEvents('featured')" data-filter="featured">Featured</button>
+            <button class="filter-btn" onclick="filterEvents('live')" data-filter="live">Live Now</button>
+            <button class="filter-btn" onclick="filterEvents('upcoming')" data-filter="upcoming">Upcoming</button>
+            <button class="filter-btn" onclick="filterEvents('historical')" data-filter="historical">Historical</button>
+        </div>
+
+        <!-- Events Grid -->
+        <div id="eventsContainer" class="events-grid">
+            <!-- Events will be loaded here dynamically -->
+        </div>
+
+        <!-- No Events Message -->
+        <div id="noEventsMessage" class="no-events" style="display: none;">
+            <h3>No events found</h3>
+            <p>Check back soon for upcoming events!</p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h3>Enterprise Room Business Hub</h3>
+                <p>Empowering entrepreneurs with resources, networks, and tools to scale and succeed.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="eventspage.html">Events</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="directories.html">Directories</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="tools.html">Financial Tools</a></li>
+                    <li><a href="pitch.html">Pitch Competition</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>
+                    <a href="contact.html">Contact Us</a><br>
+                    <a href="faq.html">FAQ</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    let currentFilter = 'all';
+    let allEvents = [];
+    let searchTerm = '';
+
+    // Load events from API
+    async function loadEvents() {
+        try {
+            // Fetch events from API, excluding pitch events
+            const response = await fetch('http://localhost:3000/api/events?type=regular&limit=1000');
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            let events = data.events || [];
+            
+            // Convert snake_case to camelCase for compatibility with existing code
+            allEvents = events.map(event => {
+                // Filter out pitch events (double check)
+                const eventType = (event.event_type || '').toLowerCase();
+                const title = (event.title || '').toLowerCase();
+                if (eventType === 'pitch' || title.includes('pitch')) {
+                    return null;
+                }
+                
+                return {
+                    id: event.id,
+                    title: event.title,
+                    description: event.description,
+                    eventType: event.event_type || 'regular',
+                    status: event.status || 'Upcoming',
+                    date: event.event_date || event.date,
+                    event_date: event.event_date,
+                    dateDisplay: event.date_display || event.dateDisplay,
+                    date_display: event.date_display,
+                    event_time: event.event_time,
+                    time: event.event_time || event.time,
+                    flier: event.flier_url || event.flier,
+                    flier_url: event.flier_url,
+                    social_links: event.social_links
+                };
+            }).filter(event => event !== null); // Remove null entries (pitch events)
+            
+            // Store events in localStorage for action buttons
+            localStorage.setItem('allEvents', JSON.stringify(allEvents));
+            
+            // Load RSVP counts for all events
+            await loadRSVPCounts(allEvents);
+            
+            console.log('Loaded events from API (excluding pitch):', allEvents.length);
+            renderEvents();
+        } catch (error) {
+            console.error('Error loading events:', error);
+            // Fallback to empty array if API fails
+            allEvents = [];
+            localStorage.setItem('allEvents', JSON.stringify([]));
+            renderEvents();
+        }
+    }
+
+    // Load RSVP counts for events
+    async function loadRSVPCounts(events) {
+        if (!events || events.length === 0) return;
+        
+        try {
+            const eventIds = events.map(e => e.id);
+            const response = await fetch('http://localhost:3000/api/events/rsvp/counts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ eventIds })
+            });
+            
+            if (response.ok) {
+                const counts = await response.json();
+                // Add RSVP count to each event
+                events.forEach(event => {
+                    event.rsvpCount = counts[event.id] || 0;
+                });
+            }
+        } catch (error) {
+            console.error('Error loading RSVP counts:', error);
+            // Set default count of 0 if API fails
+            events.forEach(event => {
+                event.rsvpCount = 0;
+            });
+        }
+    }
+    
+    // Check RSVP status for current user
+    async function checkRSVPStatus(eventId) {
+        const userToken = sessionStorage.getItem('userToken');
+        if (!userToken) return false;
+        
+        try {
+            const response = await fetch(`http://localhost:3000/api/events/${eventId}/rsvp`, {
+                headers: {
+                    'Authorization': `Bearer ${userToken}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return data.is_rsvped || false;
+            }
+        } catch (error) {
+            console.error('Error checking RSVP status:', error);
+        }
+        return false;
+    }
+
+    // Handle event search
+    function handleEventSearch(event) {
+        if (event.key === 'Enter' || event.type === 'input' || event.type === 'keyup') {
+            searchTerm = event.target.value.toLowerCase().trim();
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) {
+                clearBtn.style.display = searchTerm ? 'block' : 'none';
+            }
+            renderEvents();
+        }
+    }
+    
+    // Clear event search
+    function clearEventSearch() {
+        const searchInput = document.getElementById('eventSearchInput');
+        if (searchInput) {
+            searchInput.value = '';
+            searchTerm = '';
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (clearBtn) {
+                clearBtn.style.display = 'none';
+            }
+            renderEvents();
+        }
+    }
+
+    // Filter events by status
+    function filterEvents(status) {
+        currentFilter = status;
+        
+        // Update active filter button
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-filter') === status) {
+                btn.classList.add('active');
+            }
+        });
+        
+        renderEvents();
+    }
+
+
+    // Render events based on current filter and view
+    function renderEvents() {
+        const container = document.getElementById('eventsContainer');
+        const noEventsMsg = document.getElementById('noEventsMessage');
+        
+        // Helper function to find next upcoming event ID
+        function getNextUpcomingEventId(events) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const upcomingEventsList = events.filter(event => {
+                const status = (event.status || '').toLowerCase();
+                return status === 'upcoming' || status === 'featured';
+            });
+            
+            // Sort upcoming events by date to find the next one
+            const sortedUpcoming = [...upcomingEventsList].sort((a, b) => {
+                const dateA = a.event_date ? new Date(a.event_date).getTime() : 0;
+                const dateB = b.event_date ? new Date(b.event_date).getTime() : 0;
+                return dateA - dateB; // Sort ascending (earliest first)
+            });
+            
+            // Find the next upcoming event (first one on or after today)
+            for (const event of sortedUpcoming) {
+                if (event.event_date) {
+                    const eventDate = new Date(event.event_date);
+                    eventDate.setHours(0, 0, 0, 0);
+                    if (eventDate >= today) {
+                        return event.id;
+                    }
+                }
+            }
+            return null;
+        }
+        
+        // Filter events
+        let filteredEvents = allEvents;
+        const nextUpcomingId = getNextUpcomingEventId(allEvents);
+        
+        // Apply search filter
+        if (searchTerm) {
+            filteredEvents = filteredEvents.filter(event => {
+                const title = (event.title || '').toLowerCase();
+                const description = (event.description || '').toLowerCase();
+                return title.includes(searchTerm) || description.includes(searchTerm);
+            });
+        }
+        
+        // Apply status filter
+        if (currentFilter !== 'all') {
+            filteredEvents = filteredEvents.filter(event => {
+                const status = (event.status || '').toLowerCase();
+                
+                // If filtering by "Featured", include live events and next upcoming event
+                if (currentFilter.toLowerCase() === 'featured') {
+                    // Live events are always featured
+                    if (status === 'live now') return true;
+                    // Events with Featured status
+                    if (status === 'featured') return true;
+                    // Next upcoming event is always featured
+                    if (event.id === nextUpcomingId) return true;
+                    return false;
+                }
+                
+                return status === currentFilter.toLowerCase() || 
+                       (currentFilter === 'live' && status === 'live now');
+            });
+        }
+        
+        // Group events by status
+        // Live events are always featured
+        const liveEvents = filteredEvents.filter(event => {
+            const status = (event.status || '').toLowerCase();
+            return status === 'live now';
+        });
+        
+        const upcomingEvents = filteredEvents.filter(event => {
+            const status = (event.status || '').toLowerCase();
+            // Include upcoming, featured, and the next upcoming event
+            return status === 'upcoming' || status === 'featured' || event.id === nextUpcomingId;
+        });
+        
+        const historicalEvents = filteredEvents.filter(event => {
+            const status = (event.status || '').toLowerCase();
+            return status === 'historical';
+        });
+        
+        if (filteredEvents.length === 0) {
+            container.innerHTML = '';
+            noEventsMsg.style.display = 'block';
+            return;
+        }
+        
+        noEventsMsg.style.display = 'none';
+        
+        // RSVP status will be checked per event via API
+        
+        // Helper function to check if event is in the past
+        const isEventInPast = (event) => {
+            if (!event.event_date && !event.date) return false;
+            const eventDate = new Date(event.event_date || event.date);
+            if (isNaN(eventDate.getTime())) return false;
+            eventDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return eventDate < today;
+        };
+        
+        // Function to render a single event card
+        const renderEventCard = (event, isRSVPed = false) => {
+            const status = (event.status || 'Upcoming').toLowerCase();
+            const statusClass = status === 'live now' ? 'live' : 
+                               status === 'featured' ? 'featured' : 
+                               status === 'historical' ? 'historical' : 'upcoming';
+            
+            const rsvpCount = event.rsvpCount || 0;
+            
+            // Check if event is historical (by status or date)
+            const isPast = isEventInPast(event);
+            const isHistorical = status === 'historical' || isPast;
+            
+            // Escape single quotes in event title for onclick
+            const safeTitle = (event.title || 'Untitled Event').replace(/'/g, "\\'");
+            
+            // Parse date and time from dateDisplay or event_date
+            let dateStr = 'TBD';
+            let timeStr = ''; // Empty for historical events
+            if (event.dateDisplay) {
+                const parts = event.dateDisplay.split(' - ');
+                if (parts.length >= 1) {
+                    // Try to parse date string
+                    const datePart = parts[0].trim();
+                    // Check if it's already in "JAN 05" format (without year)
+                    if (/^[A-Z]{3}\s+\d{1,2}$/.test(datePart)) {
+                        // If no year, try to get it from event_date
+                        if (event.event_date) {
+                            const date = new Date(event.event_date);
+                            if (!isNaN(date.getTime())) {
+                                const year = date.getFullYear();
+                                dateStr = `${datePart} ${year}`;
+                            } else {
+                                dateStr = datePart;
+                            }
+                        } else {
+                            dateStr = datePart;
+                        }
+                    } else {
+                        // Try to parse as date
+                        const parsedDate = new Date(datePart);
+                        if (!isNaN(parsedDate.getTime())) {
+                            // Format as "JAN 6 2026" (without comma to prevent wrapping)
+                            const month = parsedDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                            const day = parsedDate.getDate();
+                            const year = parsedDate.getFullYear();
+                            dateStr = `${month} ${day} ${year}`;
+                        } else {
+                            dateStr = datePart;
+                        }
+                    }
+                }
+                // Only extract time if event is not historical
+                if (parts.length >= 2 && !isHistorical) {
+                    timeStr = parts[1].trim();
+                } else {
+                    timeStr = ''; // Empty for historical events
+                }
+            } else if (event.event_date) {
+                const date = new Date(event.event_date);
+                if (!isNaN(date.getTime())) {
+                    // Format as "JAN 6 2026" (without comma to prevent wrapping)
+                    const month = date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                    const day = date.getDate();
+                    const year = date.getFullYear();
+                    dateStr = `${month} ${day} ${year}`;
+                }
+                // Only extract time if event is not historical
+                if (event.event_time && !isHistorical) {
+                    timeStr = event.event_time;
+                } else {
+                    timeStr = ''; // Empty for historical events
+                }
+            }
+            
+            // Extract social links if available
+            let socialLinks = [];
+            const isLive = status === 'live now';
+            
+            if (event.social_links) {
+                try {
+                    const links = typeof event.social_links === 'string' ? JSON.parse(event.social_links) : event.social_links;
+                    if (links.linkedin) {
+                        socialLinks.push({ name: isHistorical ? 'LinkedIn Link' : 'LinkedIn Live', url: links.linkedin });
+                    }
+                    if (links.instagram) {
+                        socialLinks.push({ name: isHistorical ? 'Instagram Link' : 'Instagram Live', url: links.instagram });
+                    }
+                    if (links.twitter) {
+                        socialLinks.push({ name: isHistorical ? 'Twitter Link' : 'Twitter Space', url: links.twitter });
+                    }
+                    if (links.youtube) {
+                        socialLinks.push({ name: isHistorical ? 'YouTube Link' : 'YouTube', url: links.youtube });
+                    }
+                } catch (e) {
+                    // If parsing fails, ignore social links
+                }
+            }
+            
+            // If no social links in data, show default labels (non-clickable)
+            if (socialLinks.length === 0) {
+                socialLinks = [
+                    { name: isHistorical ? 'LinkedIn Link' : 'LinkedIn Live', url: null },
+                    { name: isHistorical ? 'Instagram Link' : 'Instagram Live', url: null },
+                    { name: isHistorical ? 'Twitter Link' : 'Twitter Space', url: null },
+                    { name: isHistorical ? 'YouTube Link' : 'YouTube', url: null }
+                ];
+            }
+            
+            // Action button - red "Watch Live" for live events, "RSVP Now" for upcoming events
+            // Historical events don't have action buttons
+            const firstLiveLink = socialLinks.find(link => link.url)?.url || '#';
+            let actionButton = '';
+            if (isLive) {
+                actionButton = `<button class="watch-live-btn" onclick="window.open('${firstLiveLink}', '_blank')">Watch Live</button>`;
+            } else if (!isHistorical) {
+                actionButton = `<button class="rsvp-btn ${isRSVPed ? 'rsvped' : ''}" onclick="handleRSVP('${event.id}', '${safeTitle}')">${isRSVPed ? 'Registered' : 'RSVP Now'}</button>`;
+            }
+            // Historical events: no action button
+            
+            // RSVP count display (only for upcoming events)
+            const rsvpCountDisplay = !isHistorical ? `<div class="rsvp-count">${rsvpCount} ${rsvpCount === 1 ? 'person' : 'people'} registered</div>` : '';
+            
+            // Check if flier exists and is not empty - only show if valid URL
+            const flierUrl = event.flier_url || event.flier;
+            const hasValidFlier = flierUrl && 
+                                  typeof flierUrl === 'string' && 
+                                  flierUrl.trim() !== '' && 
+                                  flierUrl !== 'null' && 
+                                  flierUrl !== 'undefined';
+            const flierDisplay = hasValidFlier 
+                ? `<div class="event-flier"><img src="${flierUrl.trim()}" alt="Event Flier" onerror="this.parentElement.style.display='none';"></div>` 
+                : '';
+            
+            // Get full description and prepare for truncation
+            const fullDescription = event.description || 'Join us for an exciting event.';
+            const truncateLength = 200;
+            const shouldTruncate = fullDescription.length > truncateLength;
+            const truncatedDescription = shouldTruncate 
+                ? fullDescription.substring(0, truncateLength).trim() + '...'
+                : fullDescription;
+            
+            // Escape HTML for description
+            const safeDescriptionHTML = fullDescription
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/\n/g, '<br>');
+            
+            const safeTruncatedHTML = truncatedDescription
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/\n/g, '<br>');
+            
+            return `
+                <div class="event-card" id="event-card-${event.id}">
+                    <div class="event-date-time">
+                        <h3 class="event-title-left">${event.title || 'Untitled Event'}</h3>
+                        <div class="date-time-container">
+                            <div class="date">${dateStr}</div>
+                            ${!isHistorical && timeStr ? `<div class="time">${timeStr}</div>` : ''}
+                        </div>
+                        ${actionButton ? `<div class="event-action">${actionButton}</div>` : ''}
+                    </div>
+                    <div class="event-content">
+                        ${flierDisplay}
+                        <div class="event-description">
+                            <span class="description-preview" id="desc-preview-${event.id}">${safeTruncatedHTML}</span>
+                            <span class="description-full" id="desc-full-${event.id}" style="display: none;">${safeDescriptionHTML}</span>
+                            ${shouldTruncate ? `<button class="see-more-btn" id="see-more-${event.id}" onclick="toggleDescription('${event.id}')">See More</button>` : ''}
+                        </div>
+                        ${rsvpCountDisplay}
+                        ${!isHistorical && event.event_date && isRSVPed ? `<div style="margin-top: 10px;"><button style="padding: 8px 15px; background: var(--success); border: 1px solid var(--success); border-radius: 6px; cursor: default; font-size: 0.85rem; color: var(--white); opacity: 0.9;">✓ Added to your calendar</button></div>` : ''}
+                        <div class="event-social-links">
+                            ${socialLinks.map(link => {
+                                if (link.url) {
+                                    return `<a href="${link.url}" target="_blank" class="social-link-btn">${link.name}</a>`;
+                                } else {
+                                    return `<span class="social-link-btn disabled">${link.name}</span>`;
+                                }
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+        
+        // Check RSVP status for all events (async)
+        async function checkAllRSVPStatuses(events) {
+            const userToken = sessionStorage.getItem('userToken');
+            if (!userToken) {
+                return {};
+            }
+            
+            const statusMap = {};
+            await Promise.all(events.map(async (event) => {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/events/${event.id}/rsvp`, {
+                        headers: {
+                            'Authorization': `Bearer ${userToken}`
+                        }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        statusMap[event.id] = data.is_rsvped || false;
+                    }
+                } catch (error) {
+                    console.error(`Error checking RSVP for event ${event.id}:`, error);
+                    statusMap[event.id] = false;
+                }
+            }));
+            return statusMap;
+        }
+        
+        // Build HTML with sections (async)
+        async function buildEventHTML() {
+            const rsvpStatuses = await checkAllRSVPStatuses([...liveEvents, ...upcomingEvents, ...historicalEvents]);
+            let html = '';
+            
+            // Live Events Section (displayed first, no header)
+            if (liveEvents.length > 0) {
+                html += liveEvents.map(event => renderEventCard(event, rsvpStatuses[event.id] || false)).join('');
+            }
+        
+            // Upcoming Events Section
+            if (upcomingEvents.length > 0) {
+                html += `<div class="events-section-header"><h2>Upcoming Events</h2></div>`;
+                html += upcomingEvents.map(event => renderEventCard(event, rsvpStatuses[event.id] || false)).join('');
+            }
+            
+            // Historical Events Section
+            if (historicalEvents.length > 0) {
+                html += `<div class="events-section-header"><h2>Historical Events</h2></div>`;
+                html += historicalEvents.map(event => renderEventCard(event, false)).join('');
+            }
+            
+            container.innerHTML = html;
+            
+            // Check for event ID in URL and scroll to it after rendering
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('event');
+            if (eventId) {
+                setTimeout(() => scrollToEvent(eventId), 100);
+            }
+        }
+        
+        // Call async function to build HTML
+        buildEventHTML();
+    }
+
+    // Toggle description expand/collapse
+    function toggleDescription(eventId) {
+        const preview = document.getElementById(`desc-preview-${eventId}`);
+        const full = document.getElementById(`desc-full-${eventId}`);
+        const button = document.getElementById(`see-more-${eventId}`);
+        
+        if (preview && full && button) {
+            if (preview.style.display === 'none') {
+                // Collapse
+                preview.style.display = 'inline';
+                full.style.display = 'none';
+                button.textContent = 'See More';
+            } else {
+                // Expand
+                preview.style.display = 'none';
+                full.style.display = 'inline';
+                button.textContent = 'See Less';
+            }
+        }
+    }
+    
+    // Export event to calendar (iCal format) - called automatically after RSVP
+    function exportToCalendar(eventId) {
+        const event = allEvents.find(e => e.id == eventId);
+        if (!event) {
+            console.error('Event not found for calendar export.');
+            return;
+        }
+        
+        if (!event.event_date) {
+            console.error('Event does not have a date set.');
+            return;
+        }
+        
+        const eventDate = new Date(event.event_date);
+        if (isNaN(eventDate.getTime())) {
+            console.error('Invalid event date.');
+            return;
+        }
+        
+        // Parse time if available
+        if (event.event_time) {
+            const timeParts = event.event_time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+            if (timeParts) {
+                let hours = parseInt(timeParts[1]);
+                const minutes = parseInt(timeParts[2]);
+                const ampm = timeParts[3];
+                
+                if (ampm) {
+                    if (ampm.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+                    if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
+                }
+                eventDate.setHours(hours, minutes, 0, 0);
+            }
+        }
+        
+        const endDate = new Date(eventDate);
+        endDate.setHours(endDate.getHours() + 2); // Default 2-hour duration
+        
+        // Format dates for iCal (YYYYMMDDTHHMMSS)
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}${month}${day}T${hours}${minutes}${seconds}`;
+        };
+        
+        const start = formatDate(eventDate);
+        const end = formatDate(endDate);
+        
+        // Escape special characters in description
+        const escapeText = (text) => {
+            return (text || '').replace(/\\/g, '\\\\')
+                               .replace(/,/g, '\\,')
+                               .replace(/;/g, '\\;')
+                               .replace(/\n/g, '\\n');
+        };
+        
+        // Create iCal content
+        const icalContent = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Enterprise Room Business Hub//Event Calendar//EN',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            'BEGIN:VEVENT',
+            `UID:${event.id}@entroombusinesshub.com`,
+            `DTSTART:${start}`,
+            `DTEND:${end}`,
+            `SUMMARY:${escapeText(event.title || 'Event')}`,
+            `DESCRIPTION:${escapeText(event.description || '')}`,
+            'STATUS:CONFIRMED',
+            'SEQUENCE:0',
+            'END:VEVENT',
+            'END:VCALENDAR'
+        ].join('\r\n');
+        
+        // Create download
+        const blob = new Blob([icalContent], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${(event.title || 'event').replace(/[^a-z0-9]/gi, '_').toLowerCase()}.ics`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        // Mark calendar as added in localStorage
+        const calendarAdded = JSON.parse(localStorage.getItem('calendarAdded') || '[]');
+        if (!calendarAdded.includes(parseInt(eventId))) {
+            calendarAdded.push(parseInt(eventId));
+            localStorage.setItem('calendarAdded', JSON.stringify(calendarAdded));
+        }
+    }
+
+    // Handle RSVP
+    async function handleRSVP(eventId, eventTitle) {
+        let userToken = sessionStorage.getItem('userToken');
+        const userAuthenticated = sessionStorage.getItem('userAuthenticated');
+        const userEmail = sessionStorage.getItem('userEmail');
+        
+        // If user is authenticated via legacy method but doesn't have a token,
+        // they need to log in again using the API-based login
+        if (!userToken && userAuthenticated === 'true') {
+            alert('Your session needs to be refreshed. Please log in again to RSVP for events.');
+            sessionStorage.removeItem('userAuthenticated');
+            sessionStorage.removeItem('userEmail');
+            sessionStorage.removeItem('userName');
+            window.location.href = 'login.html?redirect=eventspage.html';
+            return;
+        }
+        
+        if (!userToken) {
+            alert('Please login to RSVP for events.');
+            window.location.href = 'login.html?redirect=eventspage.html';
+            return;
+        }
+        
+        // Check if event is in the past
+        const event = allEvents.find(e => e.id == eventId);
+        if (!event) {
+            alert('Event not found.');
+            return;
+        }
+        
+        const isEventInPast = (event) => {
+            if (!event.event_date && !event.date) return false;
+            const eventDate = new Date(event.event_date || event.date);
+            if (isNaN(eventDate.getTime())) return false;
+            eventDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return eventDate < today;
+        };
+        
+        const isPast = isEventInPast(event);
+        const isHistorical = (event.status || '').toLowerCase() === 'historical' || isPast;
+        
+        if (isHistorical) {
+            alert('You cannot register for past events.');
+            return;
+        }
+        
+        // Check current RSVP status
+        try {
+            const checkResponse = await fetch(`http://localhost:3000/api/events/${eventId}/rsvp`, {
+                headers: {
+                    'Authorization': `Bearer ${userToken}`
+                }
+            });
+            
+            if (!checkResponse.ok && checkResponse.status !== 401) {
+                throw new Error('Failed to check RSVP status');
+            }
+            
+            const checkData = await checkResponse.json();
+            const isRSVPed = checkData.is_rsvped || false;
+            
+            if (isRSVPed) {
+                // Cancel RSVP
+                const cancelResponse = await fetch(`http://localhost:3000/api/events/${eventId}/rsvp`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    }
+                });
+                
+                if (cancelResponse.ok) {
+                    // Remove from calendar tracking
+                    const calendarAdded = JSON.parse(localStorage.getItem('calendarAdded') || '[]');
+                    const updatedCalendar = calendarAdded.filter(id => id != eventId);
+                    localStorage.setItem('calendarAdded', JSON.stringify(updatedCalendar));
+                    
+                    alert(`You have cancelled your registration for "${eventTitle}"`);
+                    loadEvents(); // Reload events to update counts
+                } else {
+                    const errorData = await cancelResponse.json();
+                    alert(errorData.message || 'Failed to cancel RSVP. Please try again.');
+                }
+            } else {
+                // Add RSVP
+                const rsvpResponse = await fetch(`http://localhost:3000/api/events/${eventId}/rsvp`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (rsvpResponse.ok) {
+                    // Automatically export to calendar after successful RSVP
+                    exportToCalendar(eventId);
+                    alert(`You have successfully registered for "${eventTitle}"! The event has been added to your calendar.`);
+                    loadEvents(); // Reload events to update counts
+                } else {
+                    const errorData = await rsvpResponse.json();
+                    if (rsvpResponse.status === 409) {
+                        alert('You are already registered for this event.');
+                    } else {
+                        alert(errorData.message || 'Failed to register. Please try again.');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('RSVP error:', error);
+            if (error.message.includes('401') || error.message.includes('token')) {
+                alert('Your session has expired. Please login again.');
+                window.location.href = 'login.html?redirect=eventspage.html';
+            } else {
+                alert('An error occurred. Please try again.');
+            }
+        }
+    }
+
+    // Save all events to localStorage
+    function saveAllEvents() {
+        const events = JSON.parse(localStorage.getItem('allEvents') || '[]');
+        if (events.length === 0) {
+            alert('No events to save. Please wait for events to load.');
+            return;
+        }
+        localStorage.setItem('savedEvents', JSON.stringify(events));
+        alert(`Successfully saved ${events.length} event(s) to your saved events list.`);
+    }
+
+    // Export events as text
+    function exportEvents() {
+        const events = JSON.parse(localStorage.getItem('allEvents') || '[]');
+        if (events.length === 0) {
+            alert('No events to export. Please wait for events to load.');
+            return;
+        }
+        
+        let exportText = `Enterprise Room Business Hub - Events Export\n`;
+        exportText += `Generated: ${new Date().toLocaleString()}\n\n`;
+        exportText += `Total Events: ${events.length}\n\n`;
+        exportText += `${'='.repeat(60)}\n\n`;
+        
+        events.forEach((event, index) => {
+            exportText += `EVENT ${index + 1}\n`;
+            exportText += `${'-'.repeat(60)}\n`;
+            exportText += `Title: ${event.title || 'N/A'}\n`;
+            exportText += `Description: ${event.description || 'N/A'}\n`;
+            exportText += `Date: ${event.dateDisplay || event.date_display || event.event_date || 'N/A'}\n`;
+            exportText += `Time: ${event.time || event.event_time || 'N/A'}\n`;
+            exportText += `Status: ${event.status || 'N/A'}\n`;
+            exportText += `Type: ${event.eventType || 'N/A'}\n`;
+            if (event.social_links) {
+                try {
+                    const socialLinks = typeof event.social_links === 'string' ? JSON.parse(event.social_links) : event.social_links;
+                    exportText += `Social Links: ${Object.keys(socialLinks).join(', ')}\n`;
+                } catch (e) {
+                    exportText += `Social Links: ${event.social_links}\n`;
+                }
+            }
+            exportText += `\n${'='.repeat(60)}\n\n`;
+        });
+        
+        const blob = new Blob([exportText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `events-export-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Print events
+    function printEvents() {
+        const events = JSON.parse(localStorage.getItem('allEvents') || '[]');
+        if (events.length === 0) {
+            alert('No events to print. Please wait for events to load.');
+            return;
+        }
+        
+        const printWindow = window.open('', '_blank');
+        let printContent = `
+            <html>
+                <head>
+                    <title>Events - Enterprise Room Business Hub</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            color: #2d3748;
+                        }
+                        h1 {
+                            color: #1a365d;
+                            border-bottom: 3px solid #2b6cb0;
+                            padding-bottom: 10px;
+                        }
+                        .event-section {
+                            margin: 30px 0;
+                            padding: 20px;
+                            border: 1px solid #ddd;
+                            border-radius: 8px;
+                            background: #f9f9f9;
+                        }
+                        .event-title {
+                            font-size: 1.3em;
+                            font-weight: bold;
+                            color: #1a365d;
+                            margin-bottom: 10px;
+                        }
+                        .event-detail {
+                            margin: 8px 0;
+                            line-height: 1.6;
+                        }
+                        .event-detail-label {
+                            font-weight: 600;
+                            color: #2d3748;
+                        }
+                        .event-detail-value {
+                            color: #718096;
+                        }
+                        .header-info {
+                            margin-bottom: 20px;
+                            color: #718096;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>Enterprise Room Business Hub - Events</h1>
+                    <div class="header-info">
+                        <p>Generated: ${new Date().toLocaleString()}</p>
+                        <p>Total Events: ${events.length}</p>
+                    </div>
+        `;
+        
+        events.forEach((event, index) => {
+            printContent += `
+                <div class="event-section">
+                    <div class="event-title">Event ${index + 1}: ${event.title || 'N/A'}</div>
+                    <div class="event-detail">
+                        <span class="event-detail-label">Description:</span>
+                        <span class="event-detail-value">${event.description || 'N/A'}</span>
+                    </div>
+                    <div class="event-detail">
+                        <span class="event-detail-label">Date:</span>
+                        <span class="event-detail-value">${event.dateDisplay || event.date_display || event.event_date || 'N/A'}</span>
+                    </div>
+                    <div class="event-detail">
+                        <span class="event-detail-label">Time:</span>
+                        <span class="event-detail-value">${event.time || event.event_time || 'N/A'}</span>
+                    </div>
+                    <div class="event-detail">
+                        <span class="event-detail-label">Status:</span>
+                        <span class="event-detail-value">${event.status || 'N/A'}</span>
+                    </div>
+                    <div class="event-detail">
+                        <span class="event-detail-label">Type:</span>
+                        <span class="event-detail-value">${event.eventType || 'N/A'}</span>
+                    </div>
+            `;
+            
+            if (event.social_links) {
+                try {
+                    const socialLinks = typeof event.social_links === 'string' ? JSON.parse(event.social_links) : event.social_links;
+                    const socialKeys = Object.keys(socialLinks).filter(key => socialLinks[key]);
+                    if (socialKeys.length > 0) {
+                        printContent += `
+                            <div class="event-detail">
+                                <span class="event-detail-label">Social Links:</span>
+                                <span class="event-detail-value">${socialKeys.join(', ')}</span>
+                            </div>
+                        `;
+                    }
+                } catch (e) {
+                    // Ignore parsing errors
+                }
+            }
+            
+            printContent += `</div>`;
+        });
+        
+        printContent += `
+                </body>
+            </html>
+        `;
+        
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    // Scroll to and expand a specific event by ID
+    function scrollToEvent(eventId) {
+        if (!eventId) return;
+        
+        // Wait a bit for events to render
+        setTimeout(() => {
+            const eventCard = document.getElementById(`event-card-${eventId}`);
+            if (eventCard) {
+                // Scroll to the event card
+                eventCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Highlight the card briefly
+                eventCard.style.transition = 'box-shadow 0.3s';
+                eventCard.style.boxShadow = '0 4px 20px rgba(37, 99, 235, 0.4)';
+                setTimeout(() => {
+                    eventCard.style.boxShadow = '';
+                }, 2000);
+                
+                // Expand description if it's truncated
+                const seeMoreBtn = document.getElementById(`see-more-${eventId}`);
+                if (seeMoreBtn && seeMoreBtn.textContent === 'See More') {
+                    toggleDescription(eventId);
+                }
+            }
+        }, 500);
+    }
+
+    // Initialize on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        loadEvents();
+        updateNavAuthStatus();
+        loadNavAvatar();
+        
+        // Check for event ID in URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('event');
+        if (eventId) {
+            // Wait for events to load, then scroll to the event
+            const checkEventLoaded = setInterval(() => {
+                const eventCard = document.getElementById(`event-card-${eventId}`);
+                if (eventCard) {
+                    clearInterval(checkEventLoaded);
+                    scrollToEvent(eventId);
+                }
+            }, 100);
+            
+            // Stop checking after 5 seconds
+            setTimeout(() => clearInterval(checkEventLoaded), 5000);
+        }
+    });
+</script>
+
+</body>
+</html>

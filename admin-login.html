@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .login-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(to bottom, #e6f2ff, #f0f8ff);
+            min-height: 100vh;
+        }
+
+        .login-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .login-card p {
+            color: var(--text-light);
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .admin-logo {
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn-login:hover {
+            background: var(--accent);
+        }
+
+        .footer-links {
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .footer-links a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="admin-logo">A</div>
+        <h2>Admin Login</h2>
+        <p>Enter your credentials to access the admin dashboard.</p>
+        
+        <div class="error-message" id="errorMessage">
+            Invalid username or password. Please try again.
+        </div>
+
+        <form id="adminLoginForm">
+            <div class="input-group">
+                <label>Admin Username</label>
+                <input type="text" id="username" placeholder="Enter username" required autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn-login">Login to Dashboard</button>
+        </form>
+
+        <div class="footer-links">
+            <a href="index.html">← Back to Website</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+</footer>
+
+<script>
+    // Check if already logged in
+    if (sessionStorage.getItem('adminAuthenticated') === 'true') {
+        window.location.href = 'admin.html';
+    }
+
+    document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('errorMessage');
+        const submitButton = document.querySelector('.btn-login');
+        
+        // Disable button during request
+        submitButton.disabled = true;
+        submitButton.textContent = 'Logging in...';
+        errorMessage.classList.remove('show');
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/auth/admin/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.token) {
+                // Store JWT token and admin info
+                sessionStorage.setItem('adminToken', data.token);
+                sessionStorage.setItem('adminAuthenticated', 'true');
+                sessionStorage.setItem('adminUsername', data.admin.username);
+                sessionStorage.setItem('adminId', data.admin.id);
+                
+                // Redirect to admin dashboard
+                window.location.href = 'admin.html';
+            } else {
+                // Show error message
+                errorMessage.textContent = data.message || 'Invalid credentials';
+                errorMessage.classList.add('show');
+                
+                // Clear password field
+                document.getElementById('password').value = '';
+                
+                // Hide error after 5 seconds
+                setTimeout(() => {
+                    errorMessage.classList.remove('show');
+                }, 5000);
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            errorMessage.textContent = 'Connection error. Please check if the server is running.';
+            errorMessage.classList.add('show');
+            
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Login to Dashboard';
+        }
+    });
+</script>
+
+</body>
+</html>
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .login-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(to bottom, #e6f2ff, #f0f8ff);
+            min-height: 100vh;
+        }
+
+        .login-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .login-card p {
+            color: var(--text-light);
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .admin-logo {
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .error-message {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn-login:hover {
+            background: var(--accent);
+        }
+
+        .footer-links {
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .footer-links a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="admin-logo">A</div>
+        <h2>Admin Login</h2>
+        <p>Enter your credentials to access the admin dashboard.</p>
+        
+        <div class="error-message" id="errorMessage">
+            Invalid username or password. Please try again.
+        </div>
+
+        <form id="adminLoginForm">
+            <div class="input-group">
+                <label>Admin Username</label>
+                <input type="text" id="username" placeholder="Enter username" required autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password" required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn-login">Login to Dashboard</button>
+        </form>
+
+        <div class="footer-links">
+            <a href="index.html">← Back to Website</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+</footer>
+
+<script>
+    // Check if already logged in
+    if (sessionStorage.getItem('adminAuthenticated') === 'true') {
+        window.location.href = 'admin.html';
+    }
+
+    document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorMessage = document.getElementById('errorMessage');
+        const submitButton = document.querySelector('.btn-login');
+        
+        // Disable button during request
+        submitButton.disabled = true;
+        submitButton.textContent = 'Logging in...';
+        errorMessage.classList.remove('show');
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/auth/admin/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.token) {
+                // Store JWT token and admin info
+                sessionStorage.setItem('adminToken', data.token);
+                sessionStorage.setItem('adminAuthenticated', 'true');
+                sessionStorage.setItem('adminUsername', data.admin.username);
+                sessionStorage.setItem('adminId', data.admin.id);
+                
+                // Redirect to admin dashboard
+                window.location.href = 'admin.html';
+            } else {
+                // Show error message
+                errorMessage.textContent = data.message || 'Invalid credentials';
+                errorMessage.classList.add('show');
+                
+                // Clear password field
+                document.getElementById('password').value = '';
+                
+                // Hide error after 5 seconds
+                setTimeout(() => {
+                    errorMessage.classList.remove('show');
+                }, 5000);
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            errorMessage.textContent = 'Connection error. Please check if the server is running.';
+            errorMessage.classList.add('show');
+            
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Login to Dashboard';
+        }
+    });
+</script>
+
+</body>
+</html>
+
+image.png

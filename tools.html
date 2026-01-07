@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Calculators | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <script>
+        // Check authentication before page loads
+        (function() {
+            if (sessionStorage.getItem('userAuthenticated') !== 'true') {
+                sessionStorage.setItem('redirectAfterLogin', 'tools.html');
+                window.location.replace('login.html');
+                return;
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Page-specific styles */
+        .header-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .tool-card {
+            background: #f5fbff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #d0e8ff;
+        }
+
+        .tool-card h2 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 8px;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+
+        .tool-card .input-group {
+            margin-bottom: 12px;
+        }
+
+        .tool-card .input-group label {
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+        }
+
+        .tool-card .input-group input {
+            padding: 10px;
+            font-size: 0.9rem;
+        }
+
+        .result-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: #ebf8ff;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #bee3f8;
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+
+        .result-val {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .conversion-box {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--text-light);
+            border-top: 1px dashed #cbd5e0;
+            padding-top: 10px;
+        }
+
+        @media (max-width: 1200px) {
+            .tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            .tool-card {
+                padding: 15px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .tools-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .tools-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .currency-item {
+            display: inline-block;
+            margin: 0 10px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .btn-calc {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-calc:hover {
+            background: var(--accent);
+        }
+
+        .budget-result-box {
+            background-color: #f0fff4;
+            border-color: #c6f6d5;
+        }
+
+        .budget-result-val {
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <span>Financial Calculators</span>
+</div>
+
+<div class="container">
+    <div class="header-section">
+        <h1>Financial Planning Calculators</h1>
+        <p>Analyze your business and property investments with current Nigerian Naira (₦) premises.</p>
+        <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="saveAllCalculations()" class="btn btn-primary" style="padding: 10px 20px;">Save All Calculations</button>
+            <button onclick="exportResults()" class="btn btn-success" style="padding: 10px 20px;">Export Results</button>
+            <button onclick="printResults()" class="btn" style="padding: 10px 20px; background: var(--white); border: 1px solid var(--border);">Print</button>
+        </div>
+    </div>
+
+    <div class="tools-grid">
+        <div class="tool-card">
+            <h2>Budgeting Calculator</h2>
+            <div class="input-group">
+                <label>Monthly Revenue (₦)</label>
+                <input type="text" id="revenue" value="1,200,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')">
+            </div>
+            <div class="input-group">
+                <label>Operating Expenses (₦)</label>
+                <input type="text" id="expenses" value="700,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')">
+            </div>
+            <div class="input-group">
+                <label>Estimated Tax (%)</label>
+                <input type="number" id="tax" value="7.5">
+            </div>
+            <button class="btn-calc" style="background-color: var(--success);" onclick="calculateBudget()">Check Net Margin</button>
+            <div class="result-box budget-result-box">
+                <div class="result-label">Monthly Net Profit</div>
+                <div class="result-val budget-result-val" id="budgetResult">₦0.00</div>
+                <div class="conversion-box">
+                    <strong>International Equivalents:</strong><br>
+                    <span class="currency-item" id="budgetUSD">$0.00</span>
+                    <span class="currency-item" id="budgetGBP">£0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tool-card">
+            <h2>Business Loan Calculator</h2>
+            <div class="input-group">
+                <label>Loan Amount (₦)</label>
+                <input type="text" id="loanAmount" value="5,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')">
+            </div>
+            <div class="input-group">
+                <label>Interest Rate (Annual %)</label>
+                <input type="number" id="loanRate" value="22" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>Term (Months)</label>
+                <input type="number" id="loanTerm" value="24">
+            </div>
+            <button class="btn-calc" onclick="calculateLoan()">Calculate Repayment</button>
+            <div class="result-box">
+                <div class="result-label">Monthly Repayment</div>
+                <div class="result-val" id="loanResult">₦0.00</div>
+                <div class="conversion-box">
+                    <strong>International Equivalents:</strong><br>
+                    <span class="currency-item" id="loanUSD">$0.00</span>
+                    <span class="currency-item" id="loanGBP">£0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tool-card">
+            <h2>Mortgage Calculator</h2>
+            <div class="input-group">
+                <label>Property Price (₦)</label>
+                <input type="text" id="propPrice" value="45,000,000.00" onblur="formatAmountInput(this); updateLoanAmount();" onfocus="this.value = this.value.replace(/,/g, '')">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="input-group">
+                    <label>Deposit (₦)</label>
+                    <input type="text" id="downPayment" value="9,000,000.00" onblur="formatAmountInput(this); updateLoanAmount();" onfocus="this.value = this.value.replace(/,/g, '')">
+                </div>
+                <div class="input-group">
+                    <label>Loan Amount (₦)</label>
+                    <input type="text" id="loanAmountMortgage" value="36,000,000.00" readonly style="background-color: #f5f5f5; cursor: not-allowed;" onblur="formatAmountInput(this)">
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="input-group">
+                    <label>Interest Rate (%)</label>
+                    <input type="number" id="mortgageRate" value="16">
+                </div>
+                <div class="input-group">
+                    <label>Term (Years)</label>
+                    <input type="number" id="mortgageTerm" value="15">
+                </div>
+            </div>
+            <button class="btn-calc" onclick="calculateMortgage()">Calculate Mortgage</button>
+            <div class="result-box">
+                <div class="result-label">Estimated Monthly Payment</div>
+                <div class="result-val" id="mortgageResult">₦0.00</div>
+                <div class="conversion-box">
+                    <strong>International Equivalents:</strong><br>
+                    <span class="currency-item" id="mortgageUSD">$0.00</span>
+                    <span class="currency-item" id="mortgageGBP">£0.00</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Custom Tools will be loaded here dynamically -->
+        <div id="customToolsContainer"></div>
+    </div>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+    // Currency Exchange Rates - Load from localStorage or use defaults
+    let NGN_TO_USD = 1450;
+    let NGN_TO_GBP = 1850;
+    
+    // Load exchange rates from localStorage (set by admin)
+    function loadExchangeRates() {
+        const savedRates = JSON.parse(localStorage.getItem('exchangeRates') || '{}');
+        if (savedRates.usd) {
+            NGN_TO_USD = parseFloat(savedRates.usd) || 1450;
+        }
+        if (savedRates.gbp) {
+            NGN_TO_GBP = parseFloat(savedRates.gbp) || 1850;
+        }
+        console.log('Loaded exchange rates:', { USD: NGN_TO_USD, GBP: NGN_TO_GBP });
+    }
+    
+    // Load calculator defaults from localStorage (set by admin)
+    function loadCalculatorDefaults() {
+        const defaults = JSON.parse(localStorage.getItem('calculatorDefaults') || '{}');
+        
+        // Load loan calculator defaults
+        if (defaults.loanRate) {
+            const loanRateInput = document.getElementById('loanRate');
+            if (loanRateInput) loanRateInput.value = defaults.loanRate;
+        }
+        if (defaults.loanTerm) {
+            const loanTermInput = document.getElementById('loanTerm');
+            if (loanTermInput) loanTermInput.value = defaults.loanTerm;
+        }
+        
+        // Load mortgage calculator defaults
+        if (defaults.mortgageRate) {
+            const mortgageRateInput = document.getElementById('mortgageRate');
+            if (mortgageRateInput) mortgageRateInput.value = defaults.mortgageRate;
+        }
+        if (defaults.mortgageTerm) {
+            const mortgageTermInput = document.getElementById('mortgageTerm');
+            if (mortgageTermInput) mortgageTermInput.value = defaults.mortgageTerm;
+        }
+        
+        // Load tax rate default
+        if (defaults.taxRate) {
+            const taxInput = document.getElementById('tax');
+            if (taxInput) taxInput.value = defaults.taxRate;
+        }
+        
+        console.log('Loaded calculator defaults:', defaults);
+    }
+    
+    // Initialize exchange rates on load
+    loadExchangeRates();
+
+    // Helper function to parse formatted amount input (removes commas)
+    function parseAmountInput(value) {
+        return parseFloat(value.toString().replace(/,/g, '')) || 0;
+    }
+
+    // Helper function to format amount input with commas and 2 decimal places
+    function formatAmountInput(input) {
+        let value = input.value.replace(/,/g, '');
+        if (value === '' || isNaN(value)) {
+            input.value = '0.00';
+            return;
+        }
+        let num = parseFloat(value);
+        if (isNaN(num)) {
+            input.value = '0.00';
+            return;
+        }
+        input.value = num.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Helper function to format numbers as Naira
+    function formatNaira(amount) {
+        return '₦' + parseFloat(amount).toLocaleString('en-NG', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    // Helper function for $ and £
+    function formatForeign(amount, currency) {
+        const symbols = { 'USD': '$', 'GBP': '£' };
+        return symbols[currency] + parseFloat(amount).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function calculateLoan() {
+        const P = parseAmountInput(document.getElementById('loanAmount').value);
+        const r = (parseFloat(document.getElementById('loanRate').value) / 100) / 12;
+        const n = parseFloat(document.getElementById('loanTerm').value);
+
+        let monthly;
+        if (r === 0) {
+            monthly = P / n;
+        } else {
+            monthly = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        }
+        
+        document.getElementById('loanResult').innerText = formatNaira(monthly);
+        document.getElementById('loanUSD').innerText = formatForeign(monthly / NGN_TO_USD, 'USD');
+        document.getElementById('loanGBP').innerText = formatForeign(monthly / NGN_TO_GBP, 'GBP');
+    }
+
+    function updateLoanAmount() {
+        const price = parseAmountInput(document.getElementById('propPrice').value);
+        const down = parseAmountInput(document.getElementById('downPayment').value);
+        const loanAmount = price - down;
+        const loanAmountInput = document.getElementById('loanAmountMortgage');
+        loanAmountInput.value = loanAmount.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+
+    function calculateMortgage() {
+        const price = parseAmountInput(document.getElementById('propPrice').value);
+        const down = parseAmountInput(document.getElementById('downPayment').value);
+        const P = price - down;
+        const r = (parseFloat(document.getElementById('mortgageRate').value) / 100) / 12;
+        const n = parseFloat(document.getElementById('mortgageTerm').value) * 12;
+
+        if (r === 0) {
+            const monthly = P / n;
+            document.getElementById('mortgageResult').innerText = formatNaira(monthly);
+            document.getElementById('mortgageUSD').innerText = formatForeign(monthly / NGN_TO_USD, 'USD');
+            document.getElementById('mortgageGBP').innerText = formatForeign(monthly / NGN_TO_GBP, 'GBP');
+            return;
+        }
+
+        const monthly = (P * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+        
+        // Update UI
+        document.getElementById('mortgageResult').innerText = formatNaira(monthly);
+        document.getElementById('mortgageUSD').innerText = formatForeign(monthly / NGN_TO_USD, 'USD');
+        document.getElementById('mortgageGBP').innerText = formatForeign(monthly / NGN_TO_GBP, 'GBP');
+    }
+
+    function calculateBudget() {
+        const rev = parseAmountInput(document.getElementById('revenue').value);
+        const exp = parseAmountInput(document.getElementById('expenses').value);
+        const taxRate = parseFloat(document.getElementById('tax').value) / 100;
+        
+        const grossProfit = rev - exp;
+        const netProfit = grossProfit - (grossProfit * taxRate);
+        
+        document.getElementById('budgetResult').innerText = formatNaira(netProfit);
+        document.getElementById('budgetUSD').innerText = formatForeign(netProfit / NGN_TO_USD, 'USD');
+        document.getElementById('budgetGBP').innerText = formatForeign(netProfit / NGN_TO_GBP, 'GBP');
+    }
+
+    // Load custom tools from localStorage
+    function loadCustomTools() {
+        const customTools = JSON.parse(localStorage.getItem('customTools') || '[]');
+        const container = document.getElementById('customToolsContainer');
+        
+        if (!container || customTools.length === 0) {
+            return;
+        }
+        
+        // Create a new grid for custom tools
+        const customGrid = document.createElement('div');
+        customGrid.className = 'tools-grid';
+        customGrid.style.marginTop = '30px';
+        
+        customTools.forEach(tool => {
+            const toolCard = document.createElement('div');
+            toolCard.className = 'tool-card';
+            toolCard.setAttribute('data-tool-id', tool.id);
+            
+            // Build HTML for tool card
+            let inputsHTML = '';
+            tool.inputs.forEach(input => {
+                const onblurAttr = input.type === 'amount' ? 'onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, \'\')"' : '';
+                const inputType = input.type === 'amount' ? 'text' : input.type || 'number';
+                inputsHTML += `
+                    <div class="input-group">
+                        <label>${input.label}</label>
+                        <input type="${inputType}" id="${input.id}" value="${input.value || ''}" ${onblurAttr}>
+                    </div>
+                `;
+            });
+            
+            const resultBoxClass = tool.resultColor === 'success' ? 'result-box budget-result-box' : 'result-box';
+            const resultValClass = tool.resultColor === 'success' ? 'result-val budget-result-val' : 'result-val';
+            
+            let conversionHTML = '';
+            if (tool.showConversion) {
+                conversionHTML = `
+                    <div class="conversion-box">
+                        <strong>International Equivalents:</strong><br>
+                        <span class="currency-item" id="${tool.resultId}USD">$0.00</span>
+                        <span class="currency-item" id="${tool.resultId}GBP">£0.00</span>
+                    </div>
+                `;
+            }
+            
+            toolCard.innerHTML = `
+                <h2>${tool.name}</h2>
+                ${tool.description ? `<p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 15px;">${tool.description}</p>` : ''}
+                ${inputsHTML}
+                <button class="btn-calc" style="background-color: ${tool.buttonColor};" onclick="executeCustomTool('${tool.id}')">${tool.buttonText}</button>
+                <div class="${resultBoxClass}">
+                    <div class="result-label">${tool.resultLabel}</div>
+                    <div class="${resultValClass}" id="${tool.resultId}">₦0.00</div>
+                    ${conversionHTML}
+                </div>
+            `;
+            
+            customGrid.appendChild(toolCard);
+            
+            // Store tool data for execution
+            if (!window.customToolsData) {
+                window.customToolsData = {};
+            }
+            window.customToolsData[tool.id] = tool;
+        });
+        
+        container.appendChild(customGrid);
+    }
+    
+    // Execute custom tool calculation
+    function executeCustomTool(toolId) {
+        if (!window.customToolsData || !window.customToolsData[toolId]) {
+            alert('Tool not found.');
+            return;
+        }
+        
+        const tool = window.customToolsData[toolId];
+        
+        try {
+            // Create a function that has access to all helper functions
+            const funcCode = `
+                (function() {
+                    ${tool.function}
+                })();
+            `;
+            
+            // Execute the function
+            eval(funcCode);
+            
+            // If conversion is enabled, update conversion values
+            if (tool.showConversion) {
+                const resultElement = document.getElementById(tool.resultId);
+                if (resultElement) {
+                    const resultText = resultElement.innerText;
+                    // Extract numeric value from result (remove currency symbols and commas)
+                    const numericValue = parseFloat(resultText.replace(/[₦$,£,\s]/g, '')) || 0;
+                    
+                    const usdElement = document.getElementById(tool.resultId + 'USD');
+                    const gbpElement = document.getElementById(tool.resultId + 'GBP');
+                    
+                    if (usdElement && !isNaN(numericValue)) {
+                        usdElement.innerText = formatForeign(numericValue / NGN_TO_USD, 'USD');
+                    }
+                    if (gbpElement && !isNaN(numericValue)) {
+                        gbpElement.innerText = formatForeign(numericValue / NGN_TO_GBP, 'GBP');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error executing tool calculation:', error);
+            alert('Error calculating result: ' + error.message + '. Please check the console for details.');
+        }
+    }
+    
+    // Run calculations once on load so the screen isn't empty
+    window.onload = function() {
+        // Load exchange rates and calculator defaults from localStorage
+        loadExchangeRates();
+        loadCalculatorDefaults();
+        
+        // Format all amount inputs on load
+        formatAmountInput(document.getElementById('revenue'));
+        formatAmountInput(document.getElementById('expenses'));
+        formatAmountInput(document.getElementById('loanAmount'));
+        formatAmountInput(document.getElementById('propPrice'));
+        formatAmountInput(document.getElementById('downPayment'));
+        
+        // Update loan amount for mortgage calculator
+        updateLoanAmount();
+        
+        calculateLoan();
+        calculateMortgage();
+        calculateBudget();
+        
+        // Load custom tools
+        loadCustomTools();
+    };
+    
+    // Listen for storage changes to update exchange rates in real-time
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'exchangeRates') {
+            loadExchangeRates();
+            // Recalculate all results with new rates
+            calculateLoan();
+            calculateMortgage();
+            calculateBudget();
+        } else if (e.key === 'calculatorDefaults') {
+            loadCalculatorDefaults();
+            // Recalculate with new defaults
+            calculateLoan();
+            calculateMortgage();
+            calculateBudget();
+        }
+    });
+    
+    // Save calculations to localStorage
+    function saveAllCalculations() {
+        const calculations = {
+            budget: {
+                revenue: document.getElementById('revenue').value,
+                expenses: document.getElementById('expenses').value,
+                tax: document.getElementById('tax').value,
+                result: document.getElementById('budgetResult').innerText
+            },
+            loan: {
+                amount: document.getElementById('loanAmount').value,
+                rate: document.getElementById('loanRate').value,
+                term: document.getElementById('loanTerm').value,
+                result: document.getElementById('loanResult').innerText
+            },
+            mortgage: {
+                price: document.getElementById('propPrice').value,
+                deposit: document.getElementById('downPayment').value,
+                rate: document.getElementById('mortgageRate').value,
+                term: document.getElementById('mortgageTerm').value,
+                result: document.getElementById('mortgageResult').innerText
+            },
+            timestamp: new Date().toISOString()
+        };
+        
+        localStorage.setItem('savedCalculations', JSON.stringify(calculations));
+        alert('Calculations saved successfully!');
+    }
+    
+    // Export results as text
+    function exportResults() {
+        const results = `Financial Planning Calculator Results\nGenerated: ${new Date().toLocaleString()}\n\nBUDGETING CALCULATOR\nMonthly Revenue: ${document.getElementById('revenue').value}\nOperating Expenses: ${document.getElementById('expenses').value}\nTax Rate: ${document.getElementById('tax').value}%\nResult: ${document.getElementById('budgetResult').innerText}\n\nBUSINESS LOAN CALCULATOR\nLoan Amount: ${document.getElementById('loanAmount').value}\nInterest Rate: ${document.getElementById('loanRate').value}%\nTerm: ${document.getElementById('loanTerm').value} months\nResult: ${document.getElementById('loanResult').innerText}\n\nMORTGAGE CALCULATOR\nProperty Price: ${document.getElementById('propPrice').value}\nDeposit: ${document.getElementById('downPayment').value}\nInterest Rate: ${document.getElementById('mortgageRate').value}%\nTerm: ${document.getElementById('mortgageTerm').value} years\nResult: ${document.getElementById('mortgageResult').innerText}`;
+        
+        const blob = new Blob([results], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `calculations-${new Date().toISOString().split('T')[0]}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+    
+    // Print results
+    function printResults() {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`<html><head><title>Financial Calculator Results</title><style>body{font-family:Arial,sans-serif;padding:20px}h1{color:#1a365d}.result-section{margin:20px 0;padding:15px;border:1px solid #ddd}</style></head><body><h1>Financial Planning Calculator Results</h1><p>Generated: ${new Date().toLocaleString()}</p><div class="result-section"><h2>Budgeting Calculator</h2><p>Monthly Revenue: ${document.getElementById('revenue').value}</p><p>Operating Expenses: ${document.getElementById('expenses').value}</p><p>Tax Rate: ${document.getElementById('tax').value}%</p><p><strong>Result: ${document.getElementById('budgetResult').innerText}</strong></p></div><div class="result-section"><h2>Business Loan Calculator</h2><p>Loan Amount: ${document.getElementById('loanAmount').value}</p><p>Interest Rate: ${document.getElementById('loanRate').value}%</p><p>Term: ${document.getElementById('loanTerm').value} months</p><p><strong>Result: ${document.getElementById('loanResult').innerText}</strong></p></div><div class="result-section"><h2>Mortgage Calculator</h2><p>Property Price: ${document.getElementById('propPrice').value}</p><p>Deposit: ${document.getElementById('downPayment').value}</p><p>Interest Rate: ${document.getElementById('mortgageRate').value}%</p><p>Term: ${document.getElementById('mortgageTerm').value} years</p><p><strong>Result: ${document.getElementById('mortgageResult').innerText}</strong></p></div></body></html>`);
+        printWindow.document.close();
+        printWindow.print();
+    }
+</script>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h3>Enterprise Room Business Hub</h3>
+                <p>Empowering entrepreneurs with resources, networks, and tools to scale and succeed.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="eventspage.html">Events</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="directories.html">Directories</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="tools.html">Financial Tools</a></li>
+                    <li><a href="pitch.html">Pitch Competition</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>
+                    <a href="contact.html">Contact Us</a><br>
+                    <a href="faq.html">FAQ</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

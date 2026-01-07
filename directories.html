@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Directories | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <script>
+        // Check authentication before page loads
+        (function() {
+            if (sessionStorage.getItem('userAuthenticated') !== 'true') {
+                sessionStorage.setItem('redirectAfterLogin', 'directories.html');
+                window.location.replace('login.html');
+                return;
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Page-specific styles */
+        .header-area {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 25px;
+            border: none;
+            background: var(--light);
+            cursor: pointer;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            background: var(--border);
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .directory-content {
+            display: none;
+        }
+
+        .directory-content.active {
+            display: block;
+            max-height: calc(100vh - 400px);
+            overflow: hidden;
+        }
+
+        .directory-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: none;
+            table-layout: fixed;
+        }
+
+        .directory-table thead {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .directory-table th {
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.75rem;
+            border: none;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .directory-table td {
+            padding: 10px 8px;
+            border: none;
+            vertical-align: middle;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.75rem;
+        }
+
+        .directory-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            display: none;
+        }
+
+        .directory-table tbody tr.visible {
+            display: table-row;
+        }
+
+        .directory-table tbody tr:hover {
+            background: var(--light);
+        }
+
+        .directory-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .member-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 0;
+            object-fit: cover;
+            border: none;
+            flex-shrink: 0;
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .social-links {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 10px;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .business-name {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.75rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding: 20px 0;
+        }
+
+        .pagination button {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            background: var(--white);
+            color: var(--primary);
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: var(--primary);
+            color: var(--white);
+            border-color: var(--primary);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-info {
+            padding: 0 15px;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .directory-table tbody tr {
+            display: none;
+        }
+
+        .directory-table tbody tr.visible {
+            display: table-row;
+        }
+
+        .business-name {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .directory-table a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.3s;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        .directory-table a:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .directory-content.active {
+            max-height: calc(100vh - 400px);
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .directory-table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .directory-table td {
+                white-space: normal;
+            }
+
+            .directory-table thead,
+            .directory-table tbody,
+            .directory-table th,
+            .directory-table td,
+            .directory-table tr {
+                display: block;
+            }
+
+            .directory-table thead {
+                display: none;
+            }
+
+            .directory-table tr {
+                border: 1px solid var(--border);
+                margin-bottom: 10px;
+                border-radius: 8px;
+            }
+
+            .directory-table td {
+                border-bottom: 1px solid var(--border);
+                position: relative;
+                padding-left: 50%;
+            }
+
+            .directory-table td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 15px;
+                width: 45%;
+                font-weight: 600;
+                color: var(--primary);
+            }
+        }
+
+        .search-box { 
+            max-width: 500px;
+            margin: 0 auto 30px auto;
+            display: flex;
+        }
+
+        .search-box input { 
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px 0 0 6px;
+            border-right: none;
+        }
+
+        .search-box button { 
+            padding: 0 20px;
+            border: none;
+            background: var(--accent);
+            color: var(--white);
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .search-box button:hover {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div class="header-area">
+        <h1>Global Network Directories</h1>
+        <p>Explore our ecosystem of businesses, members, and strategic partners.</p>
+    </div>
+
+    <div class="breadcrumbs">
+        <a href="index.html">Home</a>
+        <span>/</span>
+        <span>Directories</span>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="directorySearch" placeholder="Search by name, industry, or location..." onkeyup="filterDirectories()">
+        <button onclick="filterDirectories()">Search</button>
+    </div>
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+        <select id="sortOption" onchange="sortDirectories()" style="padding: 8px; border-radius: 5px; border: 1px solid var(--border);">
+            <option value="name-asc">Sort by Name (A-Z)</option>
+            <option value="name-desc">Sort by Name (Z-A)</option>
+            <option value="date-newest">Newest First</option>
+            <option value="date-oldest">Oldest First</option>
+        </select>
+        <button class="btn-small btn-edit" onclick="clearFilters()" style="padding: 8px 15px;">Clear Filters</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('business')">Business Directory</button>
+        <button class="tab-btn" onclick="showTab('members')">Members Directory</button>
+        <button class="tab-btn" onclick="showTab('partners')">Partner Directory</button>
+    </div>
+
+    <div id="business" class="directory-content active">
+        <table class="directory-table">
+            <thead>
+                <tr>
+                    <th>Business Name</th>
+                    <th>Address</th>
+                    <th>Email</th>
+                    <th>Phone Number</th>
+                    <th>Website</th>
+                </tr>
+            </thead>
+            <tbody id="businessTableBody">
+                <!-- Business entries will be loaded here dynamically -->
+            </tbody>
+        </table>
+        <div class="pagination" id="business-pagination"></div>
+    </div>
+
+    <div id="members" class="directory-content">
+        <table class="directory-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Avatar</th>
+                    <th style="width: 15%;">Name</th>
+                    <th style="width: 15%;">Current Title</th>
+                    <th style="width: 18%;">Current Organisation</th>
+                    <th style="width: 18%;">Personal Website</th>
+                    <th>Social Media Profiles</th>
+                </tr>
+            </thead>
+            <tbody id="membersTableBody">
+                <!-- Member entries will be loaded here dynamically -->
+            </tbody>
+        </table>
+        <div class="pagination" id="members-pagination"></div>
+    </div>
+
+    <div id="partners" class="directory-content">
+        <table class="directory-table">
+            <thead>
+                <tr>
+                    <th style="width: 30%;">Address</th>
+                    <th style="width: 25%;">Email</th>
+                    <th style="width: 20%;">Phone Number</th>
+                    <th style="width: 25%;">Website</th>
+                </tr>
+            </thead>
+            <tbody id="partnersTableBody">
+                <!-- Partner entries will be loaded here dynamically -->
+            </tbody>
+        </table>
+        <div class="pagination" id="partners-pagination"></div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h3>Enterprise Room Business Hub</h3>
+                <p>Empowering entrepreneurs with resources, networks, and tools to scale and succeed.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="eventspage.html">Events</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="directories.html">Directories</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="tools.html">Financial Tools</a></li>
+                    <li><a href="pitch.html">Pitch Competition</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>
+                    <a href="contact.html">Contact Us</a><br>
+                    <a href="faq.html">FAQ</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    const ENTRIES_PER_PAGE = 30;
+    let currentPages = {
+        business: 1,
+        members: 1,
+        partners: 1
+    };
+
+    function setupPagination(tableId, paginationId) {
+        const table = document.querySelector(`#${tableId} .directory-table tbody`);
+        if (!table) return;
+        
+        const rows = Array.from(table.querySelectorAll('tr'));
+        const totalPages = Math.ceil(rows.length / ENTRIES_PER_PAGE);
+        const paginationDiv = document.getElementById(paginationId);
+        
+        if (rows.length === 0) {
+            paginationDiv.innerHTML = '';
+            return;
+        }
+
+        function showPage(page) {
+            const start = (page - 1) * ENTRIES_PER_PAGE;
+            const end = start + ENTRIES_PER_PAGE;
+            
+            rows.forEach((row, index) => {
+                if (index >= start && index < end) {
+                    row.classList.add('visible');
+                } else {
+                    row.classList.remove('visible');
+                }
+            });
+            
+            currentPages[tableId] = page;
+            updatePaginationControls();
+        }
+
+        function updatePaginationControls() {
+            const currentPage = currentPages[tableId];
+            let html = '';
+            
+            if (totalPages > 1) {
+                html += `<button onclick="goToPage('${tableId}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
+                html += `<span class="page-info">Page ${currentPage} of ${totalPages}</span>`;
+                html += `<button onclick="goToPage('${tableId}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+            }
+            
+            paginationDiv.innerHTML = html;
+        }
+
+        window[`goToPage_${tableId}`] = function(page) {
+            if (page < 1 || page > totalPages) return;
+            showPage(page);
+        };
+
+        // Initialize
+        showPage(1);
+    }
+
+    function goToPage(tableId, page) {
+        window[`goToPage_${tableId}`](page);
+    }
+
+    function showTab(tabId) {
+        // Hide all content
+        document.querySelectorAll('.directory-content').forEach(content => {
+            content.classList.remove('active');
+        });
+        // Remove active class from buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        // Show selected content and set button to active
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+        
+        // Setup pagination for the active tab
+        const paginationMap = {
+            'business': 'business-pagination',
+            'members': 'members-pagination',
+            'partners': 'partners-pagination'
+        };
+        setupPagination(tabId, paginationMap[tabId]);
+    }
+
+    // Search and filter functionality
+    function filterDirectories() {
+        const searchTerm = document.getElementById('directorySearch')?.value.toLowerCase() || '';
+        const activeTab = document.querySelector('.directory-content.active');
+        if (!activeTab) return;
+        
+        const rows = activeTab.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Recalculate pagination after filtering
+        const tabId = activeTab.id;
+        const paginationMap = {
+            'business': 'business-pagination',
+            'members': 'members-pagination',
+            'partners': 'partners-pagination'
+        };
+        if (paginationMap[tabId]) {
+            setupPagination(tabId, paginationMap[tabId]);
+        }
+    }
+    
+    function sortDirectories() {
+        const sortOption = document.getElementById('sortOption')?.value || 'name-asc';
+        const activeTab = document.querySelector('.directory-content.active');
+        if (!activeTab) return;
+        
+        const tbody = activeTab.querySelector('tbody');
+        if (!tbody) return;
+        
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        
+        rows.sort((a, b) => {
+            if (sortOption === 'name-asc') {
+                const nameA = a.querySelector('.business-name')?.textContent || a.textContent;
+                const nameB = b.querySelector('.business-name')?.textContent || b.textContent;
+                return nameA.localeCompare(nameB);
+            } else if (sortOption === 'name-desc') {
+                const nameA = a.querySelector('.business-name')?.textContent || a.textContent;
+                const nameB = b.querySelector('.business-name')?.textContent || b.textContent;
+                return nameB.localeCompare(nameA);
+            }
+            return 0;
+        });
+        
+        rows.forEach(row => tbody.appendChild(row));
+        
+        // Recalculate pagination after sorting
+        const tabId = activeTab.id;
+        const paginationMap = {
+            'business': 'business-pagination',
+            'members': 'members-pagination',
+            'partners': 'partners-pagination'
+        };
+        if (paginationMap[tabId]) {
+            setupPagination(tabId, paginationMap[tabId]);
+        }
+    }
+    
+    function clearFilters() {
+        if (document.getElementById('directorySearch')) {
+            document.getElementById('directorySearch').value = '';
+        }
+        if (document.getElementById('sortOption')) {
+            document.getElementById('sortOption').value = 'name-asc';
+        }
+        filterDirectories();
+        sortDirectories();
+    }
+
+    // Load directories from API
+    async function loadDirectories() {
+        await Promise.all([
+            loadBusinessDirectory(),
+            loadMembersDirectory(),
+            loadPartnersDirectory()
+        ]);
+    }
+    
+    async function loadBusinessDirectory() {
+        const tbody = document.getElementById('businessTableBody');
+        
+        if (!tbody) return;
+        
+        // Show loading state
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-light);">Loading businesses...</td></tr>';
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/directories/business?limit=1000');
+            if (!response.ok) {
+                throw new Error('Failed to load businesses');
+            }
+            
+            const data = await response.json();
+            const businesses = data.businesses || [];
+            
+            if (businesses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-light);">No business entries found.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = businesses.map(business => `
+                <tr>
+                    <td class="business-name" data-label="Business Name">${business.business_name || 'Untitled Business'}</td>
+                    <td data-label="Address">${business.address || 'N/A'}</td>
+                    <td data-label="Email">${business.email ? `<a href="mailto:${business.email}">${business.email}</a>` : 'N/A'}</td>
+                    <td data-label="Phone">${business.phone || 'N/A'}</td>
+                    <td data-label="Website">${business.website ? `<a href="${business.website}" target="_blank">${business.website.replace(/^https?:\/\//, '')}</a>` : 'N/A'}</td>
+                </tr>
+            `).join('');
+            
+            // Re-setup pagination after loading
+            setTimeout(() => setupPagination('business', 'business-pagination'), 100);
+        } catch (error) {
+            console.error('Error loading businesses:', error);
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--live);">Error loading businesses. Please try again.</td></tr>';
+        }
+    }
+    
+    async function loadMembersDirectory() {
+        const tbody = document.getElementById('membersTableBody');
+        
+        if (!tbody) return;
+        
+        // Show loading state
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-light);">Loading members...</td></tr>';
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/directories/members?limit=1000');
+            if (!response.ok) {
+                throw new Error('Failed to load members');
+            }
+            
+            const data = await response.json();
+            const members = data.members || [];
+            
+            if (members.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-light);">No member entries found.</td></tr>';
+                return;
+            }
+        
+        // Function to generate social media icon
+        function getSocialMediaIcon(platform, url) {
+            if (!url) return '';
+            
+            const icons = {
+                linkedin: { color: '#0077b5', svg: '<path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>' },
+                twitter: { color: '#1DA1F2', svg: '<path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>' },
+                facebook: { color: '#1877F2', svg: '<path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>' },
+                instagram: { color: '#E4405F', svg: '<path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>' },
+                tiktok: { color: '#000000', svg: '<path d="M19.59 6.69a4.83 4.83 0 01-1.4-.13v6.05a7.5 7.5 0 01-7.5 7.5c-4.14 0-7.5-3.36-7.5-7.5s3.36-7.5 7.5-7.5c.81 0 1.59.13 2.32.36v2.46a5.05 5.05 0 00-2.32-.56c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5V3h2.48a4.79 4.79 0 001.4 3.69z"/>' },
+                threads: { color: '#000000', svg: '<path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.568 8.16c-.169 0-.306.137-.306.306v7.068c0 .169.137.306.306.306h.612c.169 0 .306-.137.306-.306V8.466c0-.169-.137-.306-.306-.306h-.612zm-2.142 1.836c-.169 0-.306.137-.306.306v5.232c0 .169.137.306.306.306h.612c.169 0 .306-.137.306-.306v-5.232c0-.169-.137-.306-.306-.306h-.612zm-2.142 1.836c-.169 0-.306.137-.306.306v3.396c0 .169.137.306.306.306h.612c.169 0 .306-.137.306-.306v-3.396c0-.169-.137-.306-.306-.306h-.612zm-2.142 1.836c-.169 0-.306.137-.306.306v1.56c0 .169.137.306.306.306h.612c.169 0 .306-.137.306-.306v-1.56c0-.169-.137-.306-.306-.306h-.612z"/>' },
+                youtube: { color: '#FF0000', svg: '<path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>' },
+                reddit: { color: '#FF4500', svg: '<path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c1.69 0 3.06 1.37 3.06 3.06 0 1.69-1.37 3.06-3.06 3.06-1.69 0-3.06-1.37-3.06-3.06 0-1.69 1.37-3.06 3.06-3.06zm-10.02 0c1.69 0 3.06 1.37 3.06 3.06 0 1.69-1.37 3.06-3.06 3.06-1.69 0-3.06-1.37-3.06-3.06 0-1.69 1.37-3.06 3.06-3.06zm5.01 2.744c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 2c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4 1.79-4 4-4zm-1.5 3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zm3 0c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5z"/>' }
+            };
+            
+            const icon = icons[platform.toLowerCase()];
+            if (!icon) return '';
+            
+            return `<a href="${url}" target="_blank" rel="noopener noreferrer" title="${platform.charAt(0).toUpperCase() + platform.slice(1)}" style="display: inline-block; width: 24px; height: 24px; background: ${icon.color}; border-radius: 4px; text-align: center; line-height: 24px; text-decoration: none; transition: opacity 0.2s;"><svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle;">${icon.svg}</svg></a>`;
+        }
+        
+        tbody.innerHTML = members.map(member => {
+            const avatar = member.avatar || member.avatar_url || 'https://via.placeholder.com/80x80/cccccc/cccccc';
+            const socialLinks = [];
+            
+            // Add all social media icons if URLs are provided
+            if (member.linkedin || member.linkedin_url) socialLinks.push(getSocialMediaIcon('linkedin', member.linkedin || member.linkedin_url));
+            if (member.twitter || member.twitter_url) socialLinks.push(getSocialMediaIcon('twitter', member.twitter || member.twitter_url));
+            if (member.facebook || member.facebook_url) socialLinks.push(getSocialMediaIcon('facebook', member.facebook || member.facebook_url));
+            if (member.instagram || member.instagram_url) socialLinks.push(getSocialMediaIcon('instagram', member.instagram || member.instagram_url));
+            if (member.tiktok || member.tiktok_url) socialLinks.push(getSocialMediaIcon('tiktok', member.tiktok || member.tiktok_url));
+            if (member.threads || member.threads_url) socialLinks.push(getSocialMediaIcon('threads', member.threads || member.threads_url));
+            if (member.youtube || member.youtube_url) socialLinks.push(getSocialMediaIcon('youtube', member.youtube || member.youtube_url));
+            if (member.reddit || member.reddit_url) socialLinks.push(getSocialMediaIcon('reddit', member.reddit || member.reddit_url));
+            
+            return `
+                <tr>
+                    <td data-label="Avatar">
+                        <img src="${avatar}" alt="${member.name || 'Member'}" class="member-image">
+                    </td>
+                    <td data-label="Name" class="business-name">${member.name || 'N/A'}</td>
+                    <td data-label="Current Title">${member.title || 'N/A'}</td>
+                    <td data-label="Current Organisation">${member.organization || 'N/A'}</td>
+                    <td data-label="Personal Website">${member.website ? `<a href="${member.website}" target="_blank">${member.website.replace(/^https?:\/\//, '')}</a>` : 'N/A'}</td>
+                    <td data-label="Social Media Profiles">
+                        <div class="social-links">
+                            ${socialLinks.length > 0 ? socialLinks.join('') : 'N/A'}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        // Re-setup pagination after loading
+        setTimeout(() => setupPagination('members', 'members-pagination'), 100);
+        } catch (error) {
+            console.error('Error loading members:', error);
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--live);">Error loading members. Please try again.</td></tr>';
+        }
+    }
+    
+    async function loadPartnersDirectory() {
+        const tbody = document.getElementById('partnersTableBody');
+        
+        if (!tbody) return;
+        
+        // Show loading state
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--text-light);">Loading partners...</td></tr>';
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/directories/partners?limit=1000');
+            if (!response.ok) {
+                throw new Error('Failed to load partners');
+            }
+            
+            const data = await response.json();
+            const partners = data.partners || [];
+            
+            if (partners.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--text-light);">No partner entries found.</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = partners.map(partner => `
+                <tr>
+                    <td data-label="Address">${partner.address || 'N/A'}</td>
+                    <td data-label="Email">${partner.email ? `<a href="mailto:${partner.email}">${partner.email}</a>` : 'N/A'}</td>
+                    <td data-label="Phone">${partner.phone || 'N/A'}</td>
+                    <td data-label="Website">${partner.website ? `<a href="${partner.website}" target="_blank">${partner.website.replace(/^https?:\/\//, '')}</a>` : 'N/A'}</td>
+                </tr>
+            `).join('');
+            
+            // Re-setup pagination after loading
+            setTimeout(() => setupPagination('partners', 'partners-pagination'), 100);
+        } catch (error) {
+            console.error('Error loading partners:', error);
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--live);">Error loading partners. Please try again.</td></tr>';
+        }
+    }
+
+    // Initialize pagination on page load
+    window.onload = function() {
+        loadDirectories();
+    };
+</script>
+
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+        .contact-info {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .contact-info h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        .contact-info p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+        .contact-form {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        @media (max-width: 768px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <span>Contact</span>
+</div>
+
+<div class="container">
+    <h1 style="text-align: center; margin-bottom: 20px;">Contact Us</h1>
+    <p style="text-align: center; color: var(--text-light); margin-bottom: 40px;">We'd love to hear from you. Get in touch with us through the form below or use our contact information.</p>
+    
+    <div class="contact-grid">
+        <div class="contact-info">
+            <h3>Get in Touch</h3>
+            <p><strong>Email:</strong><br>
+            <a href="mailto:info@enterpriseroom.com" style="color: var(--accent);">info@enterpriseroom.com</a></p>
+            
+            <p><strong>Phone:</strong><br>
+            +234 (0) 123 456 7890</p>
+            
+            <p><strong>Address:</strong><br>
+            Enterprise Room Business Hub<br>
+            Business District<br>
+            Lagos, Nigeria</p>
+            
+            <p><strong>Business Hours:</strong><br>
+            Monday - Friday: 9:00 AM - 6:00 PM<br>
+            Saturday: 10:00 AM - 4:00 PM<br>
+            Sunday: Closed</p>
+        </div>
+        
+        <div class="contact-form">
+            <h3>Send us a Message</h3>
+            <form id="contactForm" onsubmit="handleContactSubmit(event)">
+                <div class="input-group">
+                    <label>Your Name</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="input-group">
+                    <label>Subject</label>
+                    <input type="text" name="subject" required>
+                </div>
+                <div class="input-group">
+                    <label>Message</label>
+                    <textarea name="message" rows="6" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </form>
+            <div id="formMessage" style="margin-top: 15px; display: none; padding: 12px; border-radius: 6px;"></div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h3>Enterprise Room Business Hub</h3>
+                <p>Empowering entrepreneurs with resources, networks, and tools to scale and succeed.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="eventspage.html">Events</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="directories.html">Directories</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="tools.html">Financial Tools</a></li>
+                    <li><a href="pitch.html">Pitch Competition</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>
+                    <a href="contact.html">Contact Us</a><br>
+                    <a href="faq.html">FAQ</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    function handleContactSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const messageDiv = document.getElementById('formMessage');
+        
+        // Simulate form submission
+        messageDiv.style.display = 'block';
+        messageDiv.style.background = '#f0fff4';
+        messageDiv.style.color = '#22543d';
+        messageDiv.textContent = 'Thank you! Your message has been sent. We\'ll get back to you soon.';
+        
+        form.reset();
+        
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+</script>
+
+</body>
+</html>
+    <title>Contact Us | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-top: 40px;
+        }
+        .contact-info {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        .contact-info h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        .contact-info p {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+        .contact-form {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        @media (max-width: 768px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <span>Contact</span>
+</div>
+
+<div class="container">
+    <h1 style="text-align: center; margin-bottom: 20px;">Contact Us</h1>
+    <p style="text-align: center; color: var(--text-light); margin-bottom: 40px;">We'd love to hear from you. Get in touch with us through the form below or use our contact information.</p>
+    
+    <div class="contact-grid">
+        <div class="contact-info">
+            <h3>Get in Touch</h3>
+            <p><strong>Email:</strong><br>
+            <a href="mailto:info@enterpriseroom.com" style="color: var(--accent);">info@enterpriseroom.com</a></p>
+            
+            <p><strong>Phone:</strong><br>
+            +234 (0) 123 456 7890</p>
+            
+            <p><strong>Address:</strong><br>
+            Enterprise Room Business Hub<br>
+            Business District<br>
+            Lagos, Nigeria</p>
+            
+            <p><strong>Business Hours:</strong><br>
+            Monday - Friday: 9:00 AM - 6:00 PM<br>
+            Saturday: 10:00 AM - 4:00 PM<br>
+            Sunday: Closed</p>
+        </div>
+        
+        <div class="contact-form">
+            <h3>Send us a Message</h3>
+            <form id="contactForm" onsubmit="handleContactSubmit(event)">
+                <div class="input-group">
+                    <label>Your Name</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="input-group">
+                    <label>Subject</label>
+                    <input type="text" name="subject" required>
+                </div>
+                <div class="input-group">
+                    <label>Message</label>
+                    <textarea name="message" rows="6" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </form>
+            <div id="formMessage" style="margin-top: 15px; display: none; padding: 12px; border-radius: 6px;"></div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h3>Enterprise Room Business Hub</h3>
+                <p>Empowering entrepreneurs with resources, networks, and tools to scale and succeed.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="eventspage.html">Events</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="directories.html">Directories</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="tools.html">Financial Tools</a></li>
+                    <li><a href="pitch.html">Pitch Competition</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>
+                    <a href="contact.html">Contact Us</a><br>
+                    <a href="faq.html">FAQ</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    function handleContactSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const messageDiv = document.getElementById('formMessage');
+        
+        // Simulate form submission
+        messageDiv.style.display = 'block';
+        messageDiv.style.background = '#f0fff4';
+        messageDiv.style.color = '#22543d';
+        messageDiv.textContent = 'Thank you! Your message has been sent. We\'ll get back to you soon.';
+        
+        form.reset();
+        
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+</script>
+
+</body>
+</html>
+

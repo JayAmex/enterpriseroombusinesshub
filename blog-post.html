@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Post | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .blog-post-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .blog-post-header {
+            margin-bottom: 40px;
+        }
+        .blog-post-category {
+            display: inline-block;
+            padding: 6px 12px;
+            background: var(--accent);
+            color: var(--white);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+        .blog-post-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0 0 20px 0;
+            line-height: 1.3;
+        }
+        .blog-post-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+        .blog-post-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .blog-post-featured-image {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .blog-post-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text);
+            margin-bottom: 40px;
+        }
+        .blog-post-content p {
+            margin-bottom: 20px;
+        }
+        .blog-post-content h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin: 30px 0 15px 0;
+        }
+        .blog-post-content h3 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin: 25px 0 12px 0;
+        }
+        .blog-post-content ul,
+        .blog-post-content ol {
+            margin: 20px 0;
+            padding-left: 30px;
+        }
+        .blog-post-content li {
+            margin-bottom: 10px;
+        }
+        .blog-post-footer {
+            border-top: 2px solid var(--border);
+            padding-top: 30px;
+            margin-top: 40px;
+        }
+        .share-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 12px;
+        }
+        .share-section h3 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin: 0 0 15px 0;
+        }
+        .share-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            color: var(--white);
+        }
+        .share-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .share-btn.facebook {
+            background: #1877f2;
+        }
+        .share-btn.facebook:hover {
+            background: #1565c0;
+        }
+        .share-btn.twitter {
+            background: #1da1f2;
+        }
+        .share-btn.twitter:hover {
+            background: #0d8bd9;
+        }
+        .share-btn.linkedin {
+            background: #0077b5;
+        }
+        .share-btn.linkedin:hover {
+            background: #005885;
+        }
+        .share-btn.whatsapp {
+            background: #25d366;
+        }
+        .share-btn.whatsapp:hover {
+            background: #1da851;
+        }
+        .share-btn.copy-link {
+            background: var(--primary);
+        }
+        .share-btn.copy-link:hover {
+            background: var(--accent);
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .back-button:hover {
+            background: var(--accent);
+        }
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+        .error {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--live);
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <a href="blog.html">Blog</a>
+    <span>/</span>
+    <span id="breadcrumb-title">Post</span>
+</div>
+
+<div class="container">
+    <div id="blog-post-container" class="blog-post-container">
+        <div class="loading">
+            <p>Loading blog post...</p>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h3>Enterprise Room Business Hub</h3>
+                <p>Empowering entrepreneurs with resources, networks, and tools to scale and succeed.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="eventspage.html">Events</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="directories.html">Directories</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="tools.html">Financial Tools</a></li>
+                    <li><a href="pitch.html">Pitch Competition</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>
+                    <a href="contact.html">Contact Us</a><br>
+                    <a href="faq.html">FAQ</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    // Get blog post ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const postId = urlParams.get('id');
+    
+    // Load blog post
+    async function loadBlogPost() {
+        const container = document.getElementById('blog-post-container');
+        
+        if (!postId) {
+            container.innerHTML = `
+                <div class="error">
+                    <h2>Post Not Found</h2>
+                    <p>No blog post ID provided.</p>
+                    <a href="blog.html" class="back-button">← Back to Blog</a>
+                </div>
+            `;
+            return;
+        }
+        
+        try {
+            const response = await fetch(`http://localhost:3000/api/blog/${postId}`);
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                    container.innerHTML = `
+                        <div class="error">
+                            <h2>Post Not Found</h2>
+                            <p>The blog post you're looking for doesn't exist or has been removed.</p>
+                            <a href="blog.html" class="back-button">← Back to Blog</a>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Failed to load blog post');
+                }
+                return;
+            }
+            
+            const post = await response.json();
+            
+            // Update breadcrumb
+            document.getElementById('breadcrumb-title').textContent = post.title || 'Post';
+            
+            // Format published date
+            let publishedDate = '';
+            if (post.published_date) {
+                const date = new Date(post.published_date);
+                if (!isNaN(date.getTime())) {
+                    publishedDate = date.toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                    });
+                }
+            }
+            
+            // Escape HTML for content
+            const safeContent = (post.content || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/\n/g, '<br>');
+            
+            // Convert content to HTML (preserve line breaks and basic formatting)
+            // Split by double line breaks for paragraphs, single line breaks for <br>
+            const paragraphs = safeContent.split(/\n\n+/);
+            const formattedContent = paragraphs.map(para => {
+                if (!para.trim()) return '';
+                // Replace single line breaks with <br> within paragraphs
+                const withBreaks = para.replace(/\n/g, '<br>');
+                return `<p>${withBreaks}</p>`;
+            }).join('');
+            
+            // Determine category color
+            const categoryLower = (post.category || '').toLowerCase();
+            let categoryBg = 'var(--accent)';
+            if (categoryLower === 'news') {
+                categoryBg = 'var(--primary)';
+            } else if (categoryLower === 'strategy') {
+                categoryBg = 'var(--accent)';
+            } else if (categoryLower === 'research' || categoryLower === 'research reports') {
+                categoryBg = '#4a5568';
+            } else if (categoryLower.includes('case study') || categoryLower.includes('case-study')) {
+                categoryBg = 'var(--success)';
+            } else if (categoryLower === 'testimonials' || categoryLower === 'testimonial') {
+                categoryBg = 'var(--enterprise)';
+            }
+            
+            container.innerHTML = `
+                <article>
+                    <div class="blog-post-header">
+                        <span class="blog-post-category" style="background: ${categoryBg};">${post.category || 'Uncategorized'}</span>
+                        <h1 class="blog-post-title">${post.title || 'Untitled'}</h1>
+                        <div class="blog-post-meta">
+                            ${post.author ? `<span><strong>By:</strong> <a href="author.html?name=${encodeURIComponent(post.author)}" style="color: var(--accent); text-decoration: none;">${post.author}</a></span>` : ''}
+                            ${publishedDate ? `<span><strong>Published:</strong> ${publishedDate}</span>` : ''}
+                            <span><strong>Reading time:</strong> ${calculateReadingTime(post.content || post.excerpt || '')} min</span>
+                        </div>
+                        ${post.tags ? `
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px;">
+                                ${post.tags.split(',').map(tag => {
+                                    const trimmedTag = tag.trim();
+                                    if (!trimmedTag) return '';
+                                    const safeTag = trimmedTag.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                                    return `<span style="padding: 6px 12px; background: var(--light); color: var(--accent); border-radius: 20px; font-size: 0.85rem; font-weight: 500;">#${safeTag}</span>`;
+                                }).filter(t => t).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${post.featured_image_url ? `
+                        <img src="${post.featured_image_url}" alt="${post.title || 'Blog post image'}" class="blog-post-featured-image">
+                    ` : ''}
+                    
+                    <div class="blog-post-content">
+                        ${formattedContent}
+                    </div>
+                    
+                    <div class="blog-post-footer">
+                        <div id="share-section" class="share-section" style="display: none;">
+                            <h3>Share this article</h3>
+                            <div class="share-buttons">
+                                <button class="share-btn facebook" onclick="shareOnFacebook()" title="Share on Facebook">
+                                    <span>📘</span> Facebook
+                                </button>
+                                <button class="share-btn twitter" onclick="shareOnTwitter()" title="Share on Twitter">
+                                    <span>🐦</span> Twitter
+                                </button>
+                                <button class="share-btn linkedin" onclick="shareOnLinkedIn()" title="Share on LinkedIn">
+                                    <span>💼</span> LinkedIn
+                                </button>
+                                <button class="share-btn whatsapp" onclick="shareOnWhatsApp()" title="Share on WhatsApp">
+                                    <span>💬</span> WhatsApp
+                                </button>
+                                <button class="share-btn email" onclick="shareViaEmail()" title="Share via Email" style="background: #6c757d;">
+                                    <span>✉️</span> Email
+                                </button>
+                                <button class="share-btn copy-link" onclick="copyPostLink(event)" title="Copy link">
+                                    <span>🔗</span> Copy Link
+                                </button>
+                            </div>
+                        </div>
+                        <div id="related-posts" style="margin-top: 40px; display: none;">
+                            <h3 style="font-size: 1.5rem; color: var(--primary); margin-bottom: 20px; border-left: 4px solid var(--accent); padding-left: 15px;">Related Posts</h3>
+                            <div id="related-posts-grid" class="blog-grid" style="grid-template-columns: repeat(4, 1fr);"></div>
+                        </div>
+                        <a href="blog.html" class="back-button">← Back to Blog</a>
+                    </div>
+                </article>
+            `;
+            
+            // Show share section if user is authenticated AND it's not a testimonial
+            setTimeout(() => {
+                toggleShareSection(categoryLower);
+                loadRelatedPosts(postId);
+            }, 100);
+        } catch (error) {
+            console.error('Error loading blog post:', error);
+            container.innerHTML = `
+                <div class="error">
+                    <h2>Error Loading Post</h2>
+                    <p>Unable to load the blog post. Please try again later.</p>
+                    <a href="blog.html" class="back-button">← Back to Blog</a>
+                </div>
+            `;
+        }
+    }
+    
+    // Calculate reading time
+    function calculateReadingTime(content) {
+        const wordsPerMinute = 200;
+        const text = content || '';
+        const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
+        const minutes = Math.ceil(wordCount / wordsPerMinute);
+        return minutes || 1;
+    }
+    
+    // Check if user is authenticated
+    function isUserAuthenticated() {
+        return sessionStorage.getItem('userAuthenticated') === 'true' || 
+               sessionStorage.getItem('userToken') !== null;
+    }
+    
+    // Load related posts
+    async function loadRelatedPosts(postId) {
+        try {
+            const response = await fetch(`http://localhost:3000/api/blog/${postId}/related`);
+            if (!response.ok) throw new Error('Failed to load related posts');
+            
+            const data = await response.json();
+            const relatedSection = document.getElementById('related-posts');
+            const relatedGrid = document.getElementById('related-posts-grid');
+            
+            if (data.posts && data.posts.length > 0) {
+                relatedSection.style.display = 'block';
+                relatedGrid.innerHTML = data.posts.map(post => {
+                    const cat = (post.category || '').toLowerCase();
+                    const categoryType = cat.includes('case') ? 'case-studies' : 
+                                       (cat === 'research' || cat === 'research reports') ? 'research' :
+                                       (cat === 'testimonials' || cat === 'testimonial') ? 'testimonials' : 'articles';
+                    return renderRelatedCard(post, categoryType);
+                }).join('');
+            }
+        } catch (error) {
+            console.error('Error loading related posts:', error);
+        }
+    }
+    
+    // Render related post card (simplified)
+    function renderRelatedCard(post, categoryType) {
+        const title = post.title || 'Untitled';
+        const excerpt = (post.excerpt || post.content || '').substring(0, 120) + '...';
+        const safeTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const safeExcerpt = excerpt.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        
+        return `
+            <div onclick="window.location.href='blog-post.html?id=${post.id}'" style="cursor: pointer; background: var(--white); border-radius: 8px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)';" onmouseout="this.style.transform='';">
+                <h4 style="margin: 0 0 8px 0; color: var(--primary); font-size: 1rem;">${safeTitle}</h4>
+                <p style="margin: 0; font-size: 0.85rem; color: var(--text-light); line-height: 1.4;">${safeExcerpt}</p>
+            </div>
+        `;
+    }
+    
+    // Show/hide share section based on authentication and category
+    function toggleShareSection(category = '') {
+        const shareSection = document.getElementById('share-section');
+        if (!shareSection) return;
+        
+        const categoryLower = (category || '').toLowerCase();
+        const isTestimonial = categoryLower === 'testimonials' || categoryLower === 'testimonial';
+        
+        // Hide share section for testimonials (website exclusive) or if user is not authenticated
+        if (isTestimonial || !isUserAuthenticated()) {
+            shareSection.style.display = 'none';
+        } else {
+            shareSection.style.display = 'block';
+        }
+    }
+    
+    // Share functions
+    function shareOnFacebook() {
+        const url = encodeURIComponent(window.location.href);
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+    }
+    
+    function shareOnTwitter() {
+        const url = encodeURIComponent(window.location.href);
+        const title = encodeURIComponent(document.querySelector('.blog-post-title')?.textContent || '');
+        const text = encodeURIComponent(`Check out this article: ${title}`);
+        window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`, '_blank', 'width=600,height=400');
+    }
+    
+    function shareOnLinkedIn() {
+        const url = encodeURIComponent(window.location.href);
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank', 'width=600,height=400');
+    }
+    
+    function shareOnWhatsApp() {
+        const url = encodeURIComponent(window.location.href);
+        const title = encodeURIComponent(document.querySelector('.blog-post-title')?.textContent || '');
+        const text = encodeURIComponent(`Check out this article: ${title} - ${url}`);
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+    
+    function shareViaEmail() {
+        const url = window.location.href;
+        const title = encodeURIComponent(document.querySelector('.blog-post-title')?.textContent || '');
+        const subject = encodeURIComponent(`Check out: ${title}`);
+        const body = encodeURIComponent(`I thought you might find this interesting:\n\n${title}\n\n${url}`);
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+    
+    function shareViaEmail() {
+        const url = window.location.href;
+        const title = encodeURIComponent(document.querySelector('.blog-post-title')?.textContent || '');
+        const subject = encodeURIComponent(`Check out: ${title}`);
+        const body = encodeURIComponent(`I thought you might find this interesting:\n\n${title}\n\n${url}`);
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    }
+    
+    function copyPostLink(event) {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            // Show feedback
+            const btn = event.target.closest('.share-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span>✓</span> Copied!';
+            btn.style.background = 'var(--success)';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = '';
+            }, 2000);
+        }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = url;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                const btn = event.target.closest('.share-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span>✓</span> Copied!';
+                btn.style.background = 'var(--success)';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            } catch (err) {
+                alert('Failed to copy link. Please copy manually: ' + url);
+            }
+            document.body.removeChild(textArea);
+        });
+    }
+    
+    // Load post on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        loadBlogPost();
+        updateNavAuthStatus();
+        loadNavAvatar();
+    });
+</script>
+
+</body>
+</html>
+

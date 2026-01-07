@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Page-specific styles */
+        .login-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            margin-bottom: 10px;
+        }
+
+        .login-card p {
+            color: var(--text-light);
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn-login:hover {
+            background: var(--accent);
+        }
+
+        .footer-links {
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .footer-links a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <span>Login</span>
+</div>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <h2>Login Required</h2>
+        <p>Please log in to access Tools, Directories, and Pitch Your Business pages.</p>
+        
+        <form id="loginForm" onsubmit="handleLogin(event); return false;">
+            <div class="input-group">
+                <input type="email" id="loginEmail" placeholder="Email Address" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="loginPassword" placeholder="Password" required>
+            </div>
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+        
+        <!-- Test account information removed for security -->
+        <!-- Test accounts should be created in the database, not hardcoded -->
+
+        <div class="footer-links">
+            <a href="#">Forgot Password?</a> | New User? <a href="register.html">Create Account</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    // Authentication using API
+    async function handleLogin(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const submitButton = document.querySelector('.btn-login');
+        
+        // Disable button during request
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = 'Logging in...';
+        }
+        
+        try {
+            // Try API login first
+            const response = await fetch('http://localhost:3000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.token) {
+                // Store JWT token and user info
+                sessionStorage.setItem('userToken', data.token);
+                sessionStorage.setItem('userAuthenticated', 'true');
+                sessionStorage.setItem('userEmail', data.user.email);
+                sessionStorage.setItem('userName', data.user.name || email.split('@')[0]);
+                sessionStorage.setItem('userId', data.user.id);
+                
+                // Get the page they were trying to access, or default to profile
+                const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 
+                                   sessionStorage.getItem('redirectAfterLogin') || 
+                                   'profile.html';
+                sessionStorage.removeItem('redirectAfterLogin');
+                
+                // Update navigation on all pages (if function exists)
+                if (typeof updateNavAuthStatus === 'function') {
+                    updateNavAuthStatus();
+                }
+                
+                // Redirect to intended page or profile
+                window.location.href = redirectUrl;
+            } else {
+                // Fallback to legacy authentication for backward compatibility
+                const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
+                // Test users removed - use database accounts instead
+                
+                const isRegisteredUser = registeredUsers[email] && registeredUsers[email].password === password;
+                
+                if (isRegisteredUser) {
+                    // Store user session (legacy method - no token)
+                    sessionStorage.setItem('userAuthenticated', 'true');
+                    sessionStorage.setItem('userEmail', email);
+                    const userName = registeredUsers[email]?.name || email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+                    sessionStorage.setItem('userName', userName);
+                    
+                    // Get the page they were trying to access, or default to profile
+                    const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 
+                                       sessionStorage.getItem('redirectAfterLogin') || 
+                                       'profile.html';
+                    sessionStorage.removeItem('redirectAfterLogin');
+                    
+                    // Update navigation on all pages (if function exists)
+                    if (typeof updateNavAuthStatus === 'function') {
+                        updateNavAuthStatus();
+                    }
+                    
+                    // Redirect to intended page or profile
+                    window.location.href = redirectUrl;
+                } else {
+                    alert('Invalid email or password. Please try again.\n\nNote: If you have an account in the database, please use your registered email and password.');
+                }
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            // Fallback to legacy authentication
+            const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
+            // Test users removed - use database accounts instead
+            
+            const isRegisteredUser = registeredUsers[email] && registeredUsers[email].password === password;
+            
+            if (isRegisteredUser) {
+                sessionStorage.setItem('userAuthenticated', 'true');
+                sessionStorage.setItem('userEmail', email);
+                const userName = registeredUsers[email]?.name || email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
+                sessionStorage.setItem('userName', userName);
+                
+                const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 
+                                   sessionStorage.getItem('redirectAfterLogin') || 
+                                   'profile.html';
+                sessionStorage.removeItem('redirectAfterLogin');
+                
+                if (typeof updateNavAuthStatus === 'function') {
+                    updateNavAuthStatus();
+                }
+                
+                window.location.href = redirectUrl;
+            } else {
+                alert('Invalid email or password. Please try again.\n\nNote: If you have an account in the database, please use your registered email and password.');
+            }
+        } finally {
+            if (submitButton) {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Login';
+            }
+        }
+    }
+    
+    // Check if already logged in
+    if (sessionStorage.getItem('userAuthenticated') === 'true') {
+        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 'profile.html';
+        window.location.href = redirectUrl;
+    }
+</script>
+</body>
+</html>

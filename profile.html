@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Profile | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <script>
+        // Check authentication before page loads
+        (function() {
+            if (sessionStorage.getItem('userAuthenticated') !== 'true') {
+                sessionStorage.setItem('redirectAfterLogin', 'profile.html');
+                window.location.replace('login.html');
+                return;
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Page-specific styles */
+        .profile-header {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            flex-wrap: wrap;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-size: 2rem;
+            font-weight: bold;
+            flex-shrink: 0;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .avatar-upload-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--white);
+            padding: 5px;
+            text-align: center;
+            font-size: 0.7rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .avatar:hover .avatar-upload-overlay {
+            opacity: 1;
+        }
+        
+        #avatarInput {
+            display: none;
+        }
+        
+        .avatar-upload-btn {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            padding: 6px 12px;
+        }
+
+        .profile-header h1 {
+            margin: 0;
+        }
+
+        .profile-header p {
+            color: var(--text-light);
+            margin: 5px 0;
+        }
+
+        .status-badge {
+            background: #f0fff4;
+            color: var(--success);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 10px;
+        }
+
+        .card hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 20px 0;
+        }
+
+        .card ul {
+            padding-left: 20px;
+            line-height: 2;
+        }
+
+        .card ul a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .card ul a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 1400px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-header {
+                text-align: center;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <span>My Profile</span>
+</div>
+
+<div class="container">
+    <div class="profile-header">
+        <div style="position: relative;">
+            <div class="avatar" id="avatarContainer" onclick="document.getElementById('avatarInput').click()">
+                <img id="avatarImage" src="" alt="Profile Picture" style="display: none;">
+                <span id="avatarInitials">AG</span>
+                <div class="avatar-upload-overlay">Click to upload</div>
+            </div>
+            <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarUpload(event)">
+            <div style="text-align: center; margin-top: 10px;">
+                <button onclick="document.getElementById('avatarInput').click()" class="btn btn-primary avatar-upload-btn">Upload Avatar</button>
+            </div>
+        </div>
+        <div style="flex: 1;">
+            <h1 id="userNameDisplay">Loading...</h1>
+            <p id="userMemberStatus">Registered User</p>
+            <p style="color: var(--text-light); font-size: 0.9rem; margin-top: 5px;"><strong>Membership Number:</strong> <code id="userMembershipNumber" style="background: var(--light); padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-family: monospace;">Loading...</code></p>
+            <div style="margin-top: 15px;">
+                <button onclick="logout()" class="btn-small btn-delete" style="padding: 8px 15px; background: var(--live); color: var(--white); border: none; border-radius: 5px; cursor: pointer;">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h3>My Businesses</h3>
+            <div id="businessInfo">
+                <div id="noBusinessMessage" style="display: none; padding: 30px 20px; text-align: center; background: var(--light); border-radius: 8px; border: 2px dashed var(--border);">
+                    <div style="font-size: 3rem; color: var(--text-light); margin-bottom: 15px;">🏢</div>
+                    <h4 style="color: var(--text); margin-bottom: 10px;">No Business Registered</h4>
+                    <p style="color: var(--text-light); margin-bottom: 20px; font-size: 0.95rem;">You haven't registered a business yet. Register your business to access additional features and get listed in our directories.</p>
+                </div>
+                <div id="businessesList" style="display: none;">
+                    <!-- Businesses will be listed here -->
+                </div>
+            </div>
+            <div id="businessInfoEdit" style="display: none;">
+                <input type="hidden" id="editingBusinessId">
+                <div class="input-group">
+                    <label>Business Name</label>
+                    <input type="text" id="editBusinessName" placeholder="Business Name" required>
+                </div>
+                <div class="input-group">
+                    <label>Industry</label>
+                    <input type="text" id="editIndustry" placeholder="Industry">
+                </div>
+                <div class="input-group">
+                    <label>Description</label>
+                    <textarea id="editBusinessDescription" rows="3" placeholder="Business description"></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Business Email</label>
+                    <input type="email" id="editBusinessEmail" placeholder="business@example.com">
+                </div>
+                <div class="input-group">
+                    <label>Business Phone</label>
+                    <input type="tel" id="editBusinessPhone" placeholder="+234 800 000 0000">
+                </div>
+                <div class="input-group">
+                    <label>Website</label>
+                    <input type="url" id="editBusinessWebsite" placeholder="https://www.example.com">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px; align-items: center;">
+                    <button onclick="saveBusinessInfo()" class="btn btn-primary">Save Changes</button>
+                    <button onclick="cancelBusinessEdit()" class="btn" style="background: var(--white); border: 1px solid var(--border); color: var(--text);">Cancel</button>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <a href="register-business.html" id="registerBusinessBtn" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem; text-decoration: none; display: inline-block;">Register Business</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Personal Information</h3>
+            <div id="personalInfo">
+                <p><strong>Full Name:</strong> <span id="userNameDisplayText">Loading...</span> <span style="color: var(--text-light); font-size: 0.85rem; margin-left: 10px;">(Name changes require admin approval with valid ID)</span></p>
+                <p><strong>Title/Designation:</strong> <span id="userTitleDisplay">-</span></p>
+                <p><strong>Occupation:</strong> <span id="userOccupationDisplay">-</span></p>
+                <p><strong>State of Residence:</strong> <span id="userStateDisplay">-</span></p>
+                <p><strong>Country of Residence:</strong> <span id="userCountryDisplay">-</span></p>
+            </div>
+            <div id="personalInfoEdit" style="display: none;">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" id="editUserName" placeholder="Your full name" readonly style="background: var(--light); cursor: not-allowed;">
+                    <small style="color: var(--text-light); font-size: 0.85rem; margin-top: 5px; display: block;">Name changes require admin approval. Contact support with a valid ID to request a name change.</small>
+                </div>
+                <div class="input-group">
+                    <label>Title/Designation</label>
+                    <input type="text" id="editUserTitle" placeholder="e.g. CEO, Founder, Manager">
+                </div>
+                <div class="input-group">
+                    <label>Occupation</label>
+                    <input type="text" id="editUserOccupation" placeholder="e.g. Business Owner, Consultant, Engineer">
+                </div>
+                <div class="input-group">
+                    <label>State of Residence</label>
+                    <input type="text" id="editUserState" placeholder="e.g. Lagos, Abuja, Kano">
+                </div>
+                <div class="input-group">
+                    <label>Country of Residence</label>
+                    <input type="text" id="editUserCountry" placeholder="e.g. Nigeria, Ghana, Kenya">
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px; align-items: center;">
+                    <button onclick="savePersonalInfo()" class="btn btn-primary">Save Changes</button>
+                    <button onclick="togglePersonalEdit()" class="btn" style="background: var(--white); border: 1px solid var(--border); color: var(--text);">Cancel</button>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button onclick="togglePersonalEdit()" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem;" id="editPersonalBtn">Edit Details</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>Verified Contact Details</h3>
+            <div id="contactInfo">
+                <p><strong>Email:</strong> <span id="userEmailDisplayReadOnly">Loading...</span> <span id="emailVerifiedBadge" class="status-badge" style="margin-left: 10px;"></span></p>
+                <p><strong>Phone:</strong> <span id="userPhoneDisplayReadOnly">Not provided</span> <span id="phoneVerifiedBadge" class="status-badge" style="margin-left: 10px;"></span></p>
+            </div>
+            <div id="contactInfoEdit" style="display: none;">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                        <input type="email" id="editContactEmail" placeholder="your@email.com" style="flex: 1;">
+                        <button type="button" onclick="sendEmailVerification()" class="btn btn-primary" style="white-space: nowrap;">Send Code</button>
+                    </div>
+                    <div id="emailVerificationSection" style="display: none; margin-top: 10px;">
+                        <input type="text" id="emailVerificationCode" placeholder="Enter verification code" style="width: 200px; margin-right: 10px;">
+                        <button type="button" onclick="verifyEmail()" class="btn btn-success">Verify</button>
+                        <span id="emailVerificationStatus" style="margin-left: 10px;"></span>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Phone Number</label>
+                    <div style="display: flex; gap: 10px; align-items: flex-start;">
+                        <input type="tel" id="editContactPhone" placeholder="+234 800 000 0000" style="flex: 1;">
+                        <button type="button" onclick="sendPhoneVerification()" class="btn btn-primary" style="white-space: nowrap;">Send Code</button>
+                    </div>
+                    <div id="phoneVerificationSection" style="display: none; margin-top: 10px;">
+                        <input type="text" id="phoneVerificationCode" placeholder="Enter verification code" style="width: 200px; margin-right: 10px;">
+                        <button type="button" onclick="verifyPhone()" class="btn btn-success">Verify</button>
+                        <span id="phoneVerificationStatus" style="margin-left: 10px;"></span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px; align-items: center;">
+                    <button onclick="saveContactInfo()" class="btn btn-primary">Save Changes</button>
+                    <button onclick="toggleContactEdit()" class="btn" style="background: var(--white); border: 1px solid var(--border); color: var(--text);">Cancel</button>
+                </div>
+            </div>
+            <div style="margin-top: 15px;">
+                <button onclick="toggleContactEdit()" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem;" id="editContactBtn">Edit Contact Details</button>
+            </div>
+            <hr>
+            <h3>Activity Dashboard</h3>
+            <p><strong>Registered Events:</strong> 2</p>
+            <p><strong>Saved Calculations:</strong> <span id="savedCalcCount">0</span></p>
+            <p><strong>Profile Completeness:</strong> <span id="profileComplete">85%</span></p>
+        </div>
+
+        <div class="card">
+            <h3>Quick Actions</h3>
+            <ul>
+                <li><a href="directories.html">View Business Directory</a></li>
+                <li><a href="tools.html">Access Financial Tools</a></li>
+                <li><a href="events.html">View My Registered Events</a></li>
+                <li><a href="#" onclick="viewSavedCalculations(); return false;">View Saved Calculations</a></li>
+            </ul>
+            <hr>
+            <h3>Saved Items</h3>
+            <div style="margin-bottom: 20px;">
+                <button id="savedEventsTab" onclick="switchSavedTab('events')" style="padding: 8px 16px; margin-right: 10px; background: var(--primary); color: var(--white); border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Events</button>
+                <button id="savedPostsTab" onclick="switchSavedTab('posts')" style="padding: 8px 16px; background: var(--light); color: var(--text); border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Blog Posts</button>
+            </div>
+            <div id="savedItemsContainer">
+                <p style="color: var(--text-light);">No saved items yet.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    function toggleBusinessEdit() {
+        const infoDiv = document.getElementById('businessInfo');
+        const editDiv = document.getElementById('businessInfoEdit');
+        const businessInfoContent = document.getElementById('businessInfoContent');
+        
+        if (!infoDiv || !editDiv) return;
+        
+        if (editDiv.style.display === 'none' || editDiv.style.display === '') {
+            // Show edit form, hide display
+            if (businessInfoContent) businessInfoContent.style.display = 'none';
+            editDiv.style.display = 'block';
+        } else {
+            // Show display, hide edit form
+            if (businessInfoContent) businessInfoContent.style.display = 'block';
+            editDiv.style.display = 'none';
+        }
+    }
+    
+    function togglePersonalEdit() {
+        const infoDiv = document.getElementById('personalInfo');
+        const editDiv = document.getElementById('personalInfoEdit');
+        const editBtn = document.getElementById('editPersonalBtn');
+        
+        if (editDiv.style.display === 'none') {
+            // Show edit form
+            infoDiv.style.display = 'none';
+            editDiv.style.display = 'block';
+            if (editBtn) editBtn.style.display = 'none';
+            
+            // Populate form with current values
+            const userName = sessionStorage.getItem('userName') || '';
+            const userEmail = sessionStorage.getItem('userEmail') || '';
+            const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
+            const userData = userEmail && registeredUsers[userEmail] ? registeredUsers[userEmail] : {};
+            
+            document.getElementById('editUserName').value = userName || userData.name || '';
+            document.getElementById('editUserTitle').value = userData.title || '';
+            document.getElementById('editUserOccupation').value = userData.occupation || '';
+            document.getElementById('editUserState').value = userData.state || '';
+            document.getElementById('editUserCountry').value = userData.country || '';
+        } else {
+            // Hide edit form
+            infoDiv.style.display = 'block';
+            editDiv.style.display = 'none';
+            if (editBtn) editBtn.style.display = 'inline-block';
+        }
+    }
+    
+    function savePersonalInfo() {
+        const userEmail = sessionStorage.getItem('userEmail');
+        if (!userEmail) {
+            alert('Error: User email not found in session.');
+            return;
+        }
+
+        const newName = document.getElementById('editUserName').value.trim();
+        const newTitle = document.getElementById('editUserTitle').value.trim();
+        const newOccupation = document.getElementById('editUserOccupation').value.trim();
+        const newState = document.getElementById('editUserState').value.trim();
+        const newCountry = document.getElementById('editUserCountry').value.trim();
+
+        // Prevent name changes - name can only be changed by admin with valid ID
+        let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
+        let userData = registeredUsers[userEmail];
+        const currentName = userData?.name || sessionStorage.getItem('userName');
+        
+        if (newName !== currentName) {
+            alert('Name changes require admin approval with a valid ID. Please contact support to request a name change.');
+            return;
+        }
+
+        if (userData) {
+            // Update existing user (name stays the same)
+            userData.title = newTitle;
+            userData.occupation = newOccupation;
+            userData.state = newState;
+            userData.country = newCountry;
+        } else {
+            // This case should ideally not happen if user is logged in
+            // But as a fallback, create a new entry
+            registeredUsers[userEmail] = {
+                name: currentName,
+                email: userEmail,
+                password: 'default_password', // Placeholder, actual password not stored here
+                title: newTitle,
+                occupation: newOccupation,
+                state: newState,
+                country: newCountry,
+                registrationDate: new Date().toISOString().split('T')[0]
+            };
+        }
+
+        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+        
+        // Reload user data display
+        loadUserData();
+        
+        // Hide edit form
+        togglePersonalEdit();
+        
+        alert('Personal information updated successfully!');
+    }
+    
+    function toggleContactEdit() {
+        const infoDiv = document.getElementById('contactInfo');
+        const editDiv = document.getElementById('contactInfoEdit');
+        
+        if (!infoDiv || !editDiv) return;
+        
+        if (editDiv.style.display === 'none' || editDiv.style.display === '') {
+            // Show edit form, hide display
+            infoDiv.style.display = 'none';
+            editDiv.style.display = 'block';
+            
+            // Pre-fill with current values
+            const currentEmail = document.getElementById('userEmailDisplayReadOnly').textContent;
+            const currentPhone = document.getElementById('userPhoneDisplayReadOnly').textContent;
+            document.getElementById('editContactEmail').value = currentEmail !== 'Loading...' ? currentEmail : '';
+            document.getElementById('editContactPhone').value = currentPhone !== 'Not provided' ? currentPhone : '';
+            
+            // Reset verification flags when opening edit mode
+            emailVerified = false;
+            phoneVerified = false;
+            
+            // Hide verification sections
+            const emailVerificationSection = document.getElementById('emailVerificationSection');
+            const phoneVerificationSection = document.getElementById('phoneVerificationSection');
+            if (emailVerificationSection) emailVerificationSection.style.display = 'none';
+            if (phoneVerificationSection) phoneVerificationSection.style.display = 'none';
+        } else {
+            // Show display, hide edit form
+            infoDiv.style.display = 'block';
+            editDiv.style.display = 'none';
+            // Hide verification sections
+            const emailVerificationSection = document.getElementById('emailVerificationSection');
+            const phoneVerificationSection = document.getElementById('phoneVerificationSection');
+            if (emailVerificationSection) emailVerificationSection.style.display = 'none';
+            if (phoneVerificationSection) phoneVerificationSection.style.display = 'none';
+        }
+    }
+    
+    // Verification code storage (in a real app, this would be on the server)
+    let emailVerificationCode = null;
+    let phoneVerificationCode = null;
+    let emailVerified = false;
+    let phoneVerified = false;
+    
+    function sendEmailVerification() {
+        const email = document.getElementById('editContactEmail').value.trim();
+        if (!email) {
+            alert('Please enter an email address first.');
+            return;
+        }
+        
+        // Check if email changed - if so, reset verification
+        const currentEmail = document.getElementById('userEmailDisplayReadOnly').textContent;
+        if (email !== currentEmail) {
+            emailVerified = false; // Reset verification if email changed
+        }
+        
+        // Generate a 6-digit verification code (in production, this would be sent via email)
+        emailVerificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        emailVerified = false;
+        
+        // Show verification section
+        const emailVerificationSection = document.getElementById('emailVerificationSection');
+        if (emailVerificationSection) {
+            emailVerificationSection.style.display = 'block';
+            document.getElementById('emailVerificationStatus').textContent = '';
+            document.getElementById('emailVerificationCode').value = '';
+        }
+        
+        // In a real application, this code would be sent via email
+        // For demo purposes, we'll show it in an alert
+        alert(`Verification code sent to ${email}\n\nDemo Code: ${emailVerificationCode}\n\n(In production, this would be sent via email)`);
+    }
+    
+    function verifyEmail() {
+        const enteredCode = document.getElementById('emailVerificationCode').value.trim();
+        if (!enteredCode) {
+            alert('Please enter the verification code.');
+            return;
+        }
+        
+        if (enteredCode === emailVerificationCode) {
+            emailVerified = true;
+            const statusEl = document.getElementById('emailVerificationStatus');
+            statusEl.textContent = '✓ Verified';
+            statusEl.style.color = 'var(--success)';
+            alert('Email verified successfully!');
+        } else {
+            emailVerified = false;
+            const statusEl = document.getElementById('emailVerificationStatus');
+            statusEl.textContent = '✗ Invalid code';
+            statusEl.style.color = 'var(--live)';
+            alert('Invalid verification code. Please try again.');
+        }
+    }
+    
+    function sendPhoneVerification() {
+        const phone = document.getElementById('editContactPhone').value.trim();
+        if (!phone) {
+            alert('Please enter a phone number first.');
+            return;
+        }
+        
+        // Check if phone changed - if so, reset verification
+        const currentPhone = document.getElementById('userPhoneDisplayReadOnly').textContent;
+        if (phone !== currentPhone && phone !== 'Not provided') {
+            phoneVerified = false; // Reset verification if phone changed
+        }
+        
+        // Generate a 6-digit verification code (in production, this would be sent via SMS)
+        phoneVerificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        phoneVerified = false;
+        
+        // Show verification section
+        const phoneVerificationSection = document.getElementById('phoneVerificationSection');
+        if (phoneVerificationSection) {
+            phoneVerificationSection.style.display = 'block';
+            document.getElementById('phoneVerificationStatus').textContent = '';
+            document.getElementById('phoneVerificationCode').value = '';
+        }
+        
+        // In a real application, this code would be sent via SMS
+        // For demo purposes, we'll show it in an alert
+        alert(`Verification code sent to ${phone}\n\nDemo Code: ${phoneVerificationCode}\n\n(In production, this would be sent via SMS)`);
+    }
+    
+    function verifyPhone() {
+        const enteredCode = document.getElementById('phoneVerificationCode').value.trim();
+        if (!enteredCode) {
+            alert('Please enter the verification code.');
+            return;
+        }
+        
+        if (enteredCode === phoneVerificationCode) {
+            phoneVerified = true;
+            const statusEl = document.getElementById('phoneVerificationStatus');
+            statusEl.textContent = '✓ Verified';
+            statusEl.style.color = 'var(--success)';
+            alert('Phone number verified successfully!');
+        } else {
+            phoneVerified = false;
+            const statusEl = document.getElementById('phoneVerificationStatus');
+            statusEl.textContent = '✗ Invalid code';
+            statusEl.style.color = 'var(--live)';
+            alert('Invalid verification code. Please try again.');
+        }
+    }
+    
+    function saveContactInfo() {
+        const userEmail = sessionStorage.getItem('userEmail');
+        if (!userEmail) {
+            alert('Error: User email not found in session.');
+            return;
+        }
+        
+        const newEmail = document.getElementById('editContactEmail').value.trim();
+        const newPhone = document.getElementById('editContactPhone').value.trim();
+        
+        if (!newEmail) {
+            alert('Email is required.');
+            return;
+        }
+        
+        // Check if email/phone are verified (if they changed)
+        const currentEmail = document.getElementById('userEmailDisplayReadOnly').textContent;
+        const currentPhone = document.getElementById('userPhoneDisplayReadOnly').textContent;
+        
+        // Check if email changed - if so, require verification
+        const emailChanged = newEmail !== currentEmail;
+        if (emailChanged && !emailVerified) {
+            alert('Please verify your new email address before saving.');
+            return;
+        }
+        
+        // Check if phone changed - if so, require verification (if phone is provided)
+        const phoneChanged = newPhone !== currentPhone && newPhone !== 'Not provided';
+        if (phoneChanged && !phoneVerified) {
+            alert('Please verify your new phone number before saving.');
+            return;
+        }
+        
+        // Save verified contact details
+        let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
+        let userData = registeredUsers[userEmail];
+        
+        if (userData) {
+            // If email changed, reset verification status
+            if (emailChanged) {
+                userData.emailVerified = emailVerified;
+            } else {
+                // Keep existing verification status if email didn't change
+                userData.emailVerified = emailVerified || userData.emailVerified || false;
+            }
+            
+            // If phone changed, reset verification status
+            if (phoneChanged) {
+                userData.phoneVerified = phoneVerified;
+            } else {
+                // Keep existing verification status if phone didn't change
+                userData.phoneVerified = phoneVerified || userData.phoneVerified || false;
+            }
+            
+            userData.email = newEmail;
+            userData.phone = newPhone;
+        } else {
+            registeredUsers[userEmail] = {
+                name: sessionStorage.getItem('userName') || 'User',
+                email: newEmail,
+                phone: newPhone,
+                emailVerified: emailVerified,
+                phoneVerified: phoneVerified,
+                registrationDate: new Date().toISOString().split('T')[0]
+            };
+        }
+        
+        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+        
+        // Update session email if changed
+        if (newEmail !== userEmail) {
+            sessionStorage.setItem('userEmail', newEmail);
+        }
+        
+        loadUserData(); // Reload data on page (this will update verification badges)
+        toggleContactEdit(); // Close edit mode
+        
+        alert('Contact details updated successfully!');
+    }
+    
+    function saveBusinessInfo() {
+        const userEmail = sessionStorage.getItem('userEmail');
+        if (!userEmail) {
+            alert('Error: You must be logged in to save business information.');
+            return;
+        }
+        
+        const businessId = document.getElementById('editingBusinessId').value;
+        
+        // Get business data from form
+        const businessData = {
+            businessName: document.getElementById('editBusinessName').value.trim(),
+            industry: document.getElementById('editIndustry').value.trim(),
+            description: document.getElementById('editBusinessDescription').value.trim(),
+            email: document.getElementById('editBusinessEmail').value.trim(),
+            phone: document.getElementById('editBusinessPhone').value.trim(),
+            website: document.getElementById('editBusinessWebsite').value.trim(),
+            ownerEmail: userEmail
+        };
+        
+        if (!businessData.businessName) {
+            alert('Business Name is required.');
+            return;
+        }
+        
+        // Save to businesses storage
+        let businesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
+        let userBusinesses = businesses[userEmail] || [];
+        
+        if (businessId) {
+            // Update existing business
+            const businessIndex = userBusinesses.findIndex(b => b.id === businessId);
+            if (businessIndex !== -1) {
+                // Preserve existing fields
+                businessData.id = businessId;
+                businessData.registeredDate = userBusinesses[businessIndex].registeredDate;
+                businessData.status = userBusinesses[businessIndex].status || 'Active';
+                businessData.newsletter = userBusinesses[businessIndex].newsletter || false;
+                
+                userBusinesses[businessIndex] = businessData;
+                businesses[userEmail] = userBusinesses;
+                localStorage.setItem('registeredBusinesses', JSON.stringify(businesses));
+                alert('Business information updated successfully!');
+            } else {
+                alert('Business not found.');
+                return;
+            }
+        } else {
+            // This shouldn't happen from the profile page, but handle it just in case
+            alert('Error: No business ID found.');
+            return;
+        }
+        
+        // Reload business data to display
+        cancelBusinessEdit();
+    }
+    
+    // Load business data
+    function loadBusinessData() {
+        const userEmail = sessionStorage.getItem('userEmail');
+        if (!userEmail) return;
+        
+        const businesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
+        const userBusinesses = businesses[userEmail] || [];
+        
+        const noBusinessMessage = document.getElementById('noBusinessMessage');
+        const businessesList = document.getElementById('businessesList');
+        const businessInfoEdit = document.getElementById('businessInfoEdit');
+        
+        // Update button text based on whether businesses exist
+        const registerBusinessBtn = document.getElementById('registerBusinessBtn');
+        if (registerBusinessBtn) {
+            if (userBusinesses.length === 0) {
+                registerBusinessBtn.textContent = 'Register Business';
+            } else {
+                registerBusinessBtn.textContent = 'Register Another Business';
+            }
+        }
+        
+        if (userBusinesses.length === 0) {
+            // No business registered - show prominent message
+            if (noBusinessMessage) {
+                noBusinessMessage.style.display = 'block';
+            }
+            if (businessesList) {
+                businessesList.style.display = 'none';
+            }
+            if (businessInfoEdit) {
+                businessInfoEdit.style.display = 'none';
+            }
+        } else {
+            // Businesses exist - show list
+            if (noBusinessMessage) {
+                noBusinessMessage.style.display = 'none';
+            }
+            if (businessesList) {
+                businessesList.style.display = 'block';
+                businessesList.innerHTML = userBusinesses.map((business, index) => `
+                    <div class="business-item" style="padding: 20px; margin-bottom: 15px; background: var(--light); border-radius: 8px; border: 1px solid var(--border);">
+                        <h4 style="margin-top: 0; color: var(--primary);">${business.businessName || 'Unnamed Business'}</h4>
+                        <p><strong>Industry:</strong> ${business.industry || '-'}</p>
+                        <p><strong>Description:</strong> ${business.description || '-'}</p>
+                        <p><strong>Business Email:</strong> ${business.email || '-'}</p>
+                        <p><strong>Business Phone:</strong> ${business.phone || '-'}</p>
+                        <p><strong>Website:</strong> ${business.website ? `<a href="${business.website}" target="_blank" rel="noopener noreferrer">${business.website}</a>` : '-'}</p>
+                        <p><strong>Status:</strong> <span class="status-badge">${business.status || 'Active'}</span></p>
+                        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button onclick="deleteBusiness('${business.id}')" class="btn-small btn-delete" style="padding: 8px 15px; background: var(--live); color: var(--white); border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    }
+    
+    function deleteBusiness(businessId) {
+        if (!confirm('Are you sure you want to delete this business? This action cannot be undone.')) {
+            return;
+        }
+        
+        const userEmail = sessionStorage.getItem('userEmail');
+        if (!userEmail) return;
+        
+        const businesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
+        const userBusinesses = businesses[userEmail] || [];
+        
+        // Remove business from array
+        businesses[userEmail] = userBusinesses.filter(b => b.id !== businessId);
+        localStorage.setItem('registeredBusinesses', JSON.stringify(businesses));
+        
+        alert('Business deleted successfully!');
+        loadBusinessData(); // Reload the list
+    }
+    
+    function cancelBusinessEdit() {
+        document.getElementById('businessInfoEdit').style.display = 'none';
+        document.getElementById('editingBusinessId').value = '';
+        loadBusinessData(); // Reload the list
+    }
+    
+    function viewSavedCalculations() {
+        const saved = localStorage.getItem('savedCalculations');
+        if (saved) {
+            const calc = JSON.parse(saved);
+            alert('Saved Calculations:\n\nBudget: ' + calc.budget.result + '\nLoan: ' + calc.loan.result + '\nMortgage: ' + calc.mortgage.result);
+        } else {
+            alert('No saved calculations found.');
+        }
+    }
+    
+    // Handle avatar upload
+    function handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file.');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size must be less than 5MB.');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageData = e.target.result;
+            
+            // Display the image
+            const avatarImage = document.getElementById('avatarImage');
+            const avatarInitials = document.getElementById('avatarInitials');
+            
+            avatarImage.src = imageData;
+            avatarImage.style.display = 'block';
+            avatarInitials.style.display = 'none';
+            
+            // Save to localStorage
+            localStorage.setItem('userAvatar', imageData);
+            
+            // Update navigation avatar
+            if (typeof loadNavAvatar === 'function') {
+                loadNavAvatar();
+            }
+            
+            alert('Avatar uploaded successfully!');
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // Load saved avatar on page load
+    function loadAvatar() {
+        const savedAvatar = localStorage.getItem('userAvatar');
+        if (savedAvatar) {
+            const avatarImage = document.getElementById('avatarImage');
+            const avatarInitials = document.getElementById('avatarInitials');
+            
+            avatarImage.src = savedAvatar;
+            avatarImage.style.display = 'block';
+            avatarInitials.style.display = 'none';
+        }
+    }
+    
+    // Load user data from sessionStorage and registeredUsers
+    function loadUserData() {
+        const userName = sessionStorage.getItem('userName');
+        const userEmail = sessionStorage.getItem('userEmail');
+        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
+        
+        // Get user data from registeredUsers if available
+        let userData = null;
+        if (userEmail && registeredUsers[userEmail]) {
+            userData = registeredUsers[userEmail];
+        }
+        
+        // Update name in header
+        const nameDisplay = document.getElementById('userNameDisplay');
+        if (nameDisplay) {
+            const name = userName || userData?.name || 'User';
+            nameDisplay.textContent = name;
+        }
+        
+        // Update membership number (generate if missing for existing users)
+        const membershipNumberDisplay = document.getElementById('userMembershipNumber');
+        if (membershipNumberDisplay && userData) {
+            let membershipNumber = userData.membershipNumber;
+            
+            // Generate UUID for existing users who don't have one
+            if (!membershipNumber) {
+                function generateUUID() {
+                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        const r = Math.random() * 16 | 0;
+                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    });
+                }
+                membershipNumber = generateUUID();
+                userData.membershipNumber = membershipNumber;
+                registeredUsers[userEmail] = userData;
+                localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+            }
+            
+            membershipNumberDisplay.textContent = membershipNumber;
+        } else if (membershipNumberDisplay) {
+            membershipNumberDisplay.textContent = 'Not assigned';
+        }
+        
+        // Update name in personal info section
+        const nameDisplayText = document.getElementById('userNameDisplayText');
+        if (nameDisplayText) {
+            const name = userName || userData?.name || 'User';
+            nameDisplayText.textContent = name;
+        }
+        
+        // Update email in read-only section (for contact details)
+        const emailDisplayReadOnly = document.getElementById('userEmailDisplayReadOnly');
+        if (emailDisplayReadOnly && userEmail) {
+            emailDisplayReadOnly.textContent = userEmail;
+        }
+        
+        // Update phone in read-only section (for contact details)
+        const phoneDisplayReadOnly = document.getElementById('userPhoneDisplayReadOnly');
+        if (phoneDisplayReadOnly) {
+            phoneDisplayReadOnly.textContent = userData?.phone || 'Not provided';
+        }
+        
+        // Update verification badges for contact details
+        const emailBadge = document.getElementById('emailVerifiedBadge');
+        const phoneBadge = document.getElementById('phoneVerifiedBadge');
+        
+        if (emailBadge) {
+            if (userData?.emailVerified === true) {
+                emailBadge.textContent = '✓ Verified';
+                emailBadge.style.color = 'var(--success)';
+                emailBadge.style.background = 'rgba(40, 167, 69, 0.1)';
+                emailBadge.style.display = 'inline-block';
+            } else {
+                emailBadge.textContent = 'Pending Verification';
+                emailBadge.style.color = 'var(--warning)';
+                emailBadge.style.background = 'rgba(255, 193, 7, 0.1)';
+                emailBadge.style.display = 'inline-block';
+            }
+        }
+        
+        if (phoneBadge) {
+            const phone = userData?.phone || '';
+            if (phone && phone !== 'Not provided') {
+                if (userData?.phoneVerified === true) {
+                    phoneBadge.textContent = '✓ Verified';
+                    phoneBadge.style.color = 'var(--success)';
+                    phoneBadge.style.background = 'rgba(40, 167, 69, 0.1)';
+                    phoneBadge.style.display = 'inline-block';
+                } else {
+                    phoneBadge.textContent = 'Pending Verification';
+                    phoneBadge.style.color = 'var(--warning)';
+                    phoneBadge.style.background = 'rgba(255, 193, 7, 0.1)';
+                    phoneBadge.style.display = 'inline-block';
+                }
+            } else {
+                phoneBadge.style.display = 'none';
+            }
+        }
+        
+        // Update personal information display fields
+        const titleDisplay = document.getElementById('userTitleDisplay');
+        const occupationDisplay = document.getElementById('userOccupationDisplay');
+        const stateDisplay = document.getElementById('userStateDisplay');
+        const countryDisplay = document.getElementById('userCountryDisplay');
+        
+        if (titleDisplay) titleDisplay.textContent = userData?.title || '-';
+        if (occupationDisplay) occupationDisplay.textContent = userData?.occupation || '-';
+        if (stateDisplay) stateDisplay.textContent = userData?.state || '-';
+        if (countryDisplay) countryDisplay.textContent = userData?.country || '-';
+        
+        // Update edit form fields
+        if (userData) {
+            document.getElementById('editUserName').value = userData.name || '';
+            document.getElementById('editUserTitle').value = userData.title || '';
+            document.getElementById('editUserOccupation').value = userData.occupation || '';
+            document.getElementById('editUserState').value = userData.state || '';
+            document.getElementById('editUserCountry').value = userData.country || '';
+        }
+        
+        // Update avatar initials based on actual name
+        const avatarInitials = document.getElementById('avatarInitials');
+        if (avatarInitials) {
+            const name = userName || userData?.name || 'User';
+            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+            avatarInitials.textContent = initials;
+        }
+    }
+    
+    // Pagination state for saved items
+    let savedItemsCurrentPage = 1;
+    const savedItemsPerPage = 3;
+    let currentSavedTab = 'events';
+    
+    // Switch between saved events and blog posts
+    function switchSavedTab(tab) {
+        currentSavedTab = tab;
+        const eventsTab = document.getElementById('savedEventsTab');
+        const postsTab = document.getElementById('savedPostsTab');
+        
+        if (eventsTab && postsTab) {
+            if (tab === 'events') {
+                eventsTab.style.background = 'var(--primary)';
+                eventsTab.style.color = 'var(--white)';
+                postsTab.style.background = 'var(--light)';
+                postsTab.style.color = 'var(--text)';
+            } else {
+                postsTab.style.background = 'var(--primary)';
+                postsTab.style.color = 'var(--white)';
+                eventsTab.style.background = 'var(--light)';
+                eventsTab.style.color = 'var(--text)';
+            }
+        }
+        
+        loadSavedItems(1);
+    }
+    
+    // Load saved events and blog posts with pagination
+    async function loadSavedItems(page = 1) {
+        const container = document.getElementById('savedItemsContainer');
+        if (!container) return;
+        
+        savedItemsCurrentPage = page;
+        
+        if (currentSavedTab === 'events') {
+            // Load saved events (existing logic)
+            const savedEvents = JSON.parse(localStorage.getItem('savedEvents') || '[]');
+            
+            if (savedEvents.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-light);">No saved events yet.</p>';
+                return;
+            }
+            
+            // Calculate pagination
+            const totalPages = Math.ceil(savedEvents.length / savedItemsPerPage);
+            const startIndex = (page - 1) * savedItemsPerPage;
+            const endIndex = startIndex + savedItemsPerPage;
+            const eventsToShow = savedEvents.slice(startIndex, endIndex);
+            
+            let html = `<div style="margin-bottom: 15px;"><strong>Saved Events (${savedEvents.length}):</strong></div>`;
+            
+            // Display events for current page
+            eventsToShow.forEach((event, index) => {
+                const dateDisplay = event.dateDisplay || event.date_display || event.event_date || 'TBD';
+                const timeDisplay = event.time || event.event_time || '';
+                const dateTimeDisplay = timeDisplay ? `${dateDisplay} - ${timeDisplay}` : dateDisplay;
+                
+                html += `
+                    <div style="padding: 15px; margin-bottom: 10px; background: var(--light); border-radius: 8px; border: 1px solid var(--border);">
+                        <h4 style="margin: 0 0 8px 0; color: var(--primary); font-size: 1rem;">${event.title || 'Untitled Event'}</h4>
+                        <p style="margin: 5px 0; color: var(--text-light); font-size: 0.9rem;"><strong>Date:</strong> ${dateTimeDisplay}</p>
+                        <p style="margin: 5px 0; color: var(--text-light); font-size: 0.9rem;"><strong>Status:</strong> ${event.status || 'N/A'}</p>
+                        ${event.description ? `<p style="margin: 8px 0 0 0; color: var(--text); font-size: 0.85rem; line-height: 1.4;">${event.description.length > 100 ? event.description.substring(0, 100) + '...' : event.description}</p>` : ''}
+                        <div style="margin-top: 10px;">
+                            <a href="eventspage.html?event=${event.id || ''}" style="color: var(--accent); text-decoration: none; font-size: 0.85rem;">View Event →</a>
+                            <span style="margin: 0 8px; color: var(--border);">|</span>
+                            <a href="#" onclick="removeSavedEvent(${event.id || (startIndex + index)}); return false;" style="color: var(--live); text-decoration: none; font-size: 0.85rem;">Remove</a>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Add pagination controls if there are multiple pages
+            if (totalPages > 1) {
+                html += `
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                        <button onclick="loadSavedItems(${page - 1})" ${page === 1 ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === 1 ? 'var(--light)' : 'var(--primary)'}; color: ${page === 1 ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === 1 ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; opacity: ${page === 1 ? '0.5' : '1'};" ${page === 1 ? '' : 'onmouseover="this.style.background=\'var(--accent)\'" onmouseout="this.style.background=\'var(--primary)\'"'}>Previous</button>
+                        <span style="color: var(--text); font-size: 0.9rem;">Page ${page} of ${totalPages}</span>
+                        <button onclick="loadSavedItems(${page + 1})" ${page === totalPages ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === totalPages ? 'var(--light)' : 'var(--primary)'}; color: ${page === totalPages ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === totalPages ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; opacity: ${page === totalPages ? '0.5' : '1'};" ${page === totalPages ? '' : 'onmouseover="this.style.background=\'var(--accent)\'" onmouseout="this.style.background=\'var(--primary)\'"'}>Next</button>
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+        } else {
+            // Load saved blog posts
+            const token = sessionStorage.getItem('userToken');
+            if (!token) {
+                container.innerHTML = '<p style="color: var(--text-light);">Please log in to view saved posts.</p>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/blog/saved', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load saved posts');
+                
+                const data = await response.json();
+                const savedPosts = data.posts || [];
+                
+                if (savedPosts.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-light);">No saved blog posts yet.</p>';
+                    return;
+                }
+                
+                // Calculate pagination
+                const totalPages = Math.ceil(savedPosts.length / savedItemsPerPage);
+                const startIndex = (page - 1) * savedItemsPerPage;
+                const endIndex = startIndex + savedItemsPerPage;
+                const postsToShow = savedPosts.slice(startIndex, endIndex);
+                
+                let html = `<div style="margin-bottom: 15px;"><strong>Saved Blog Posts (${savedPosts.length}):</strong></div>`;
+                
+                postsToShow.forEach(post => {
+                    const publishedDate = post.published_date ? new Date(post.published_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                    const excerpt = (post.excerpt || post.content || '').substring(0, 120) + '...';
+                    const safeTitle = (post.title || 'Untitled').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    const safeExcerpt = excerpt.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    
+                    html += `
+                        <div style="padding: 15px; margin-bottom: 10px; background: var(--light); border-radius: 8px; border: 1px solid var(--border);">
+                            <h4 style="margin: 0 0 8px 0; color: var(--primary); font-size: 1rem;">${safeTitle}</h4>
+                            <p style="margin: 5px 0; color: var(--text-light); font-size: 0.9rem;"><strong>Category:</strong> ${post.category || 'Uncategorized'}</p>
+                            <p style="margin: 5px 0; color: var(--text-light); font-size: 0.9rem;"><strong>Published:</strong> ${publishedDate}</p>
+                            ${excerpt ? `<p style="margin: 8px 0 0 0; color: var(--text); font-size: 0.85rem; line-height: 1.4;">${safeExcerpt}</p>` : ''}
+                            <div style="margin-top: 10px;">
+                                <a href="blog-post.html?id=${post.id}" style="color: var(--accent); text-decoration: none; font-size: 0.85rem;">Read Post →</a>
+                                <span style="margin: 0 8px; color: var(--border);">|</span>
+                                <a href="#" onclick="removeSavedPost(${post.id}); return false;" style="color: var(--live); text-decoration: none; font-size: 0.85rem;">Remove</a>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // Add pagination controls
+                if (totalPages > 1) {
+                    html += `
+                        <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                            <button onclick="loadSavedItems(${page - 1})" ${page === 1 ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === 1 ? 'var(--light)' : 'var(--primary)'}; color: ${page === 1 ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === 1 ? 'not-allowed' : 'pointer'}; font-size: 0.85rem;">Previous</button>
+                            <span style="color: var(--text); font-size: 0.9rem;">Page ${page} of ${totalPages}</span>
+                            <button onclick="loadSavedItems(${page + 1})" ${page === totalPages ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === totalPages ? 'var(--light)' : 'var(--primary)'}; color: ${page === totalPages ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === totalPages ? 'not-allowed' : 'pointer'}; font-size: 0.85rem;">Next</button>
+                        </div>
+                    `;
+                }
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading saved posts:', error);
+                container.innerHTML = '<p style="color: var(--live);">Unable to load saved posts.</p>';
+            }
+        }
+    }
+    
+    // Remove saved blog post
+    async function removeSavedPost(postId) {
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            alert('Please log in to remove saved posts.');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`http://localhost:3000/api/blog/${postId}/save`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                loadSavedItems(savedItemsCurrentPage);
+            } else {
+                alert('Failed to remove saved post.');
+            }
+        } catch (error) {
+            console.error('Error removing saved post:', error);
+            alert('Failed to remove saved post.');
+        }
+    }
+        
+        // Calculate pagination
+        const totalPages = Math.ceil(savedEvents.length / savedItemsPerPage);
+        const startIndex = (page - 1) * savedItemsPerPage;
+        const endIndex = startIndex + savedItemsPerPage;
+        const eventsToShow = savedEvents.slice(startIndex, endIndex);
+        
+        let html = `<div style="margin-bottom: 15px;"><strong>Saved Events (${savedEvents.length}):</strong></div>`;
+        
+        // Display events for current page
+        eventsToShow.forEach((event, index) => {
+            const dateDisplay = event.dateDisplay || event.date_display || event.event_date || 'TBD';
+            const timeDisplay = event.time || event.event_time || '';
+            const dateTimeDisplay = timeDisplay ? `${dateDisplay} - ${timeDisplay}` : dateDisplay;
+            
+            html += `
+                <div style="padding: 15px; margin-bottom: 10px; background: var(--light); border-radius: 8px; border: 1px solid var(--border);">
+                    <h4 style="margin: 0 0 8px 0; color: var(--primary); font-size: 1rem;">${event.title || 'Untitled Event'}</h4>
+                    <p style="margin: 5px 0; color: var(--text-light); font-size: 0.9rem;"><strong>Date:</strong> ${dateTimeDisplay}</p>
+                    <p style="margin: 5px 0; color: var(--text-light); font-size: 0.9rem;"><strong>Status:</strong> ${event.status || 'N/A'}</p>
+                    ${event.description ? `<p style="margin: 8px 0 0 0; color: var(--text); font-size: 0.85rem; line-height: 1.4;">${event.description.length > 100 ? event.description.substring(0, 100) + '...' : event.description}</p>` : ''}
+                    <div style="margin-top: 10px;">
+                        <a href="eventspage.html?event=${event.id || ''}" style="color: var(--accent); text-decoration: none; font-size: 0.85rem;">View Event →</a>
+                        <span style="margin: 0 8px; color: var(--border);">|</span>
+                        <a href="#" onclick="removeSavedEvent(${event.id || (startIndex + index)}); return false;" style="color: var(--live); text-decoration: none; font-size: 0.85rem;">Remove</a>
+                    </div>
+                </div>
+            `;
+        });
+        
+        // Add pagination controls if there are multiple pages
+        if (totalPages > 1) {
+            html += `
+                <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                    <button onclick="loadSavedItems(${page - 1})" ${page === 1 ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === 1 ? 'var(--light)' : 'var(--primary)'}; color: ${page === 1 ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === 1 ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; opacity: ${page === 1 ? '0.5' : '1'};" ${page === 1 ? '' : 'onmouseover="this.style.background=\'var(--accent)\'" onmouseout="this.style.background=\'var(--primary)\'"'}>Previous</button>
+                    <span style="color: var(--text); font-size: 0.9rem;">Page ${page} of ${totalPages}</span>
+                    <button onclick="loadSavedItems(${page + 1})" ${page === totalPages ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === totalPages ? 'var(--light)' : 'var(--primary)'}; color: ${page === totalPages ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === totalPages ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; opacity: ${page === totalPages ? '0.5' : '1'};" ${page === totalPages ? '' : 'onmouseover="this.style.background=\'var(--accent)\'" onmouseout="this.style.background=\'var(--primary)\'"'}>Next</button>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html;
+    }
+    
+    // Remove a saved event
+    function removeSavedEvent(eventId) {
+        const savedEvents = JSON.parse(localStorage.getItem('savedEvents') || '[]');
+        const updatedEvents = savedEvents.filter(event => event.id != eventId);
+        localStorage.setItem('savedEvents', JSON.stringify(updatedEvents));
+        
+        // Recalculate current page after removal
+        const totalPages = Math.ceil(updatedEvents.length / savedItemsPerPage);
+        if (savedItemsCurrentPage > totalPages && totalPages > 0) {
+            savedItemsCurrentPage = totalPages;
+        }
+        
+        loadSavedItems(savedItemsCurrentPage); // Reload the display
+    }
+    
+    // Update saved calculations count and reload nav avatar
+    window.onload = function() {
+        const saved = localStorage.getItem('savedCalculations');
+        if (saved) {
+            document.getElementById('savedCalcCount').textContent = '1';
+        }
+        
+        // Load user data
+        loadUserData();
+        
+        // Load business data
+        loadBusinessData();
+        
+        // Load saved items (events)
+        loadSavedItems();
+        
+        loadAvatar();
+        // Reload navigation avatar after profile avatar is loaded
+        setTimeout(() => {
+            if (typeof loadNavAvatar === 'function') {
+                loadNavAvatar();
+            }
+        }, 100);
+    };
+    
+    // Logout function
+    function logout() {
+        if (confirm('Are you sure you want to logout?')) {
+            // Clear session storage
+            sessionStorage.removeItem('userAuthenticated');
+            sessionStorage.removeItem('userEmail');
+            sessionStorage.removeItem('userName');
+            sessionStorage.removeItem('redirectAfterLogin');
+            
+            // Update navigation (if function exists)
+            if (typeof updateNavAuthStatus === 'function') {
+                updateNavAuthStatus();
+            }
+            
+            // Redirect to homepage
+            window.location.href = 'index.html';
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Authentication Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 50px auto;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .authenticated {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .not-authenticated {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background: #3182CE;
+            color: white;
+        }
+        button:hover {
+            background: #2C5AA0;
+        }
+        .danger {
+            background: #E53E3E;
+        }
+        .danger:hover {
+            background: #C53030;
+        }
+    </style>
+</head>
+<body>
+    <h1>Authentication Status Checker</h1>
+    
+    <div id="status" class="status"></div>
+    
+    <h3>SessionStorage Contents:</h3>
+    <pre id="sessionData" style="background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto;"></pre>
+    
+    <h3>Actions:</h3>
+    <button onclick="checkAuth()">Refresh Status</button>
+    <button onclick="clearAuth()" class="danger">Clear Authentication (Logout)</button>
+    <button onclick="testRedirect()">Test Protected Page Redirect</button>
+    
+    <script>
+        function checkAuth() {
+            const isAuth = sessionStorage.getItem('userAuthenticated') === 'true';
+            const statusDiv = document.getElementById('status');
+            const sessionDiv = document.getElementById('sessionData');
+            
+            if (isAuth) {
+                statusDiv.className = 'status authenticated';
+                statusDiv.innerHTML = '<strong>✓ Authenticated</strong><br>You are logged in. You can access protected pages.';
+            } else {
+                statusDiv.className = 'status not-authenticated';
+                statusDiv.innerHTML = '<strong>✗ Not Authenticated</strong><br>You are NOT logged in. Protected pages should redirect to login.';
+            }
+            
+            // Show all sessionStorage data
+            let sessionData = {};
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                sessionData[key] = sessionStorage.getItem(key);
+            }
+            sessionDiv.textContent = JSON.stringify(sessionData, null, 2);
+        }
+        
+        function clearAuth() {
+            sessionStorage.clear();
+            alert('SessionStorage cleared! Refresh to see updated status.');
+            checkAuth();
+        }
+        
+        function testRedirect() {
+            window.location.href = 'tools.html';
+        }
+        
+        // Check on load
+        checkAuth();
+    </script>
+</body>
+</html>
+
+
+
+
+

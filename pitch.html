@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitch Competition | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .main-content {
+            padding: 20px 0;
+        }
+        .main-content .container {
+            max-width: 1600px !important;
+        }
+        footer .container {
+            background: transparent;
+            padding: 40px 20px 20px;
+            margin: 0 auto;
+        }
+        .events-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .event-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 25px 45px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            align-items: stretch;
+            gap: 40px;
+            width: 100%;
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+        .event-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .event-date-time {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: space-between;
+            min-width: 300px;
+            max-width: 300px;
+            padding-right: 120px;
+            border-right: 2px solid var(--border);
+            flex-shrink: 0;
+            align-self: stretch;
+        }
+        .event-title-left {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+            line-height: 1.2;
+            flex-shrink: 0;
+            width: 180px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: normal;
+        }
+        .date-time-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            flex: 1;
+            justify-content: center;
+            margin: 0;
+        }
+        .event-date-time .date {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+        .event-date-time .time {
+            font-size: 1.5rem;
+            color: var(--text-light);
+            font-weight: 500;
+            line-height: 1.3;
+            margin-bottom: 0;
+        }
+        .event-action {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            padding-top: 0;
+            flex-shrink: 0;
+        }
+        .event-content {
+            flex: 1;
+            min-width: 400px;
+            padding-left: 40px;
+            padding-right: 30px;
+        }
+        .event-flier {
+            margin-top: 15px;
+            margin-left: -45px;
+            margin-right: -45px;
+            width: calc(100% + 90px);
+        }
+        .event-flier img {
+            width: 100%;
+            max-width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            display: block;
+            border: none;
+            border-radius: 0;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+        .event-description {
+            color: var(--text);
+            margin: 15px 0 18px 0;
+            line-height: 1.7;
+            font-size: 1.15rem;
+        }
+        .description-preview, .description-full {
+            display: inline;
+        }
+        .see-more-btn {
+            background: transparent;
+            border: none;
+            color: #2563eb;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0;
+            margin-left: 5px;
+            text-decoration: underline;
+            transition: color 0.3s;
+        }
+        .see-more-btn:hover {
+            color: #1d4ed8;
+        }
+        .event-social-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            margin-top: 15px;
+            justify-content: flex-start;
+            align-items: center;
+        }
+        .social-link-btn {
+            padding: 12px 20px;
+            background: #2563eb;
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: background 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            min-width: 130px;
+            text-align: center;
+        }
+        .social-link-btn:hover {
+            background: #1d4ed8;
+        }
+        .social-link-btn.disabled {
+            background: #2563eb;
+            cursor: default;
+            opacity: 0.6;
+        }
+        .social-link-btn.disabled:hover {
+            background: #2563eb;
+        }
+        .watch-live-btn {
+            padding: 18px 32px;
+            background: var(--live);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.3rem;
+            transition: background 0.3s;
+            white-space: nowrap;
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
+        }
+        .watch-live-btn:hover {
+            background: #d32f2f;
+        }
+        .register-btn {
+            padding: 18px 32px;
+            background: #2563eb;
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.3rem;
+            transition: background 0.3s;
+            white-space: nowrap;
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
+        }
+        .register-btn:hover {
+            background: #1d4ed8;
+        }
+        .view-details-btn {
+            padding: 18px 32px;
+            background: #2563eb;
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1.3rem;
+            transition: background 0.3s;
+            white-space: nowrap;
+            width: 180px;
+            min-width: 180px;
+            max-width: 180px;
+        }
+        .view-details-btn:hover {
+            background: #1d4ed8;
+        }
+        .event-details-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+        .event-details-content {
+            background-color: var(--white);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .event-details-content h2 {
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        .event-details-content .event-detail-item {
+            margin-bottom: 15px;
+        }
+        .event-details-content .event-detail-label {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+        .event-details-content .event-detail-value {
+            color: var(--text-light);
+        }
+        .close-details {
+            color: var(--text-light);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 20px;
+        }
+        .close-details:hover {
+            color: var(--text);
+        }
+        .no-events {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+        .events-section-header {
+            margin: 40px 0 25px 0;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border);
+        }
+        .events-section-header:first-child {
+            margin-top: 0;
+        }
+        .events-section-header h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+        <div style="position: relative;">
+            <input type="text" id="globalSearch" placeholder="Search..." style="padding: 8px 35px 8px 12px; border-radius: 20px; border: 1px solid var(--border); width: 200px; font-size: 0.9rem;" onkeyup="handleGlobalSearch(event)">
+            <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-light);">🔍</span>
+            <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border: 1px solid var(--border); border-radius: 8px; margin-top: 5px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
+        </div>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="eventspage.html">Events</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="tools.html">Tools</a></li>
+            <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+            <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+            <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="main-content">
+    <div class="container">
+        <h1 style="text-align: center; color: var(--primary); margin-bottom: 20px; padding-top: 20px;">Pitch Competition</h1>
+        <p style="text-align: center; color: var(--text-light); font-size: 1.1rem; max-width: 800px; margin: 0 auto 40px;">
+            Showcase your innovative business ideas and compete for funding opportunities. Explore upcoming pitch events or review past competitions.
+        </p>
+
+        <div id="pitchEventsContainer" class="events-grid">
+            <!-- Pitch event cards will be rendered here -->
+        </div>
+
+        <div id="noPitchEventsMessage" class="no-events" style="display: none;">
+            <h2>No Pitch Events Scheduled</h2>
+            <p>There are currently no pitch events scheduled. Check back soon for upcoming pitch competitions.</p>
+        </div>
+
+        <!-- Pitch Event Details Modal (for historical events) -->
+        <div id="pitchEventDetailsModal" class="event-details-modal">
+            <div class="event-details-content" id="pitchEventDetailsContent">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Pitch Submission Form (Only shown if registered for an upcoming event) -->
+        <div id="pitchSubmissionSection" style="display: none;">
+            <div style="background: var(--light); padding: 30px; border-radius: 12px; margin-top: 40px;">
+                <h2 style="color: var(--primary); margin-bottom: 20px;">Submit Your Pitch</h2>
+                <form id="pitchSubmissionForm">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Business Name</label>
+                        <input type="text" id="businessName" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px;">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Pitch Description</label>
+                        <textarea id="pitchDescription" rows="5" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 8px;">Funding Amount Requested</label>
+                        <input type="number" id="fundingAmount" required style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="padding: 12px 30px;">Submit Pitch</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h3>Enterprise Room Business Hub</h3>
+                <p>Empowering entrepreneurs with resources, networks, and tools to scale and succeed.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="eventspage.html">Events</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="directories.html">Directories</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="tools.html">Financial Tools</a></li>
+                    <li><a href="pitch.html">Pitch Competition</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>
+                    <a href="contact.html">Contact Us</a><br>
+                    <a href="faq.html">FAQ</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    // Load pitch events from API and render them
+    async function loadPitchEvent() {
+        try {
+            console.log('Fetching pitch events from API...');
+            const response = await fetch('http://localhost:3000/api/events/pitch');
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('API Error Response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+            }
+            
+            const data = await response.json();
+            console.log('API Response:', data);
+            let pitchEvents = data.events || [];
+            console.log('Pitch events from API (raw):', pitchEvents);
+            console.log('Number of pitch events:', pitchEvents.length);
+            
+            // Convert snake_case to camelCase for compatibility with existing code
+            pitchEvents = pitchEvents.map(e => ({
+                id: e.id,
+                title: e.title,
+                description: e.description,
+                eventType: e.event_type || e.eventType || 'pitch',
+                status: e.status,
+                date: e.event_date || e.date,
+                event_date: e.event_date,
+                dateDisplay: e.date_display || e.dateDisplay,
+                date_display: e.date_display,
+                event_time: e.event_time,
+                time: e.event_time || e.time,
+                flier: e.flier_url || e.flier,
+                flier_url: e.flier_url,
+                social_links: e.social_links
+            }));
+            
+            console.log('Pitch events (converted):', pitchEvents);
+            
+            // Render events
+            renderPitchEvents(pitchEvents);
+        } catch (error) {
+            console.error('Error loading pitch event:', error);
+            console.error('Error details:', error.message);
+            console.error('Stack:', error.stack);
+            
+            // Show error message to user
+            const container = document.getElementById('pitchEventsContainer');
+            const noEventsMsg = document.getElementById('noPitchEventsMessage');
+            if (container) {
+                container.innerHTML = '';
+            }
+            if (noEventsMsg) {
+                noEventsMsg.style.display = 'block';
+                noEventsMsg.innerHTML = `<h2>Error Loading Events</h2><p>${error.message}. Please refresh the page or contact support if the issue persists.</p>`;
+            }
+        }
+    }
+    
+    // Render pitch events in sections (similar to events page)
+    function renderPitchEvents(pitchEvents) {
+        const container = document.getElementById('pitchEventsContainer');
+        const noEventsMsg = document.getElementById('noPitchEventsMessage');
+        
+        if (pitchEvents.length === 0) {
+            if (container) container.innerHTML = '';
+            if (noEventsMsg) noEventsMsg.style.display = 'block';
+            return;
+        }
+        
+        if (noEventsMsg) noEventsMsg.style.display = 'none';
+        
+        // Helper function to check if event is in the past
+        const isEventInPast = (event) => {
+            if (!event.event_date && !event.date) return false;
+            const eventDate = new Date(event.event_date || event.date);
+            if (isNaN(eventDate.getTime())) return false;
+            eventDate.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return eventDate < today;
+        };
+
+        // Filter events - ensure no duplicates
+        const liveEvents = pitchEvents.filter(event => {
+            const status = (event.status || '').toLowerCase();
+            const isPast = isEventInPast(event);
+            // Only include events that are actually live AND not in the past
+            return status === 'live now' && !isPast;
+        });
+        
+        const upcomingEvents = pitchEvents.filter(event => {
+            const status = (event.status || '').toLowerCase();
+            const isPast = isEventInPast(event);
+            const isLive = status === 'live now';
+            // Include upcoming/featured events that are NOT in the past and NOT live
+            return (status === 'upcoming' || status === 'featured') && !isPast && !isLive;
+        }).sort((a, b) => {
+            // Sort upcoming events by date (earliest first - next event at top)
+            const dateA = a.event_date ? new Date(a.event_date).getTime() : 0;
+            const dateB = b.event_date ? new Date(b.event_date).getTime() : 0;
+            return dateA - dateB;
+        });
+        
+        const historicalEvents = pitchEvents.filter(event => {
+            const status = (event.status || '').toLowerCase();
+            const isPast = isEventInPast(event);
+            const isLive = status === 'live now';
+            // Include events marked as historical OR events that are in the past, but NOT live
+            return (status === 'historical' || isPast) && !isLive;
+        }).sort((a, b) => {
+            // Sort historical events by date (newest first)
+            const dateA = a.event_date ? new Date(a.event_date).getTime() : 0;
+            const dateB = b.event_date ? new Date(b.event_date).getTime() : 0;
+            return dateB - dateA;
+        });
+        
+        // Function to render a single event card
+        const renderEventCard = (event) => {
+            const status = (event.status || 'Upcoming').toLowerCase();
+            const isLive = status === 'live now';
+            const isPast = isEventInPast(event);
+            const isHistorical = status === 'historical' || isPast;
+            
+            // Parse date and time
+            let dateStr = 'TBD';
+            let timeStr = 'TBD';
+            if (event.dateDisplay) {
+                const parts = event.dateDisplay.split(' - ');
+                if (parts.length >= 1) {
+                    const datePart = parts[0].trim();
+                    if (/^[A-Z]{3}\s+\d{1,2}$/.test(datePart)) {
+                        if (event.event_date) {
+                            const date = new Date(event.event_date);
+                            if (!isNaN(date.getTime())) {
+                                const year = date.getFullYear();
+                                dateStr = `${datePart} ${year}`;
+                            } else {
+                                dateStr = datePart;
+                            }
+                        } else {
+                            dateStr = datePart;
+                        }
+                    } else {
+                        const parsedDate = new Date(datePart);
+                        if (!isNaN(parsedDate.getTime())) {
+                            const month = parsedDate.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                            const day = parsedDate.getDate();
+                            const year = parsedDate.getFullYear();
+                            dateStr = `${month} ${day} ${year}`;
+                        } else {
+                            dateStr = datePart;
+                        }
+                    }
+                }
+                // Only extract time if event is not historical
+                if (parts.length >= 2 && !isHistorical) {
+                    timeStr = parts[1].trim();
+                } else if (isHistorical) {
+                    timeStr = ''; // Empty for historical events
+                }
+            } else if (event.event_date) {
+                const date = new Date(event.event_date);
+                if (!isNaN(date.getTime())) {
+                    const month = date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                    const day = date.getDate();
+                    const year = date.getFullYear();
+                    dateStr = `${month} ${day} ${year}`;
+                }
+                // Only extract time if event is not historical
+                if (event.event_time && !isHistorical) {
+                    timeStr = event.event_time;
+                } else if (isHistorical) {
+                    timeStr = ''; // Empty for historical events
+                }
+            }
+            
+            // Extract social links if available
+            // For historical events, use "Link" labels; for live/upcoming, use "Live" labels
+            let socialLinks = [];
+            if (event.social_links) {
+                try {
+                    const links = typeof event.social_links === 'string' ? JSON.parse(event.social_links) : event.social_links;
+                    if (links.linkedin) {
+                        socialLinks.push({ name: isHistorical ? 'LinkedIn Link' : 'LinkedIn Live', url: links.linkedin });
+                    }
+                    if (links.instagram) {
+                        socialLinks.push({ name: isHistorical ? 'Instagram Link' : 'Instagram Live', url: links.instagram });
+                    }
+                    if (links.twitter) {
+                        socialLinks.push({ name: isHistorical ? 'Twitter Link' : 'Twitter Space', url: links.twitter });
+                    }
+                    if (links.youtube) {
+                        socialLinks.push({ name: isHistorical ? 'YouTube Link' : 'YouTube', url: links.youtube });
+                    }
+                } catch (e) {
+                    // If parsing fails, ignore social links
+                }
+            }
+            
+            // If no social links in data but event is live and not past, show default labels (non-clickable)
+            if (socialLinks.length === 0 && isLive && !isPast) {
+                socialLinks = [
+                    { name: 'LinkedIn Live', url: null },
+                    { name: 'Instagram Live', url: null },
+                    { name: 'Twitter Space', url: null },
+                    { name: 'YouTube', url: null }
+                ];
+            }
+            
+            // Action button - check date first, then status
+            const safeTitle = (event.title || 'Untitled Event').replace(/'/g, "\\'");
+            const safeDescription = (event.description || 'No additional details available.').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            const safeDateDisplay = (event.dateDisplay || dateStr + ' ' + timeStr).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            
+            // Determine button based on date and status
+            // Historical events don't have action buttons
+            let actionButton = '';
+            if (isLive && !isPast) {
+                // Only show "Watch Live" if event is actually live AND not in the past
+                const firstLiveLink = socialLinks.find(link => link.url)?.url || '#';
+                actionButton = `<button class="watch-live-btn" onclick="window.open('${firstLiveLink}', '_blank')">Watch Live</button>`;
+            } else if (!isPast && !isHistorical) {
+                // Show "Register" for upcoming events only
+                actionButton = `<button class="register-btn" onclick="registerForPitchEvent('${event.id}')">Register</button>`;
+            }
+            // Historical events: no action button
+            
+            // Check if flier exists and is not empty - only show if valid URL
+            const flierUrl = event.flier_url || event.flier;
+            const hasValidFlier = flierUrl && 
+                                  typeof flierUrl === 'string' && 
+                                  flierUrl.trim() !== '' && 
+                                  flierUrl !== 'null' && 
+                                  flierUrl !== 'undefined';
+            const flierDisplay = hasValidFlier 
+                ? `<div class="event-flier" style="margin-top: 15px; margin-left: -45px; margin-right: -45px; width: calc(100% + 90px);"><img src="${flierUrl.trim()}" alt="Event Flier" style="width: 100%; max-width: 100%; max-height: 500px; object-fit: contain; display: block; border: none; border-radius: 0; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;" onerror="this.parentElement.style.display='none';"></div>` 
+                : '';
+            
+            // Get full description
+            const fullDescription = event.description || 'Join us for an exciting pitch competition.';
+            
+            // Escape HTML for description
+            const safeDescriptionHTML = fullDescription
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/\n/g, '<br>');
+            
+            // Truncate description to first 150 characters for preview
+            const truncateLength = 150;
+            const shouldTruncate = fullDescription.length > truncateLength;
+            const truncatedDescription = shouldTruncate 
+                ? fullDescription.substring(0, truncateLength).trim() + '...'
+                : fullDescription;
+            
+            const safeTruncatedHTML = truncatedDescription
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/\n/g, '<br>');
+            
+            // Format title to break after "2.0" if present
+            let formattedTitle = event.title || 'Untitled Event';
+            // Keep "Pitch 2.0" together on first line, break before "Extra"
+            if (formattedTitle.includes('2.0')) {
+                // Replace space between "Pitch" and "2.0" with non-breaking space
+                formattedTitle = formattedTitle.replace(/Pitch\s+2\.0/g, 'Pitch&nbsp;2.0');
+                // Then break after "2.0" before "Extra"
+                formattedTitle = formattedTitle.replace(/2\.0\s+/g, '2.0<br>');
+            }
+            
+            return `
+                <div class="event-card" id="event-card-${event.id}">
+                    <div class="event-date-time">
+                        <h3 class="event-title-left">${formattedTitle}</h3>
+                        <div class="date-time-container">
+                            <div class="date">${dateStr}</div>
+                            ${!isHistorical && timeStr ? `<div class="time">${timeStr}</div>` : ''}
+                        </div>
+                        ${actionButton ? `<div class="event-action">${actionButton}</div>` : ''}
+                    </div>
+                    <div class="event-content">
+                        ${flierDisplay}
+                        <div class="event-description">
+                            <span class="description-preview" id="desc-preview-${event.id}">${safeTruncatedHTML}</span>
+                            <span class="description-full" id="desc-full-${event.id}" style="display: none;">${safeDescriptionHTML}</span>
+                            ${shouldTruncate ? `<button class="see-more-btn" id="see-more-${event.id}" onclick="toggleDescription('${event.id}')">See More</button>` : ''}
+                        </div>
+                        ${socialLinks.length > 0 ? `
+                        <div class="event-social-links">
+                            ${socialLinks.map(link => {
+                                if (link.url) {
+                                    return `<a href="${link.url}" target="_blank" class="social-link-btn">${link.name}</a>`;
+                                } else {
+                                    return `<span class="social-link-btn disabled">${link.name}</span>`;
+                                }
+                            }).join('')}
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        };
+        
+        // Build HTML with sections
+        let html = '';
+        
+        // Live Events Section (displayed first, no header)
+        if (liveEvents.length > 0) {
+            html += liveEvents.map(event => renderEventCard(event)).join('');
+        }
+        
+        // Upcoming Events Section
+        if (upcomingEvents.length > 0) {
+            html += `<div class="events-section-header"><h2>Upcoming Pitch Events</h2></div>`;
+            html += upcomingEvents.map(event => renderEventCard(event)).join('');
+        }
+        
+        // Historical Events Section
+        if (historicalEvents.length > 0) {
+            html += `<div class="events-section-header"><h2>Historical Pitch Events</h2></div>`;
+            html += historicalEvents.map(event => renderEventCard(event)).join('');
+        }
+        
+        if (container) {
+            container.innerHTML = html;
+        }
+    }
+    
+    // Show pitch event details modal for historical events
+    function showPitchEventDetails(eventId, title, description, dateDisplay) {
+        const modal = document.getElementById('pitchEventDetailsModal');
+        const modalContent = document.getElementById('pitchEventDetailsContent');
+        
+        if (modal && modalContent) {
+            modalContent.innerHTML = `
+                <span class="close-details" onclick="closePitchEventDetails()">&times;</span>
+                <h2>${title}</h2>
+                <div class="event-detail-item">
+                    <div class="event-detail-label">Date & Time:</div>
+                    <div class="event-detail-value">${dateDisplay}</div>
+                </div>
+                <div class="event-detail-item">
+                    <div class="event-detail-label">Event Type:</div>
+                    <div class="event-detail-value">Pitch Event</div>
+                </div>
+                <div class="event-detail-item">
+                    <div class="event-detail-label">Description:</div>
+                    <div class="event-detail-value">${description}</div>
+                </div>
+                <div class="event-detail-item">
+                    <div class="event-detail-label">Status:</div>
+                    <div class="event-detail-value">Historical Event</div>
+                </div>
+            `;
+            modal.style.display = 'block';
+        }
+    }
+    
+    function closePitchEventDetails() {
+        const modal = document.getElementById('pitchEventDetailsModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+    
+    // Toggle description expand/collapse
+    function toggleDescription(eventId) {
+        const preview = document.getElementById(`desc-preview-${eventId}`);
+        const full = document.getElementById(`desc-full-${eventId}`);
+        const button = document.getElementById(`see-more-${eventId}`);
+        
+        if (preview && full && button) {
+            if (preview.style.display === 'none') {
+                // Collapse
+                preview.style.display = 'inline';
+                full.style.display = 'none';
+                button.textContent = 'See More';
+            } else {
+                // Expand
+                preview.style.display = 'none';
+                full.style.display = 'inline';
+                button.textContent = 'See Less';
+            }
+        }
+    }
+    
+    // Register for pitch event
+    function registerForPitchEvent(eventId) {
+        // Store the event ID for registration
+        window.currentPitchEventId = eventId;
+        // Show the pitch submission form
+        document.getElementById('pitchSubmissionSection').style.display = 'block';
+        document.getElementById('pitchSubmissionSection').scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Handle pitch submission form
+    document.getElementById('pitchSubmissionForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('Pitch submitted successfully! We will review your submission and get back to you soon.');
+        // Reset form
+        this.reset();
+        // Hide form section
+        document.getElementById('pitchSubmissionSection').style.display = 'none';
+    });
+    
+    // Load pitch events on page load
+    window.addEventListener('DOMContentLoaded', function() {
+        loadPitchEvent();
+    });
+</script>
+
+</body>
+</html>

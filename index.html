@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Room Business Hub | Home</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Page-specific styles */
+        .intro-box {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 50px;
+        }
+
+        .about-card {
+            background: var(--light);
+            padding: 30px;
+            border-left: 5px solid var(--accent);
+            border-radius: 8px;
+        }
+
+        .hero .btn {
+            background: var(--success);
+            color: var(--white);
+        }
+
+        .hero .btn:hover {
+            background: #38a169;
+            color: var(--white);
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+        <div style="position: relative;">
+            <input type="text" id="globalSearch" placeholder="Search..." style="padding: 8px 35px 8px 12px; border-radius: 20px; border: 1px solid var(--border); width: 200px; font-size: 0.9rem;" onkeyup="handleGlobalSearch(event)">
+            <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-light);">🔍</span>
+            <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border: 1px solid var(--border); border-radius: 8px; margin-top: 5px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
+        </div>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="eventspage.html">Events</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="tools.html">Tools</a></li>
+            <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+            <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+            <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<header class="hero">
+    <h1>Empowering Your Business Vision</h1>
+    <p>Our Mission: To provide the resources, networks, and tools necessary for entrepreneurs to scale and succeed in today's market.</p>
+    <a href="pitch.html" class="btn btn-success">Pitch Your Business Now</a>
+</header>
+
+<section class="section">
+    <div class="intro-box">
+        <h2>Introduction</h2>
+        <p>Welcome to your central hub for business growth. We bridge the gap between innovation and capital by providing a streamlined ecosystem for entrepreneurs and investors alike.</p>
+    </div>
+
+    <div class="grid grid-2">
+        <div class="card about-card">
+            <h3>About Us</h3>
+            <p>We are a dedicated collective of industry experts focused on fostering economic growth through community-driven funding and education.</p>
+        </div>
+        <div class="card about-card">
+            <h3>Our Vision</h3>
+            <p>To become the global standard for business directories and funding transparency, ensuring every viable idea has the chance to thrive.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="section" style="background: var(--white);">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 40px;">Our Impact in Numbers</h2>
+        <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
+            <div class="stat-card" style="text-align: center; padding: 30px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: var(--white); border-radius: 12px;">
+                <h3 id="stat-members" style="font-size: 3rem; margin: 0; color: var(--white);">0+</h3>
+                <p style="margin: 10px 0 0; font-size: 1.1rem; opacity: 0.9;">Active Members</p>
+            </div>
+            <div class="stat-card" style="text-align: center; padding: 30px; background: linear-gradient(135deg, var(--success), #38a169); color: var(--white); border-radius: 12px;">
+                <h3 id="stat-businesses" style="font-size: 3rem; margin: 0; color: var(--white);">0+</h3>
+                <p style="margin: 10px 0 0; font-size: 1.1rem; opacity: 0.9;">Businesses Listed</p>
+            </div>
+            <div class="stat-card" style="text-align: center; padding: 30px; background: linear-gradient(135deg, var(--accent), var(--primary)); color: var(--white); border-radius: 12px;">
+                <h3 id="stat-funding" style="font-size: 3rem; margin: 0; color: var(--white);">₦0+</h3>
+                <p style="margin: 10px 0 0; font-size: 1.1rem; opacity: 0.9;">Funding Committed</p>
+            </div>
+            <div class="stat-card" style="text-align: center; padding: 30px; background: linear-gradient(135deg, var(--enterprise), #6b46c1); color: var(--white); border-radius: 12px;">
+                <h3 id="stat-events" style="font-size: 3rem; margin: 0; color: var(--white);">0+</h3>
+                <p style="margin: 10px 0 0; font-size: 1.1rem; opacity: 0.9;">Events Hosted</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Content Section -->
+<section class="section">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 50px;">Featured Content</h2>
+        <div class="grid grid-3" id="featured-content-container">
+            <!-- Featured content will be loaded here dynamically -->
+            <div class="card">
+                <p style="text-align: center; color: var(--text-light);">Loading featured content...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="section" style="background: var(--white);">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: 50px;">What Our Members Say</h2>
+        <div class="grid grid-3" id="testimonials-container">
+            <!-- Testimonials will be loaded here dynamically -->
+            <div class="card" style="text-align: center;">
+                <p style="text-align: center; color: var(--text-light);">Loading testimonials...</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Section -->
+<section class="section" style="background: linear-gradient(135deg, var(--primary), var(--accent)); color: var(--white);">
+    <div class="container" style="text-align: center;">
+        <h2 style="color: var(--white); margin-bottom: 20px;">Stay Updated</h2>
+        <p style="font-size: 1.1rem; margin-bottom: 30px; opacity: 0.9;">Subscribe to our newsletter for the latest events, insights, and opportunities.</p>
+        <form id="newsletter-form" style="max-width: 500px; margin: 0 auto; display: flex; gap: 10px;">
+            <input type="email" id="newsletter-email" placeholder="Enter your email" required style="flex: 1; padding: 12px; border-radius: 5px; border: none;">
+            <button type="submit" class="btn btn-success" style="white-space: nowrap;">Subscribe</button>
+        </form>
+        <div id="newsletter-message" style="margin-top: 15px; text-align: center; font-size: 0.9rem;"></div>
+    </div>
+</section>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h3>Enterprise Room Business Hub</h3>
+                <p>Empowering entrepreneurs with resources, networks, and tools to scale and succeed.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="eventspage.html">Events</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="directories.html">Directories</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="tools.html">Financial Tools</a></li>
+                    <li><a href="pitch.html">Pitch Competition</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>
+                    <a href="contact.html">Contact Us</a><br>
+                    <a href="faq.html">FAQ</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    // Load homepage statistics from API
+    async function loadHomepageStats() {
+        try {
+            const response = await fetch('http://localhost:3000/api/stats');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const stats = await response.json();
+            
+            // Update Active Members
+            const membersEl = document.getElementById('stat-members');
+            if (membersEl) {
+                membersEl.textContent = formatNumber(stats.activeMembers) + '+';
+            }
+            
+            // Update Businesses Listed
+            const businessesEl = document.getElementById('stat-businesses');
+            if (businessesEl) {
+                businessesEl.textContent = formatNumber(stats.businessesListed) + '+';
+            }
+            
+            // Update Funding Committed
+            const fundingEl = document.getElementById('stat-funding');
+            if (fundingEl) {
+                const funding = parseFloat(stats.fundingCommitted) || 0;
+                fundingEl.textContent = formatCurrency(funding) + '+';
+            }
+            
+            // Update Events Hosted
+            const eventsEl = document.getElementById('stat-events');
+            if (eventsEl) {
+                eventsEl.textContent = formatNumber(stats.eventsHosted) + '+';
+            }
+        } catch (error) {
+            console.error('Error loading homepage stats:', error);
+            console.error('Make sure the server is running and the /api/stats endpoint is available');
+            // Keep default values (0+) if API fails
+        }
+    }
+    
+    // Format number with commas
+    function formatNumber(num) {
+        return parseFloat(num || 0).toLocaleString('en-US');
+    }
+    
+    // Format currency (Nigerian Naira)
+    function formatCurrency(amount) {
+        const num = parseFloat(amount || 0);
+        if (num >= 1000000) {
+            return '₦' + (num / 1000000).toFixed(1) + 'M';
+        } else if (num >= 1000) {
+            return '₦' + (num / 1000).toFixed(1) + 'K';
+        } else {
+            return '₦' + num.toLocaleString('en-US');
+        }
+    }
+    
+    // Load featured content from API
+    async function loadFeaturedContent() {
+        try {
+            const response = await fetch('http://localhost:3000/api/featured');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            
+            const container = document.getElementById('featured-content-container');
+            if (!container) return;
+            
+            let html = '';
+            
+            // Featured Event
+            if (data.featuredEvent) {
+                const event = data.featuredEvent;
+                const status = (event.status || '').toLowerCase();
+                const isLive = status === 'live now';
+                const badgeClass = isLive ? 'badge-live' : 'badge-primary';
+                const badgeText = isLive ? 'LIVE EVENT' : 'FEATURED EVENT';
+                
+                // Format date
+                let dateDisplay = 'TBD';
+                if (event.date_display) {
+                    dateDisplay = event.date_display;
+                } else if (event.event_date) {
+                    const date = new Date(event.event_date);
+                    if (!isNaN(date.getTime())) {
+                        const month = date.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+                        const day = date.getDate();
+                        const year = date.getFullYear();
+                        dateDisplay = `${month} ${day}, ${year}`;
+                        if (event.event_time) {
+                            dateDisplay += ` - ${event.event_time}`;
+                        }
+                    }
+                }
+                
+                html += `
+                    <div class="card">
+                        <span class="badge ${badgeClass}">${badgeText}</span>
+                        <h3>${event.title || 'Event'}</h3>
+                        <p><strong>Date:</strong> ${dateDisplay}</p>
+                        <p>${(event.description || '').substring(0, 100)}${event.description && event.description.length > 100 ? '...' : ''}</p>
+                        <a href="eventspage.html" class="btn btn-primary" style="margin-top: 15px; display: inline-block;">View Event →</a>
+                    </div>
+                `;
+            }
+            
+            // Featured Blog Post
+            if (data.featuredBlog) {
+                const blog = data.featuredBlog;
+                let publishedDate = 'Recently';
+                if (blog.published_date) {
+                    const date = new Date(blog.published_date);
+                    if (!isNaN(date.getTime())) {
+                        const month = date.toLocaleDateString('en-US', { month: 'short' });
+                        const day = date.getDate();
+                        const year = date.getFullYear();
+                        publishedDate = `${month} ${day}, ${year}`;
+                    }
+                }
+                
+                html += `
+                    <div class="card">
+                        <span class="badge badge-primary">BLOG POST</span>
+                        <h3>${blog.title || 'Blog Post'}</h3>
+                        <p><strong>Published:</strong> ${publishedDate}</p>
+                        <p>${(blog.excerpt || blog.content || '').substring(0, 100)}${(blog.excerpt || blog.content || '').length > 100 ? '...' : ''}</p>
+                        <a href="blog.html" class="btn btn-primary" style="margin-top: 15px; display: inline-block;">Read More →</a>
+                    </div>
+                `;
+            }
+            
+            // Featured Business
+            if (data.featuredBusiness) {
+                const business = data.featuredBusiness;
+                html += `
+                    <div class="card">
+                        <span class="badge badge-success">FEATURED BUSINESS</span>
+                        <h3>${business.business_name || 'Business'}</h3>
+                        <p><strong>Industry:</strong> ${business.business_sector || 'N/A'}</p>
+                        <p>Discover how this innovative business secured funding and scaled their operations.</p>
+                        <a href="directories.html" class="btn btn-primary" style="margin-top: 15px; display: inline-block;">View Profile →</a>
+                    </div>
+                `;
+            }
+            
+            // If no featured content, show placeholder
+            if (!html) {
+                html = '<div class="card"><p style="text-align: center; color: var(--text-light);">No featured content available at this time.</p></div>';
+            }
+            
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('Error loading featured content:', error);
+            const container = document.getElementById('featured-content-container');
+            if (container) {
+                container.innerHTML = '<div class="card"><p style="text-align: center; color: var(--text-light);">Unable to load featured content.</p></div>';
+            }
+        }
+    }
+    
+    // Load testimonials from API
+    async function loadTestimonials() {
+        try {
+            const response = await fetch('http://localhost:3000/api/testimonials');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            
+            const container = document.getElementById('testimonials-container');
+            if (!container) return;
+            
+            if (!data.testimonials || data.testimonials.length === 0) {
+                container.innerHTML = '<div class="card" style="text-align: center;"><p style="color: var(--text-light);">No testimonials available at this time.</p></div>';
+                return;
+            }
+            
+            let html = '';
+            data.testimonials.forEach(testimonial => {
+                // content = testimonial quote
+                // author = person's name
+                // excerpt or title = title/organization (only use if different from content)
+                const quote = testimonial.content || '';
+                const author = testimonial.author || 'Anonymous';
+                
+                // Only use title/excerpt if it's different from content to avoid duplication
+                let titleOrg = '';
+                if (testimonial.excerpt && testimonial.excerpt.trim() !== quote.trim()) {
+                    titleOrg = testimonial.excerpt;
+                } else if (testimonial.title && testimonial.title.trim() !== quote.trim()) {
+                    titleOrg = testimonial.title;
+                }
+                
+                // Escape HTML to prevent XSS
+                const safeQuote = quote
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#39;');
+                const safeAuthor = author
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                const safeTitleOrg = titleOrg
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+                
+                html += `
+                    <div class="card" style="text-align: center; padding: 30px;">
+                        <div style="font-size: 4rem; color: var(--accent); line-height: 1; margin-bottom: 10px; opacity: 0.3;">"</div>
+                        <p style="font-style: italic; margin: 0 20px 20px 20px; font-size: 1.1rem; line-height: 1.6; color: var(--text);">${safeQuote}</p>
+                        <div style="font-size: 4rem; color: var(--accent); line-height: 1; margin-top: -10px; margin-bottom: 15px; opacity: 0.3; transform: rotate(180deg); display: inline-block;">"</div>
+                        <div style="font-weight: bold; color: var(--primary); font-size: 1.1rem; margin-top: 15px;">${safeAuthor}</div>
+                        ${safeTitleOrg ? `<div style="color: var(--text-light); font-size: 0.9rem; margin-top: 5px;">${safeTitleOrg}</div>` : ''}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('Error loading testimonials:', error);
+            const container = document.getElementById('testimonials-container');
+            if (container) {
+                container.innerHTML = '<div class="card" style="text-align: center;"><p style="color: var(--text-light);">Unable to load testimonials.</p></div>';
+            }
+        }
+    }
+    
+    // Handle newsletter subscription
+    document.getElementById('newsletter-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const emailInput = document.getElementById('newsletter-email');
+        const messageDiv = document.getElementById('newsletter-message');
+        const submitButton = this.querySelector('button[type="submit"]');
+        
+        const email = emailInput.value.trim();
+        
+        if (!email) {
+            messageDiv.textContent = 'Please enter your email address.';
+            messageDiv.style.color = '#ff6b6b';
+            return;
+        }
+        
+        // Disable button during submission
+        submitButton.disabled = true;
+        submitButton.textContent = 'Subscribing...';
+        messageDiv.textContent = '';
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/newsletter/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                messageDiv.textContent = data.message || 'Successfully subscribed! Thank you.';
+                messageDiv.style.color = '#48bb78';
+                emailInput.value = '';
+            } else {
+                messageDiv.textContent = data.message || 'Subscription failed. Please try again.';
+                messageDiv.style.color = '#ff6b6b';
+            }
+        } catch (error) {
+            console.error('Newsletter subscription error:', error);
+            messageDiv.textContent = 'Unable to subscribe. Please try again later.';
+            messageDiv.style.color = '#ff6b6b';
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Subscribe';
+        }
+    });
+    
+    // Load stats when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadHomepageStats();
+        loadFeaturedContent();
+        loadTestimonials();
+    });
+</script>
+</body>
+</html>

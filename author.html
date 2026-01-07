@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Author | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .author-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .author-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .author-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .author-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            color: var(--text-light);
+        }
+        .author-stats span {
+            font-size: 1.1rem;
+        }
+        .author-stats strong {
+            color: var(--primary);
+            font-size: 1.3rem;
+            display: block;
+        }
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-top: 30px;
+        }
+        @media (max-width: 1400px) {
+            .blog-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (max-width: 1024px) {
+            .blog-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .blog-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .card-img {
+            height: 150px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: bold;
+        }
+        .card-content {
+            padding: 15px;
+        }
+        .card h3 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin: 0 0 10px 0;
+        }
+        .card p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin: 0 0 10px 0;
+            line-height: 1.4;
+        }
+        .card-meta {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <a href="blog.html">Blog</a>
+    <span>/</span>
+    <span id="author-name-breadcrumb">Author</span>
+</div>
+
+<div class="container">
+    <div class="author-container">
+        <div class="author-header">
+            <h1 class="author-name" id="author-name">Loading...</h1>
+            <div class="author-stats">
+                <span><strong id="post-count">0</strong> Articles</span>
+            </div>
+        </div>
+        
+        <div id="author-posts" class="blog-grid">
+            <p style="text-align: center; color: var(--text-light);">Loading posts...</p>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h3>Enterprise Room Business Hub</h3>
+                <p>Empowering entrepreneurs with resources, networks, and tools to scale and succeed.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="eventspage.html">Events</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                    <li><a href="directories.html">Directories</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="tools.html">Financial Tools</a></li>
+                    <li><a href="pitch.html">Pitch Competition</a></li>
+                    <li><a href="profile.html">My Profile</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Contact</h4>
+                <p>
+                    <a href="contact.html">Contact Us</a><br>
+                    <a href="faq.html">FAQ</a>
+                </p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    // Get author name from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const authorName = urlParams.get('name');
+    
+    async function loadAuthorPosts() {
+        if (!authorName) {
+            document.getElementById('author-posts').innerHTML = '<p style="text-align: center; color: var(--live);">No author specified.</p>';
+            return;
+        }
+        
+        const decodedName = decodeURIComponent(authorName);
+        document.getElementById('author-name').textContent = decodedName;
+        document.getElementById('author-name-breadcrumb').textContent = decodedName;
+        
+        try {
+            const response = await fetch(`http://localhost:3000/api/blog/author/${encodeURIComponent(decodedName)}`);
+            if (!response.ok) throw new Error('Failed to load author posts');
+            
+            const data = await response.json();
+            const postsGrid = document.getElementById('author-posts');
+            const postCount = document.getElementById('post-count');
+            
+            postCount.textContent = data.posts ? data.posts.length : 0;
+            
+            if (data.posts && data.posts.length > 0) {
+                postsGrid.innerHTML = data.posts.map(post => {
+                    const cat = (post.category || '').toLowerCase();
+                    const categoryType = cat.includes('case') ? 'case-studies' : 
+                                       (cat === 'research' || cat === 'research reports') ? 'research' :
+                                       (cat === 'testimonials' || cat === 'testimonial') ? 'testimonials' : 'articles';
+                    return renderPostCard(post, categoryType);
+                }).join('');
+            } else {
+                postsGrid.innerHTML = '<p style="text-align: center; color: var(--text-light);">No posts found for this author.</p>';
+            }
+        } catch (error) {
+            console.error('Error loading author posts:', error);
+            document.getElementById('author-posts').innerHTML = '<p style="text-align: center; color: var(--live);">Unable to load posts.</p>';
+        }
+    }
+    
+    function renderPostCard(post, categoryType) {
+        const title = post.title || 'Untitled';
+        const excerpt = (post.excerpt || post.content || '').substring(0, 150) + '...';
+        const publishedDate = post.published_date ? new Date(post.published_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+        const featuredImage = post.featured_image_url || '';
+        
+        const safeTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const safeExcerpt = excerpt.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        
+        const imageHTML = featuredImage 
+            ? `<div class="card-img" style="background-image: url('${featuredImage}'); background-size: cover; background-position: center;"></div>`
+            : `<div class="card-img">${post.category || 'Article'}</div>`;
+        
+        return `
+            <div class="card" onclick="window.location.href='blog-post.html?id=${post.id}'">
+                ${imageHTML}
+                <div class="card-content">
+                    <h3>${safeTitle}</h3>
+                    <p>${safeExcerpt}</p>
+                    <div class="card-meta">${publishedDate}</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    window.addEventListener('DOMContentLoaded', function() {
+        loadAuthorPosts();
+        updateNavAuthStatus();
+        loadNavAvatar();
+    });
+</script>
+
+</body>
+</html>
+
+

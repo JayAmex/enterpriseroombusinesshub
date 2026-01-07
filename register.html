@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Page-specific styles */
+        .register-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .register-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .register-card h2 {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .register-card p {
+            color: var(--text-light);
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-top: 15px;
+            transition: background 0.2s;
+        }
+
+        .btn-register:hover {
+            background: var(--accent);
+        }
+
+        .footer-links {
+            margin-top: 25px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .footer-links a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        .password-requirements {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <span>Register</span>
+</div>
+
+<div class="register-wrapper">
+    <div class="register-card">
+        <h2>Create Your Account</h2>
+        <p>Join Enterprise Room Business Hub to access tools, directories, and pitch your business.</p>
+        
+        <form id="registerForm" onsubmit="handleRegister(event); return false;">
+            <div class="input-group">
+                <label>Full Name</label>
+                <input type="text" id="registerName" placeholder="John Doe" required>
+            </div>
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="registerEmail" placeholder="john@example.com" required>
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="registerPassword" placeholder="Create a password" required minlength="6">
+                <div class="password-requirements">Password must be at least 6 characters long</div>
+            </div>
+            <div class="input-group">
+                <label>Confirm Password</label>
+                <input type="password" id="registerConfirmPassword" placeholder="Confirm your password" required>
+            </div>
+            <div class="input-group">
+                <label>Phone Number (Optional)</label>
+                <input type="tel" id="registerPhone" placeholder="+44 20 1234 5678">
+            </div>
+            <button type="submit" class="btn-register">Create Account</button>
+        </form>
+
+        <div class="footer-links">
+            Already have an account? <a href="login.html">Login here</a>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    // Check if already logged in
+    if (sessionStorage.getItem('userAuthenticated') === 'true') {
+        window.location.href = 'profile.html';
+    }
+
+    // Registration handler
+    function handleRegister(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('registerName').value.trim();
+        const email = document.getElementById('registerEmail').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        const phone = document.getElementById('registerPhone').value.trim();
+        
+        // Validation
+        if (password !== confirmPassword) {
+            alert('Passwords do not match. Please try again.');
+            return;
+        }
+        
+        if (password.length < 6) {
+            alert('Password must be at least 6 characters long.');
+            return;
+        }
+        
+        // Check if email already exists (in a real app, this would check a database)
+        // For now, we'll store registered users in localStorage
+        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
+        
+        if (registeredUsers[email]) {
+            alert('An account with this email already exists. Please login instead.');
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        // Generate UUID for membership number
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        
+        const membershipNumber = generateUUID();
+        
+        // Register the user
+        registeredUsers[email] = {
+            name: name,
+            email: email,
+            password: password, // In production, this should be hashed
+            phone: phone,
+            membershipNumber: membershipNumber,
+            registeredDate: new Date().toISOString()
+        };
+        
+        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+        
+        // Debug: Log registration
+        console.log('=== USER REGISTRATION ===');
+        console.log('New user registered:', email);
+        console.log('User data:', registeredUsers[email]);
+        console.log('Total users in localStorage:', Object.keys(registeredUsers).length);
+        console.log('All user emails:', Object.keys(registeredUsers));
+        
+        // Automatically log in the user
+        sessionStorage.setItem('userAuthenticated', 'true');
+        sessionStorage.setItem('userEmail', email);
+        sessionStorage.setItem('userName', name);
+        
+        // Update navigation on all pages (if function exists)
+        if (typeof updateNavAuthStatus === 'function') {
+            updateNavAuthStatus();
+        }
+        
+        // Show success message and redirect
+        alert('Account created successfully! You are now logged in.');
+        window.location.href = 'profile.html';
+    }
+</script>
+</body>
+</html>
+
