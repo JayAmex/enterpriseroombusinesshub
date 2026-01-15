@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Registered Events | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .event-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid var(--border);
+        }
+
+        .event-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .event-card h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .event-date {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .event-description {
+            color: var(--text-light);
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .event-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .event-status.upcoming {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .event-status.live {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .event-status.featured {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .event-status.historical {
+            background: #f5f5f5;
+            color: #616161;
+        }
+
+        .rsvp-info {
+            background: var(--light);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        .rsvp-info strong {
+            color: var(--primary);
+        }
+
+        .no-events {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--light);
+            border-radius: 12px;
+            margin-top: 30px;
+        }
+
+        .no-events-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .no-events h2 {
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        .no-events p {
+            color: var(--text-light);
+            margin-bottom: 25px;
+        }
+
+        .btn-view-all {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: var(--white);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-view-all:hover {
+            background: var(--accent);
+        }
+
+        .event-flier {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+    </style>
+    <script>
+        // Check authentication before page loads
+        (function() {
+            if (sessionStorage.getItem('userAuthenticated') !== 'true') {
+                sessionStorage.setItem('redirectAfterLogin', 'my-events.html');
+                window.location.replace('login.html');
+                return;
+            }
+        })();
+    </script>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <a href="profile.html">My Profile</a>
+    <span>/</span>
+    <span>My Registered Events</span>
+</div>
+
+<div class="container">
+    <section class="section">
+        <h1>My Registered Events</h1>
+        <p style="color: var(--text-light); margin-bottom: 20px;">Events you have registered to attend.</p>
+
+        <div id="eventsContainer">
+            <div style="text-align: center; padding: 40px;">
+                <div style="font-size: 2rem; margin-bottom: 15px;">⏳</div>
+                <p style="color: var(--text-light);">Loading your events...</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<footer>
+    <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    async function loadMyEvents() {
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const container = document.getElementById('eventsContainer');
+
+        try {
+            const response = await fetch('http://localhost:3000/api/users/events', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    sessionStorage.removeItem('userToken');
+                    sessionStorage.removeItem('userAuthenticated');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const events = data.events || [];
+
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div class="no-events">
+                        <div class="no-events-icon">📅</div>
+                        <h2>No Registered Events</h2>
+                        <p>You haven't registered for any events yet.</p>
+                        <p style="font-size: 0.9rem;">Browse our events and register to attend!</p>
+                        <a href="eventspage.html" class="btn-view-all">Browse All Events</a>
+                    </div>
+                `;
+                return;
+            }
+
+            // Format date
+            function formatDate(dateString, timeString) {
+                if (!dateString) return 'Date TBA';
+                
+                const date = new Date(dateString);
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                let formatted = date.toLocaleDateString('en-US', options);
+                
+                if (timeString) {
+                    formatted += ` at ${timeString}`;
+                }
+                
+                return formatted;
+            }
+
+            // Get status class
+            function getStatusClass(status) {
+                if (!status) return 'upcoming';
+                const statusLower = status.toLowerCase();
+                if (statusLower.includes('live')) return 'live';
+                if (statusLower.includes('featured')) return 'featured';
+                if (statusLower.includes('historical')) return 'historical';
+                return 'upcoming';
+            }
+
+            let html = '<div class="events-grid">';
+            
+            events.forEach(event => {
+                const statusClass = getStatusClass(event.status);
+                const formattedDate = formatDate(event.event_date, event.event_time);
+                const rsvpDate = new Date(event.rsvp_date).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                html += `
+                    <div class="event-card">
+                        ${event.flier_url ? `<img src="${event.flier_url}" alt="${event.title}" class="event-flier" onerror="this.style.display='none';">` : ''}
+                        <div class="event-status ${statusClass}">${event.status || 'Upcoming'}</div>
+                        <h3>${event.title || 'Untitled Event'}</h3>
+                        <div class="event-date">📅 ${formattedDate}</div>
+                        ${event.description ? `<div class="event-description">${event.description.substring(0, 150)}${event.description.length > 150 ? '...' : ''}</div>` : ''}
+                        <div class="rsvp-info">
+                            <strong>✓ Registered:</strong> ${rsvpDate}
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <a href="eventspage.html?event=${event.id}" class="btn btn-primary" style="text-decoration: none; display: inline-block;">View Event Details</a>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+
+            container.innerHTML = html;
+        } catch (error) {
+            console.error('Error loading events:', error);
+            container.innerHTML = `
+                <div class="no-events">
+                    <div class="no-events-icon">❌</div>
+                    <h2>Error Loading Events</h2>
+                    <p>Unable to load your registered events. Please try again later.</p>
+                    <button onclick="loadMyEvents()" class="btn-view-all" style="border: none; cursor: pointer;">Retry</button>
+                </div>
+            `;
+        }
+    }
+
+    // Load events on page load
+    window.onload = function() {
+        loadMyEvents();
+    };
+</script>
+</body>
+</html>

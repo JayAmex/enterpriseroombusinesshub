@@ -136,6 +136,112 @@
         .container {
             max-width: 1400px;
         }
+
+        /* Statistics Dashboard Styles */
+        .stat-card {
+            background: linear-gradient(135deg, var(--light) 0%, #f0f8ff 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card.events {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        }
+
+        .stat-card.businesses {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        }
+
+        .stat-card.blog {
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+        }
+
+        .stat-card.member {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+        }
+
+        .stat-card.profile {
+            background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+        }
+
+        .progress-bar-container {
+            margin-top: 15px;
+            background: var(--white);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid var(--border);
+        }
+
+        .progress-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: var(--light);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success) 0%, #48bb78 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
         
         @media (max-width: 768px) {
             .grid {
@@ -182,24 +288,24 @@
                 <div class="avatar-upload-overlay">Click to upload</div>
             </div>
             <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarUpload(event)">
-            <div style="text-align: center; margin-top: 10px;">
-                <button onclick="document.getElementById('avatarInput').click()" class="btn btn-primary avatar-upload-btn">Upload Avatar</button>
-            </div>
         </div>
         <div style="flex: 1;">
             <h1 id="userNameDisplay">Loading...</h1>
             <p id="userMemberStatus">Registered User</p>
             <p style="color: var(--text-light); font-size: 0.9rem; margin-top: 5px;"><strong>Membership Number:</strong> <code id="userMembershipNumber" style="background: var(--light); padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-family: monospace;">Loading...</code></p>
-            <div style="margin-top: 15px;">
+            <div style="margin-top: 15px; display: flex; gap: 10px; align-items: center;">
+                <button onclick="document.getElementById('avatarInput').click()" class="btn-small" style="padding: 8px 15px; background: var(--primary); color: var(--white); border: none; border-radius: 5px; cursor: pointer;">Update Avatar</button>
+                <button onclick="openPasswordResetModal()" class="btn-small" style="padding: 8px 15px; background: var(--primary); color: var(--white); border: none; border-radius: 5px; cursor: pointer;">Reset Password</button>
+                <button onclick="openDeleteAccountModal()" class="btn-small" style="padding: 8px 15px; background: #dc3545; color: var(--white); border: none; border-radius: 5px; cursor: pointer;">Delete Your Data</button>
                 <button onclick="logout()" class="btn-small btn-delete" style="padding: 8px 15px; background: var(--live); color: var(--white); border: none; border-radius: 5px; cursor: pointer;">Logout</button>
             </div>
         </div>
     </div>
 
     <div class="grid">
-        <div class="card">
+        <div class="card" style="display: flex; flex-direction: column;">
             <h3>My Businesses</h3>
-            <div id="businessInfo">
+            <div id="businessInfo" style="flex: 1;">
                 <div id="noBusinessMessage" style="display: none; padding: 30px 20px; text-align: center; background: var(--light); border-radius: 8px; border: 2px dashed var(--border);">
                     <div style="font-size: 3rem; color: var(--text-light); margin-bottom: 15px;">🏢</div>
                     <h4 style="color: var(--text); margin-bottom: 10px;">No Business Registered</h4>
@@ -209,7 +315,7 @@
                     <!-- Businesses will be listed here -->
                 </div>
             </div>
-            <div id="businessInfoEdit" style="display: none;">
+            <div id="businessInfoEdit" style="display: none; flex: 1;">
                 <input type="hidden" id="editingBusinessId">
                 <div class="input-group">
                     <label>Business Name</label>
@@ -240,21 +346,21 @@
                     <button onclick="cancelBusinessEdit()" class="btn" style="background: var(--white); border: 1px solid var(--border); color: var(--text);">Cancel</button>
                 </div>
             </div>
-            <div style="margin-top: 15px;">
+            <div style="margin-top: auto; padding-top: 15px;">
                 <a href="register-business.html" id="registerBusinessBtn" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem; text-decoration: none; display: inline-block;">Register Business</a>
             </div>
         </div>
         
-        <div class="card">
+        <div class="card" style="display: flex; flex-direction: column;">
             <h3>Personal Information</h3>
-            <div id="personalInfo">
+            <div id="personalInfo" style="flex: 1;">
                 <p><strong>Full Name:</strong> <span id="userNameDisplayText">Loading...</span> <span style="color: var(--text-light); font-size: 0.85rem; margin-left: 10px;">(Name changes require admin approval with valid ID)</span></p>
                 <p><strong>Title/Designation:</strong> <span id="userTitleDisplay">-</span></p>
                 <p><strong>Occupation:</strong> <span id="userOccupationDisplay">-</span></p>
                 <p><strong>State of Residence:</strong> <span id="userStateDisplay">-</span></p>
                 <p><strong>Country of Residence:</strong> <span id="userCountryDisplay">-</span></p>
             </div>
-            <div id="personalInfoEdit" style="display: none;">
+            <div id="personalInfoEdit" style="display: none; flex: 1;">
                 <div class="input-group">
                     <label>Full Name</label>
                     <input type="text" id="editUserName" placeholder="Your full name" readonly style="background: var(--light); cursor: not-allowed;">
@@ -281,7 +387,7 @@
                     <button onclick="togglePersonalEdit()" class="btn" style="background: var(--white); border: 1px solid var(--border); color: var(--text);">Cancel</button>
                 </div>
             </div>
-            <div style="margin-top: 15px;">
+            <div style="margin-top: auto; padding-top: 15px;">
                 <button onclick="togglePersonalEdit()" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem;" id="editPersonalBtn">Edit Details</button>
             </div>
         </div>
@@ -327,9 +433,9 @@
             </div>
             <hr>
             <h3>Activity Dashboard</h3>
-            <p><strong>Registered Events:</strong> 2</p>
-            <p><strong>Saved Calculations:</strong> <span id="savedCalcCount">0</span></p>
-            <p><strong>Profile Completeness:</strong> <span id="profileComplete">85%</span></p>
+            <div id="statisticsDashboard" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 20px;">
+                <!-- Statistics cards will be loaded here -->
+            </div>
         </div>
 
         <div class="card">
@@ -337,7 +443,7 @@
             <ul>
                 <li><a href="directories.html">View Business Directory</a></li>
                 <li><a href="tools.html">Access Financial Tools</a></li>
-                <li><a href="events.html">View My Registered Events</a></li>
+                <li><a href="my-events.html">View My Registered Events</a></li>
                 <li><a href="#" onclick="viewSavedCalculations(); return false;">View Saved Calculations</a></li>
             </ul>
             <hr>
@@ -356,6 +462,86 @@
 <footer>
     <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
 </footer>
+
+<!-- Delete Account Modal -->
+<div id="deleteAccountModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10001; align-items: center; justify-content: center;">
+    <div style="background: var(--white); padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); position: relative;">
+        <button onclick="closeDeleteAccountModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-light);">&times;</button>
+        <h2 style="margin-top: 0; margin-bottom: 20px; color: var(--live);">⚠️ Delete Your Account</h2>
+        <p style="color: var(--text); margin-bottom: 15px; font-weight: bold;">This action cannot be undone!</p>
+        <p style="color: var(--text-light); margin-bottom: 20px;">Deleting your account will permanently remove:</p>
+        <ul style="color: var(--text-light); margin-bottom: 20px; padding-left: 20px;">
+            <li>Your profile and personal information</li>
+            <li>All your registered businesses</li>
+            <li>All your event RSVPs</li>
+            <li>All your pitch competition entries</li>
+            <li>All your saved blog posts</li>
+            <li>All other associated data</li>
+        </ul>
+        <p style="color: var(--text-light); margin-bottom: 20px; font-size: 0.9rem;">To confirm deletion, please type <strong style="color: var(--live);">DELETE</strong> in the box below:</p>
+        
+        <form id="deleteAccountForm" onsubmit="handleDeleteAccount(event); return false;">
+            <div class="input-group" style="margin-bottom: 20px;">
+                <input type="text" id="deleteConfirmText" required placeholder="Type DELETE to confirm" style="width: 100%; padding: 10px; border: 2px solid var(--border); border-radius: 5px; font-size: 0.9rem; text-transform: uppercase;">
+            </div>
+            
+            <div id="deleteAccountError" style="display: none; padding: 10px; background: #fee; color: var(--live); border-radius: 5px; margin-bottom: 15px; font-size: 0.9rem;"></div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeDeleteAccountModal()" class="btn" style="background: var(--white); border: 1px solid var(--border); color: var(--text); padding: 10px 20px;">Cancel</button>
+                <button type="submit" class="btn" style="background: var(--live); color: var(--white); padding: 10px 20px; border: none;">Delete My Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Profile Completeness Modal -->
+<div id="profileCompletenessModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10002; align-items: center; justify-content: center;">
+    <div style="background: var(--white); padding: 30px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); position: relative;">
+        <button onclick="closeProfileCompletenessModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-light);">&times;</button>
+        <h2 style="margin-top: 0; margin-bottom: 10px;">📊 Profile Completeness</h2>
+        <p style="color: var(--text-light); margin-bottom: 20px; font-size: 0.9rem;">Complete your profile to unlock all features and improve your experience.</p>
+        
+        <div id="profileCompletenessContent">
+            <!-- Content will be loaded dynamically -->
+        </div>
+    </div>
+</div>
+
+<!-- Password Reset Modal -->
+<div id="passwordResetModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: var(--white); padding: 30px; border-radius: 12px; max-width: 500px; width: 90%; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); position: relative;">
+        <button onclick="closePasswordResetModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-light);">&times;</button>
+        <h2 style="margin-top: 0; margin-bottom: 20px;">Reset Password</h2>
+        <p style="color: var(--text-light); margin-bottom: 20px;">Enter your current password and choose a new password.</p>
+        
+        <form id="passwordResetForm" onsubmit="handlePasswordReset(event); return false;">
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label for="currentPassword">Current Password</label>
+                <input type="password" id="currentPassword" required placeholder="Enter your current password" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 0.9rem;">
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" required placeholder="Enter new password (min. 6 characters)" minlength="6" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 0.9rem;">
+                <small style="color: var(--text-light); font-size: 0.85rem; margin-top: 5px; display: block;">Password must be at least 6 characters long</small>
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 20px;">
+                <label for="confirmPassword">Confirm New Password</label>
+                <input type="password" id="confirmPassword" required placeholder="Confirm new password" minlength="6" style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 5px; font-size: 0.9rem;">
+            </div>
+            
+            <div id="passwordResetError" style="display: none; padding: 10px; background: #fee; color: var(--live); border-radius: 5px; margin-bottom: 15px; font-size: 0.9rem;"></div>
+            <div id="passwordResetSuccess" style="display: none; padding: 10px; background: #efe; color: var(--success); border-radius: 5px; margin-bottom: 15px; font-size: 0.9rem;"></div>
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closePasswordResetModal()" class="btn" style="background: var(--white); border: 1px solid var(--border); color: var(--text); padding: 10px 20px;">Cancel</button>
+                <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">Change Password</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script src="js/common.js"></script>
 <script>
@@ -388,17 +574,18 @@
             editDiv.style.display = 'block';
             if (editBtn) editBtn.style.display = 'none';
             
-            // Populate form with current values
-            const userName = sessionStorage.getItem('userName') || '';
-            const userEmail = sessionStorage.getItem('userEmail') || '';
-            const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
-            const userData = userEmail && registeredUsers[userEmail] ? registeredUsers[userEmail] : {};
+            // Populate form with current values from display
+            const userName = document.getElementById('userNameDisplayText')?.textContent || '';
+            const title = document.getElementById('userTitleDisplay')?.textContent || '';
+            const occupation = document.getElementById('userOccupationDisplay')?.textContent || '';
+            const state = document.getElementById('userStateDisplay')?.textContent || '';
+            const country = document.getElementById('userCountryDisplay')?.textContent || '';
             
-            document.getElementById('editUserName').value = userName || userData.name || '';
-            document.getElementById('editUserTitle').value = userData.title || '';
-            document.getElementById('editUserOccupation').value = userData.occupation || '';
-            document.getElementById('editUserState').value = userData.state || '';
-            document.getElementById('editUserCountry').value = userData.country || '';
+            document.getElementById('editUserName').value = userName;
+            document.getElementById('editUserTitle').value = title !== '-' ? title : '';
+            document.getElementById('editUserOccupation').value = occupation !== '-' ? occupation : '';
+            document.getElementById('editUserState').value = state !== '-' ? state : '';
+            document.getElementById('editUserCountry').value = country !== '-' ? country : '';
         } else {
             // Hide edit form
             infoDiv.style.display = 'block';
@@ -407,59 +594,51 @@
         }
     }
     
-    function savePersonalInfo() {
-        const userEmail = sessionStorage.getItem('userEmail');
-        if (!userEmail) {
-            alert('Error: User email not found in session.');
+    async function savePersonalInfo() {
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            alert('Error: You must be logged in to update your profile.');
             return;
         }
 
-        const newName = document.getElementById('editUserName').value.trim();
+        // Get form values (name is readonly, so we don't send it)
         const newTitle = document.getElementById('editUserTitle').value.trim();
         const newOccupation = document.getElementById('editUserOccupation').value.trim();
         const newState = document.getElementById('editUserState').value.trim();
         const newCountry = document.getElementById('editUserCountry').value.trim();
 
-        // Prevent name changes - name can only be changed by admin with valid ID
-        let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
-        let userData = registeredUsers[userEmail];
-        const currentName = userData?.name || sessionStorage.getItem('userName');
-        
-        if (newName !== currentName) {
-            alert('Name changes require admin approval with a valid ID. Please contact support to request a name change.');
-            return;
-        }
+        try {
+            const response = await fetch('http://localhost:3000/api/users/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title: newTitle || null,
+                    occupation: newOccupation || null,
+                    state: newState || null,
+                    country: newCountry || null
+                })
+            });
 
-        if (userData) {
-            // Update existing user (name stays the same)
-            userData.title = newTitle;
-            userData.occupation = newOccupation;
-            userData.state = newState;
-            userData.country = newCountry;
-        } else {
-            // This case should ideally not happen if user is logged in
-            // But as a fallback, create a new entry
-            registeredUsers[userEmail] = {
-                name: currentName,
-                email: userEmail,
-                password: 'default_password', // Placeholder, actual password not stored here
-                title: newTitle,
-                occupation: newOccupation,
-                state: newState,
-                country: newCountry,
-                registrationDate: new Date().toISOString().split('T')[0]
-            };
-        }
+            const data = await response.json();
 
-        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
-        
-        // Reload user data display
-        loadUserData();
-        
-        // Hide edit form
-        togglePersonalEdit();
-        
-        alert('Personal information updated successfully!');
+            if (response.ok) {
+                // Reload user data to show updated information
+                await loadUserData();
+                
+                // Hide edit form
+                togglePersonalEdit();
+                
+                alert('Personal information updated successfully!');
+            } else {
+                alert(data.message || 'Failed to update personal information. Please try again.');
+            }
+        } catch (error) {
+            console.error('Save personal info error:', error);
+            alert('An error occurred. Please try again.');
+        }
     }
     
     function toggleContactEdit() {
@@ -895,132 +1074,155 @@
         }
     }
     
-    // Load user data from sessionStorage and registeredUsers
-    function loadUserData() {
-        const userName = sessionStorage.getItem('userName');
-        const userEmail = sessionStorage.getItem('userEmail');
-        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
-        
-        // Get user data from registeredUsers if available
-        let userData = null;
-        if (userEmail && registeredUsers[userEmail]) {
-            userData = registeredUsers[userEmail];
+    // Load user data from API
+    async function loadUserData() {
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            console.error('No user token found');
+            return;
         }
-        
-        // Update name in header
-        const nameDisplay = document.getElementById('userNameDisplay');
-        if (nameDisplay) {
-            const name = userName || userData?.name || 'User';
-            nameDisplay.textContent = name;
-        }
-        
-        // Update membership number (generate if missing for existing users)
-        const membershipNumberDisplay = document.getElementById('userMembershipNumber');
-        if (membershipNumberDisplay && userData) {
-            let membershipNumber = userData.membershipNumber;
-            
-            // Generate UUID for existing users who don't have one
-            if (!membershipNumber) {
-                function generateUUID() {
-                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                        const r = Math.random() * 16 | 0;
-                        const v = c === 'x' ? r : (r & 0x3 | 0x8);
-                        return v.toString(16);
-                    });
+
+        try {
+            const response = await fetch('http://localhost:3000/api/users/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-                membershipNumber = generateUUID();
-                userData.membershipNumber = membershipNumber;
-                registeredUsers[userEmail] = userData;
-                localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    // Token expired, redirect to login
+                    sessionStorage.removeItem('userToken');
+                    sessionStorage.removeItem('userAuthenticated');
+                    sessionStorage.removeItem('userName');
+                    sessionStorage.removeItem('userEmail');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+
+            const userData = await response.json();
+            console.log('User profile data loaded:', userData);
+
+            // Update name in header
+            const nameDisplay = document.getElementById('userNameDisplay');
+            if (nameDisplay) {
+                nameDisplay.textContent = userData.name || 'User';
+            }
+
+            // Update membership number (UUID)
+            const membershipNumberDisplay = document.getElementById('userMembershipNumber');
+            if (membershipNumberDisplay) {
+                membershipNumberDisplay.textContent = userData.uuid || 'Not assigned';
+            }
+
+            // Update name in personal info section
+            const nameDisplayText = document.getElementById('userNameDisplayText');
+            if (nameDisplayText) {
+                nameDisplayText.textContent = userData.name || 'User';
+            }
+
+            // Update email in read-only section (for contact details)
+            const emailDisplayReadOnly = document.getElementById('userEmailDisplayReadOnly');
+            if (emailDisplayReadOnly) {
+                emailDisplayReadOnly.textContent = userData.email || 'Not provided';
+            }
+
+            // Update phone in read-only section (for contact details)
+            const phoneDisplayReadOnly = document.getElementById('userPhoneDisplayReadOnly');
+            if (phoneDisplayReadOnly) {
+                phoneDisplayReadOnly.textContent = userData.phone || 'Not provided';
+            }
+
+            // Update verification badges for contact details
+            const emailBadge = document.getElementById('emailVerifiedBadge');
+            const phoneBadge = document.getElementById('phoneVerifiedBadge');
             
-            membershipNumberDisplay.textContent = membershipNumber;
-        } else if (membershipNumberDisplay) {
-            membershipNumberDisplay.textContent = 'Not assigned';
-        }
-        
-        // Update name in personal info section
-        const nameDisplayText = document.getElementById('userNameDisplayText');
-        if (nameDisplayText) {
-            const name = userName || userData?.name || 'User';
-            nameDisplayText.textContent = name;
-        }
-        
-        // Update email in read-only section (for contact details)
-        const emailDisplayReadOnly = document.getElementById('userEmailDisplayReadOnly');
-        if (emailDisplayReadOnly && userEmail) {
-            emailDisplayReadOnly.textContent = userEmail;
-        }
-        
-        // Update phone in read-only section (for contact details)
-        const phoneDisplayReadOnly = document.getElementById('userPhoneDisplayReadOnly');
-        if (phoneDisplayReadOnly) {
-            phoneDisplayReadOnly.textContent = userData?.phone || 'Not provided';
-        }
-        
-        // Update verification badges for contact details
-        const emailBadge = document.getElementById('emailVerifiedBadge');
-        const phoneBadge = document.getElementById('phoneVerifiedBadge');
-        
-        if (emailBadge) {
-            if (userData?.emailVerified === true) {
+            if (emailBadge) {
+                // Email is considered verified if user exists in database
                 emailBadge.textContent = '✓ Verified';
                 emailBadge.style.color = 'var(--success)';
                 emailBadge.style.background = 'rgba(40, 167, 69, 0.1)';
                 emailBadge.style.display = 'inline-block';
-            } else {
-                emailBadge.textContent = 'Pending Verification';
-                emailBadge.style.color = 'var(--warning)';
-                emailBadge.style.background = 'rgba(255, 193, 7, 0.1)';
-                emailBadge.style.display = 'inline-block';
             }
-        }
-        
-        if (phoneBadge) {
-            const phone = userData?.phone || '';
-            if (phone && phone !== 'Not provided') {
-                if (userData?.phoneVerified === true) {
-                    phoneBadge.textContent = '✓ Verified';
-                    phoneBadge.style.color = 'var(--success)';
-                    phoneBadge.style.background = 'rgba(40, 167, 69, 0.1)';
-                    phoneBadge.style.display = 'inline-block';
-                } else {
+            
+            if (phoneBadge) {
+                const phone = userData.phone || '';
+                if (phone && phone !== 'Not provided') {
+                    // Phone verification would need to be added to database schema
                     phoneBadge.textContent = 'Pending Verification';
                     phoneBadge.style.color = 'var(--warning)';
                     phoneBadge.style.background = 'rgba(255, 193, 7, 0.1)';
                     phoneBadge.style.display = 'inline-block';
+                } else {
+                    phoneBadge.style.display = 'none';
                 }
-            } else {
-                phoneBadge.style.display = 'none';
             }
-        }
-        
-        // Update personal information display fields
-        const titleDisplay = document.getElementById('userTitleDisplay');
-        const occupationDisplay = document.getElementById('userOccupationDisplay');
-        const stateDisplay = document.getElementById('userStateDisplay');
-        const countryDisplay = document.getElementById('userCountryDisplay');
-        
-        if (titleDisplay) titleDisplay.textContent = userData?.title || '-';
-        if (occupationDisplay) occupationDisplay.textContent = userData?.occupation || '-';
-        if (stateDisplay) stateDisplay.textContent = userData?.state || '-';
-        if (countryDisplay) countryDisplay.textContent = userData?.country || '-';
-        
-        // Update edit form fields
-        if (userData) {
-            document.getElementById('editUserName').value = userData.name || '';
-            document.getElementById('editUserTitle').value = userData.title || '';
-            document.getElementById('editUserOccupation').value = userData.occupation || '';
-            document.getElementById('editUserState').value = userData.state || '';
-            document.getElementById('editUserCountry').value = userData.country || '';
-        }
-        
-        // Update avatar initials based on actual name
-        const avatarInitials = document.getElementById('avatarInitials');
-        if (avatarInitials) {
-            const name = userName || userData?.name || 'User';
-            const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-            avatarInitials.textContent = initials;
+
+            // Update personal information display fields
+            const titleDisplay = document.getElementById('userTitleDisplay');
+            const occupationDisplay = document.getElementById('userOccupationDisplay');
+            const stateDisplay = document.getElementById('userStateDisplay');
+            const countryDisplay = document.getElementById('userCountryDisplay');
+            
+            if (titleDisplay) titleDisplay.textContent = userData.title || '-';
+            if (occupationDisplay) occupationDisplay.textContent = userData.occupation || '-';
+            if (stateDisplay) stateDisplay.textContent = userData.state || '-';
+            if (countryDisplay) countryDisplay.textContent = userData.country || '-';
+
+            // Update edit form fields
+            if (document.getElementById('editUserName')) {
+                document.getElementById('editUserName').value = userData.name || '';
+            }
+            if (document.getElementById('editUserTitle')) {
+                document.getElementById('editUserTitle').value = userData.title || '';
+            }
+            if (document.getElementById('editUserOccupation')) {
+                document.getElementById('editUserOccupation').value = userData.occupation || '';
+            }
+            if (document.getElementById('editUserState')) {
+                document.getElementById('editUserState').value = userData.state || '';
+            }
+            if (document.getElementById('editUserCountry')) {
+                document.getElementById('editUserCountry').value = userData.country || '';
+            }
+
+            // Update avatar initials based on actual name
+            const avatarInitials = document.getElementById('avatarInitials');
+            if (avatarInitials) {
+                const name = userData.name || 'User';
+                const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+                avatarInitials.textContent = initials;
+            }
+
+            // Update avatar image if available
+            if (userData.avatar_url) {
+                const avatarImage = document.getElementById('avatarImage');
+                if (avatarImage) {
+                    avatarImage.src = userData.avatar_url;
+                    avatarImage.style.display = 'block';
+                    if (avatarInitials) {
+                        avatarInitials.style.display = 'none';
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error('Error loading user data:', error);
+            // Fallback to sessionStorage values
+            const userName = sessionStorage.getItem('userName');
+            const userEmail = sessionStorage.getItem('userEmail');
+            
+            const nameDisplay = document.getElementById('userNameDisplay');
+            if (nameDisplay && userName) {
+                nameDisplay.textContent = userName;
+            }
+            
+            const emailDisplayReadOnly = document.getElementById('userEmailDisplayReadOnly');
+            if (emailDisplayReadOnly && userEmail) {
+                emailDisplayReadOnly.textContent = userEmail;
+            }
         }
     }
     
@@ -1101,9 +1303,9 @@
             if (totalPages > 1) {
                 html += `
                     <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
-                        <button onclick="loadSavedItems(${page - 1})" ${page === 1 ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === 1 ? 'var(--light)' : 'var(--primary)'}; color: ${page === 1 ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === 1 ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; opacity: ${page === 1 ? '0.5' : '1'};" ${page === 1 ? '' : 'onmouseover="this.style.background=\'var(--accent)\'" onmouseout="this.style.background=\'var(--primary)\'"'}>Previous</button>
+                        <button onclick="loadSavedItems(${page - 1})" ${page === 1 ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === 1 ? 'var(--light)' : 'var(--primary)'}; color: ${page === 1 ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === 1 ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; opacity: ${page === 1 ? '0.5' : '1'};" class="pagination-btn">Previous</button>
                         <span style="color: var(--text); font-size: 0.9rem;">Page ${page} of ${totalPages}</span>
-                        <button onclick="loadSavedItems(${page + 1})" ${page === totalPages ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === totalPages ? 'var(--light)' : 'var(--primary)'}; color: ${page === totalPages ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === totalPages ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; opacity: ${page === totalPages ? '0.5' : '1'};" ${page === totalPages ? '' : 'onmouseover="this.style.background=\'var(--accent)\'" onmouseout="this.style.background=\'var(--primary)\'"'}>Next</button>
+                        <button onclick="loadSavedItems(${page + 1})" ${page === totalPages ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === totalPages ? 'var(--light)' : 'var(--primary)'}; color: ${page === totalPages ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === totalPages ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; opacity: ${page === totalPages ? '0.5' : '1'};" class="pagination-btn">Next</button>
                     </div>
                 `;
             }
@@ -1208,49 +1410,6 @@
             alert('Failed to remove saved post.');
         }
     }
-        
-        // Calculate pagination
-        const totalPages = Math.ceil(savedEvents.length / savedItemsPerPage);
-        const startIndex = (page - 1) * savedItemsPerPage;
-        const endIndex = startIndex + savedItemsPerPage;
-        const eventsToShow = savedEvents.slice(startIndex, endIndex);
-        
-        let html = `<div style="margin-bottom: 15px;"><strong>Saved Events (${savedEvents.length}):</strong></div>`;
-        
-        // Display events for current page
-        eventsToShow.forEach((event, index) => {
-            const dateDisplay = event.dateDisplay || event.date_display || event.event_date || 'TBD';
-            const timeDisplay = event.time || event.event_time || '';
-            const dateTimeDisplay = timeDisplay ? `${dateDisplay} - ${timeDisplay}` : dateDisplay;
-            
-            html += `
-                <div style="padding: 15px; margin-bottom: 10px; background: var(--light); border-radius: 8px; border: 1px solid var(--border);">
-                    <h4 style="margin: 0 0 8px 0; color: var(--primary); font-size: 1rem;">${event.title || 'Untitled Event'}</h4>
-                    <p style="margin: 5px 0; color: var(--text-light); font-size: 0.9rem;"><strong>Date:</strong> ${dateTimeDisplay}</p>
-                    <p style="margin: 5px 0; color: var(--text-light); font-size: 0.9rem;"><strong>Status:</strong> ${event.status || 'N/A'}</p>
-                    ${event.description ? `<p style="margin: 8px 0 0 0; color: var(--text); font-size: 0.85rem; line-height: 1.4;">${event.description.length > 100 ? event.description.substring(0, 100) + '...' : event.description}</p>` : ''}
-                    <div style="margin-top: 10px;">
-                        <a href="eventspage.html?event=${event.id || ''}" style="color: var(--accent); text-decoration: none; font-size: 0.85rem;">View Event →</a>
-                        <span style="margin: 0 8px; color: var(--border);">|</span>
-                        <a href="#" onclick="removeSavedEvent(${event.id || (startIndex + index)}); return false;" style="color: var(--live); text-decoration: none; font-size: 0.85rem;">Remove</a>
-                    </div>
-                </div>
-            `;
-        });
-        
-        // Add pagination controls if there are multiple pages
-        if (totalPages > 1) {
-            html += `
-                <div style="display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
-                    <button onclick="loadSavedItems(${page - 1})" ${page === 1 ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === 1 ? 'var(--light)' : 'var(--primary)'}; color: ${page === 1 ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === 1 ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; opacity: ${page === 1 ? '0.5' : '1'};" ${page === 1 ? '' : 'onmouseover="this.style.background=\'var(--accent)\'" onmouseout="this.style.background=\'var(--primary)\'"'}>Previous</button>
-                    <span style="color: var(--text); font-size: 0.9rem;">Page ${page} of ${totalPages}</span>
-                    <button onclick="loadSavedItems(${page + 1})" ${page === totalPages ? 'disabled' : ''} style="padding: 6px 12px; background: ${page === totalPages ? 'var(--light)' : 'var(--primary)'}; color: ${page === totalPages ? 'var(--text-light)' : 'var(--white)'}; border: 1px solid var(--border); border-radius: 5px; cursor: ${page === totalPages ? 'not-allowed' : 'pointer'}; font-size: 0.85rem; opacity: ${page === totalPages ? '0.5' : '1'};" ${page === totalPages ? '' : 'onmouseover="this.style.background=\'var(--accent)\'" onmouseout="this.style.background=\'var(--primary)\'"'}>Next</button>
-                </div>
-            `;
-        }
-        
-        container.innerHTML = html;
-    }
     
     // Remove a saved event
     function removeSavedEvent(eventId) {
@@ -1267,15 +1426,83 @@
         loadSavedItems(savedItemsCurrentPage); // Reload the display
     }
     
+    // Load user statistics
+    async function loadUserStatistics() {
+        const token = sessionStorage.getItem('userToken');
+        if (!token) return;
+
+        try {
+            const response = await fetch('http://localhost:3000/api/users/statistics', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const stats = await response.json();
+            const dashboard = document.getElementById('statisticsDashboard');
+            
+            if (!dashboard) return;
+
+            dashboard.innerHTML = `
+                <div class="stat-card events">
+                    <span class="stat-icon">📅</span>
+                    <div class="stat-value">${stats.registeredEvents || 0}</div>
+                    <div class="stat-label">Events Registered</div>
+                </div>
+                <div class="stat-card businesses">
+                    <span class="stat-icon">🏢</span>
+                    <div class="stat-value">${stats.businessesRegistered || 0}</div>
+                    <div class="stat-label">Businesses</div>
+                </div>
+                <div class="stat-card blog">
+                    <span class="stat-icon">📝</span>
+                    <div class="stat-value">${stats.savedBlogPosts || 0}</div>
+                    <div class="stat-label">Saved Posts</div>
+                </div>
+                <div class="stat-card member">
+                    <span class="stat-icon">⭐</span>
+                    <div class="stat-value">${stats.daysAsMember || 0}</div>
+                    <div class="stat-label">Days as Member</div>
+                </div>
+                <div class="stat-card profile" style="grid-column: 1 / -1; cursor: pointer;" onclick="openProfileCompletenessModal()">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <div>
+                            <span class="stat-icon" style="font-size: 2rem; display: inline-block; margin-right: 10px;">📊</span>
+                            <span style="font-size: 1.1rem; color: var(--text); font-weight: 600;">Profile Completeness</span>
+                        </div>
+                        <div class="stat-value" style="font-size: 1.5rem; margin: 0;">${stats.profileCompleteness || 0}%</div>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-label">
+                            <span>Click to see what's missing →</span>
+                            <span style="font-weight: bold; color: var(--primary);">${stats.profileCompleteness || 0}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" style="width: ${stats.profileCompleteness || 0}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error loading user statistics:', error);
+            const dashboard = document.getElementById('statisticsDashboard');
+            if (dashboard) {
+                dashboard.innerHTML = '<p style="color: var(--text-light);">Unable to load statistics.</p>';
+            }
+        }
+    }
+
     // Update saved calculations count and reload nav avatar
     window.onload = function() {
-        const saved = localStorage.getItem('savedCalculations');
-        if (saved) {
-            document.getElementById('savedCalcCount').textContent = '1';
-        }
-        
         // Load user data
         loadUserData();
+        
+        // Load user statistics
+        loadUserStatistics();
         
         // Load business data
         loadBusinessData();
@@ -1292,14 +1519,344 @@
         }, 100);
     };
     
+    // Password Reset Modal Functions
+    function openPasswordResetModal() {
+        const modal = document.getElementById('passwordResetModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            // Clear form
+            document.getElementById('passwordResetForm').reset();
+            document.getElementById('passwordResetError').style.display = 'none';
+            document.getElementById('passwordResetSuccess').style.display = 'none';
+        }
+    }
+    
+    function closePasswordResetModal() {
+        const modal = document.getElementById('passwordResetModal');
+        if (modal) {
+            modal.style.display = 'none';
+            // Clear form
+            document.getElementById('passwordResetForm').reset();
+            document.getElementById('passwordResetError').style.display = 'none';
+            document.getElementById('passwordResetSuccess').style.display = 'none';
+        }
+    }
+    
+    // Handle Password Reset
+    async function handlePasswordReset(event) {
+        event.preventDefault();
+        
+        const currentPassword = document.getElementById('currentPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const errorDiv = document.getElementById('passwordResetError');
+        const successDiv = document.getElementById('passwordResetSuccess');
+        
+        // Hide previous messages
+        errorDiv.style.display = 'none';
+        successDiv.style.display = 'none';
+        
+        // Validate passwords match
+        if (newPassword !== confirmPassword) {
+            errorDiv.textContent = 'New passwords do not match';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        // Validate password length
+        if (newPassword.length < 6) {
+            errorDiv.textContent = 'New password must be at least 6 characters long';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            errorDiv.textContent = 'You must be logged in to change your password';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/users/password', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    currentPassword: currentPassword,
+                    newPassword: newPassword
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                successDiv.textContent = 'Password changed successfully!';
+                successDiv.style.display = 'block';
+                
+                // Clear form
+                document.getElementById('passwordResetForm').reset();
+                
+                // Close modal after 2 seconds
+                setTimeout(() => {
+                    closePasswordResetModal();
+                }, 2000);
+            } else {
+                errorDiv.textContent = data.message || 'Failed to change password';
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Password reset error:', error);
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.style.display = 'block';
+        }
+    }
+    
+    // Profile Completeness Modal Functions
+    async function openProfileCompletenessModal() {
+        const modal = document.getElementById('profileCompletenessModal');
+        const content = document.getElementById('profileCompletenessContent');
+        if (!modal || !content) return;
+
+        // Get user data to check completion status
+        const token = sessionStorage.getItem('userToken');
+        if (!token) return;
+
+        try {
+            const response = await fetch('http://localhost:3000/api/users/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Failed to load profile');
+
+            const userData = await response.json();
+            
+            // Define profile fields
+            const fields = [
+                { key: 'name', label: 'Full Name', required: true, section: 'Personal Information', action: 'alert(\'Name changes require admin approval. Contact support with a valid ID.\')' },
+                { key: 'email', label: 'Email Address', required: true, section: 'Contact Details', action: 'toggleContactEdit()' },
+                { key: 'phone', label: 'Phone Number', required: false, section: 'Contact Details', action: 'toggleContactEdit()' },
+                { key: 'avatar_url', label: 'Profile Picture', required: false, section: 'Profile', action: 'closeProfileCompletenessModal(); document.getElementById(\'avatarInput\').click();' },
+                { key: 'title', label: 'Title/Designation', required: false, section: 'Personal Information', action: 'togglePersonalEdit()' },
+                { key: 'occupation', label: 'Occupation', required: false, section: 'Personal Information', action: 'togglePersonalEdit()' },
+                { key: 'state', label: 'State of Residence', required: false, section: 'Personal Information', action: 'togglePersonalEdit()' },
+                { key: 'country', label: 'Country of Residence', required: false, section: 'Personal Information', action: 'togglePersonalEdit()' }
+            ];
+
+            // Check completion status
+            let completedCount = 0;
+            const fieldList = fields.map(field => {
+                const isComplete = userData[field.key] && userData[field.key] !== 'Not provided' && userData[field.key] !== '';
+                if (isComplete) completedCount++;
+                
+                return {
+                    ...field,
+                    isComplete,
+                    value: userData[field.key] || 'Not set'
+                };
+            });
+
+            const totalFields = fields.length;
+            const percentage = Math.round((completedCount / totalFields) * 100);
+
+            // Build HTML
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span style="font-size: 1.2rem; font-weight: bold; color: var(--primary);">${percentage}% Complete</span>
+                        <span style="color: var(--text-light); font-size: 0.9rem;">${completedCount} of ${totalFields} fields completed</span>
+                    </div>
+                    <div class="progress-bar" style="height: 16px;">
+                        <div class="progress-bar-fill" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 25px;">
+                    <h3 style="font-size: 1rem; margin-bottom: 15px; color: var(--text);">Profile Fields Checklist</h3>
+            `;
+
+            // Group by section
+            const sections = {};
+            fieldList.forEach(field => {
+                if (!sections[field.section]) {
+                    sections[field.section] = [];
+                }
+                sections[field.section].push(field);
+            });
+
+            // Render by section
+            Object.keys(sections).forEach(sectionName => {
+                html += `<div style="margin-bottom: 20px;">
+                    <h4 style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;">${sectionName}</h4>`;
+                
+                sections[sectionName].forEach(field => {
+                    const icon = field.isComplete ? '✅' : '⬜';
+                    const statusColor = field.isComplete ? 'var(--success)' : 'var(--text-light)';
+                    const statusText = field.isComplete ? 'Complete' : 'Incomplete';
+                    
+                    html += `
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; background: ${field.isComplete ? 'var(--light)' : '#fff3cd'}; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid ${statusColor};">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span style="font-size: 1.2rem;">${icon}</span>
+                                    <div>
+                                        <strong style="color: var(--text);">${field.label}</strong>
+                                        ${field.required ? '<span style="color: var(--live); font-size: 0.8rem; margin-left: 5px;">(Required)</span>' : ''}
+                                        <div style="color: var(--text-light); font-size: 0.85rem; margin-top: 3px;">${field.value}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="color: ${statusColor}; font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: 5px;">${statusText}</span>
+                                ${!field.isComplete ? `<button onclick="closeProfileCompletenessModal(); ${field.action};" style="padding: 6px 12px; background: var(--primary); color: var(--white); border: none; border-radius: 5px; cursor: pointer; font-size: 0.85rem;">Complete</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            });
+
+            html += `
+                </div>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                    <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 10px;"><strong>💡 Tip:</strong> Complete all fields to unlock additional features and improve your profile visibility.</p>
+                    ${percentage === 100 ? '<p style="color: var(--success); font-weight: bold;">🎉 Congratulations! Your profile is 100% complete!</p>' : ''}
+                </div>
+            `;
+
+            content.innerHTML = html;
+            modal.style.display = 'flex';
+        } catch (error) {
+            console.error('Error loading profile completeness:', error);
+            content.innerHTML = '<p style="color: var(--text-light);">Unable to load profile information.</p>';
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeProfileCompletenessModal() {
+        const modal = document.getElementById('profileCompletenessModal');
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', function(event) {
+        const modal = document.getElementById('passwordResetModal');
+        if (modal && event.target === modal) {
+            closePasswordResetModal();
+        }
+        const deleteModal = document.getElementById('deleteAccountModal');
+        if (deleteModal && event.target === deleteModal) {
+            closeDeleteAccountModal();
+        }
+        const profileModal = document.getElementById('profileCompletenessModal');
+        if (profileModal && event.target === profileModal) {
+            closeProfileCompletenessModal();
+        }
+    });
+    
+    // Delete Account Modal Functions
+    function openDeleteAccountModal() {
+        const modal = document.getElementById('deleteAccountModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            // Clear form
+            document.getElementById('deleteAccountForm').reset();
+            document.getElementById('deleteAccountError').style.display = 'none';
+        }
+    }
+    
+    function closeDeleteAccountModal() {
+        const modal = document.getElementById('deleteAccountModal');
+        if (modal) {
+            modal.style.display = 'none';
+            // Clear form
+            document.getElementById('deleteAccountForm').reset();
+            document.getElementById('deleteAccountError').style.display = 'none';
+        }
+    }
+    
+    // Handle Account Deletion
+    async function handleDeleteAccount(event) {
+        event.preventDefault();
+        
+        const confirmText = document.getElementById('deleteConfirmText').value.trim().toUpperCase();
+        const errorDiv = document.getElementById('deleteAccountError');
+        
+        // Hide previous messages
+        errorDiv.style.display = 'none';
+        
+        // Validate confirmation text
+        if (confirmText !== 'DELETE') {
+            errorDiv.textContent = 'Please type "DELETE" exactly to confirm';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        // Final confirmation
+        if (!confirm('Are you absolutely sure you want to delete your account? This action cannot be undone!')) {
+            return;
+        }
+        
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            errorDiv.textContent = 'You must be logged in to delete your account';
+            errorDiv.style.display = 'block';
+            return;
+        }
+        
+        try {
+            const response = await fetch('http://localhost:3000/api/users/account', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Clear all session storage
+                sessionStorage.clear();
+                localStorage.clear();
+                
+                // Show success message briefly
+                alert('Your account and all data have been permanently deleted.');
+                
+                // Redirect to homepage
+                window.location.href = 'index.html';
+            } else {
+                errorDiv.textContent = data.message || 'Failed to delete account';
+                errorDiv.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Delete account error:', error);
+            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.style.display = 'block';
+        }
+    }
+    
     // Logout function
     function logout() {
-        if (confirm('Are you sure you want to logout?')) {
-            // Clear session storage
+        console.log('Logout function called');
+        
+        try {
+            // Clear all authentication-related session storage
+            sessionStorage.removeItem('userToken');
             sessionStorage.removeItem('userAuthenticated');
             sessionStorage.removeItem('userEmail');
             sessionStorage.removeItem('userName');
+            sessionStorage.removeItem('userId');
             sessionStorage.removeItem('redirectAfterLogin');
+            
+            console.log('Session storage cleared');
             
             // Update navigation (if function exists)
             if (typeof updateNavAuthStatus === 'function') {
@@ -1307,9 +1864,17 @@
             }
             
             // Redirect to homepage
+            console.log('Redirecting to homepage...');
+            window.location.href = 'index.html';
+        } catch (error) {
+            console.error('Error during logout:', error);
+            // Force redirect even if there's an error
             window.location.href = 'index.html';
         }
     }
+    
+    // Make logout function globally accessible
+    window.logout = logout;
 </script>
 </body>
 </html>

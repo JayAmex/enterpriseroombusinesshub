@@ -18,6 +18,10 @@
     <link rel="stylesheet" href="css/styles.css">
     <style>
         /* Page-specific styles */
+        .container {
+            max-width: 1600px;
+        }
+
         .header-section {
             text-align: center;
             margin-bottom: 30px;
@@ -25,9 +29,10 @@
 
         .tools-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
             margin-bottom: 20px;
+            align-items: start;
         }
 
         .tool-card {
@@ -36,6 +41,23 @@
             border-radius: 12px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             border: 1px solid #d0e8ff;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-width: 0;
+            overflow-x: visible;
+        }
+
+        .tool-card .input-group {
+            flex-shrink: 0;
+        }
+
+        .tool-card .btn-calc {
+            flex-shrink: 0;
+        }
+
+        .tool-card .result-box {
+            flex-shrink: 0;
         }
 
         .tool-card h2 {
@@ -44,6 +66,40 @@
             padding-bottom: 8px;
             font-size: 1.2rem;
             margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-card h2 .info-icon {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            flex-shrink: 0;
+        }
+
+        .tool-card h2 .info-icon .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 5px;
+            padding: 8px 12px;
+            background: var(--text);
+            color: var(--white);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: normal;
+            width: 200px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+
+        .tool-card h2 .info-icon:hover .tooltip {
+            opacity: 1;
         }
 
         .tool-card .input-group {
@@ -67,6 +123,19 @@
             border-radius: 8px;
             text-align: center;
             border: 1px solid #bee3f8;
+            flex-shrink: 0;
+            min-width: 0;
+            overflow-x: visible;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .result-box[style*="display: none"] {
+            display: none !important;
+            margin: 0;
+            padding: 0;
+            height: 0;
+            overflow: hidden;
         }
 
         .result-label {
@@ -91,6 +160,33 @@
             padding-top: 10px;
         }
 
+        .result-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .result-main {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .result-conversion {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 1400px) {
+            .tools-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 15px;
+            }
+        }
+        
         @media (max-width: 1200px) {
             .tools-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -98,12 +194,6 @@
             }
             .tool-card {
                 padding: 15px;
-            }
-        }
-        
-        @media (max-width: 992px) {
-            .tools-grid {
-                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -130,7 +220,7 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 0.9rem;
-            margin-top: 8px;
+            margin-top: 0;
             transition: background 0.2s;
         }
 
@@ -187,25 +277,47 @@
         <div class="tool-card">
             <h2>Budgeting Calculator</h2>
             <div class="input-group">
-                <label>Monthly Revenue (₦)</label>
-                <input type="text" id="revenue" value="1,200,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')">
+                <label>Target Type</label>
+                <select id="targetType" style="width: 100%; padding: 10px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 5px; background: var(--white);">
+                    <option value="event">Event Amount Target</option>
+                    <option value="savings">Savings Amount Target</option>
+                    <option value="school">School Fees Amount Target</option>
+                    <option value="holiday">Holiday Amount Target</option>
+                </select>
             </div>
             <div class="input-group">
-                <label>Operating Expenses (₦)</label>
-                <input type="text" id="expenses" value="700,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')">
+                <label>Target Amount (₦)</label>
+                <input type="text" id="targetAmount" value="500,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter target amount">
             </div>
             <div class="input-group">
-                <label>Estimated Tax (%)</label>
-                <input type="number" id="tax" value="7.5">
+                <label>
+                    Target Month/Year
+                    <span style="position: relative; display: inline-block; margin-left: 5px; cursor: help;">
+                        <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                        <span style="position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 5px; padding: 8px 12px; background: var(--text); color: var(--white); border-radius: 6px; font-size: 0.75rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; width: 200px; text-align: center;">Select the month and year when you want to meet your target</span>
+                    </span>
+                </label>
+                <input type="month" id="dueDate" style="width: 100%; padding: 10px; font-size: 0.9rem; border: 1px solid var(--border); border-radius: 5px;">
             </div>
-            <button class="btn-calc" style="background-color: var(--success);" onclick="calculateBudget()">Check Net Margin</button>
-            <div class="result-box budget-result-box">
-                <div class="result-label">Monthly Net Profit</div>
-                <div class="result-val budget-result-val" id="budgetResult">₦0.00</div>
-                <div class="conversion-box">
-                    <strong>International Equivalents:</strong><br>
-                    <span class="currency-item" id="budgetUSD">$0.00</span>
-                    <span class="currency-item" id="budgetGBP">£0.00</span>
+            <button class="btn-calc" onclick="calculateSavingsTarget()">Calculate Monthly Budget</button>
+            <div class="result-box budget-result-box" id="savingsResultBox" style="display: none;">
+                <div class="result-row">
+                    <div class="result-main">
+                        <div class="result-label">Monthly Savings Required</div>
+                        <div class="result-val budget-result-val" id="savingsResult">₦0.00</div>
+                    </div>
+                    <div class="result-conversion">
+                        <span class="currency-item" id="savingsUSD">$0.00</span>
+                        <span class="currency-item" id="savingsGBP">£0.00</span>
+                    </div>
+                </div>
+                <div class="conversion-box" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e0;">
+                    <strong>International Equivalents:</strong>
+                </div>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); text-align: left; width: 100%; box-sizing: border-box; overflow-x: visible;">
+                    <div style="font-size: 0.85rem; margin-bottom: 8px; white-space: nowrap; overflow: visible; word-break: keep-all; min-width: fit-content;"><strong>Total budget:</strong> <span id="totalBudgetDisplay">₦0.00</span></div>
+                    <div style="font-size: 0.85rem; margin-bottom: 8px; white-space: nowrap; overflow: visible; word-break: keep-all; min-width: fit-content;"><strong>Due date:</strong> <span id="dueDateDisplay">-</span></div>
+                    <div style="font-size: 0.85rem; white-space: nowrap; overflow: visible; word-break: keep-all; min-width: fit-content;"><span id="monthsRemaining">0</span> <strong><span id="paymentText">payment</span> of</strong> <span id="monthlyTargetDisplay" style="color: var(--primary); font-weight: bold;">₦0.00</span></div>
                 </div>
             </div>
         </div>
@@ -226,12 +338,18 @@
             </div>
             <button class="btn-calc" onclick="calculateLoan()">Calculate Repayment</button>
             <div class="result-box">
-                <div class="result-label">Monthly Repayment</div>
-                <div class="result-val" id="loanResult">₦0.00</div>
-                <div class="conversion-box">
-                    <strong>International Equivalents:</strong><br>
-                    <span class="currency-item" id="loanUSD">$0.00</span>
-                    <span class="currency-item" id="loanGBP">£0.00</span>
+                <div class="result-row">
+                    <div class="result-main">
+                        <div class="result-label">Monthly Repayment</div>
+                        <div class="result-val" id="loanResult">₦0.00</div>
+                    </div>
+                    <div class="result-conversion">
+                        <span class="currency-item" id="loanUSD">$0.00</span>
+                        <span class="currency-item" id="loanGBP">£0.00</span>
+                    </div>
+                </div>
+                <div class="conversion-box" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e0;">
+                    <strong>International Equivalents:</strong>
                 </div>
             </div>
         </div>
@@ -264,12 +382,104 @@
             </div>
             <button class="btn-calc" onclick="calculateMortgage()">Calculate Mortgage</button>
             <div class="result-box">
-                <div class="result-label">Estimated Monthly Payment</div>
-                <div class="result-val" id="mortgageResult">₦0.00</div>
-                <div class="conversion-box">
-                    <strong>International Equivalents:</strong><br>
-                    <span class="currency-item" id="mortgageUSD">$0.00</span>
-                    <span class="currency-item" id="mortgageGBP">£0.00</span>
+                <div class="result-row">
+                    <div class="result-main">
+                        <div class="result-label">Estimated Monthly Payment</div>
+                        <div class="result-val" id="mortgageResult">₦0.00</div>
+                    </div>
+                    <div class="result-conversion">
+                        <span class="currency-item" id="mortgageUSD">$0.00</span>
+                        <span class="currency-item" id="mortgageGBP">£0.00</span>
+                    </div>
+                </div>
+                <div class="conversion-box" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e0;">
+                    <strong>International Equivalents:</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="tool-card">
+            <h2>
+                <span style="white-space: nowrap;">PIT Calculator (Nigeria)</span>
+                <span class="info-icon">
+                    <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                    <span class="tooltip">PIT stands for Personal Income Tax. Calculate your personal income tax based on Nigeria's 2026 tax brackets.</span>
+                </span>
+            </h2>
+            <div class="input-group">
+                <label>Annual Gross Salary (₦)</label>
+                <input type="text" id="annualSalary" value="5,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter your annual salary">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="input-group">
+                    <label style="white-space: nowrap; display: flex; align-items: center; gap: 5px;">
+                        <span>Annual Rent (₦)</span>
+                        <span style="position: relative; display: inline-block; cursor: help; flex-shrink: 0;">
+                            <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                            <span style="position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 5px; padding: 8px 12px; background: var(--text); color: var(--white); border-radius: 6px; font-size: 0.75rem; white-space: normal; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; width: 250px; text-align: center;">The amount you can claim for rent relief is up to but not more than ₦500,000.00</span>
+                        </span>
+                    </label>
+                    <input type="text" id="annualRent" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter annual rent">
+                </div>
+                <div class="input-group">
+                    <label style="white-space: nowrap; display: flex; align-items: center; gap: 5px;">
+                        <span>Life Insurance (₦)</span>
+                        <span style="position: relative; display: inline-block; cursor: help; flex-shrink: 0;">
+                            <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                            <span style="position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 5px; padding: 8px 12px; background: var(--text); color: var(--white); border-radius: 6px; font-size: 0.75rem; white-space: normal; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; width: 250px; text-align: center;">The amount you can claim for life insurance is up to but not more than ₦100,000.00</span>
+                        </span>
+                    </label>
+                    <input type="text" id="lifeInsurance" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter insurance premiums">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>NHIS Contribution (₦) <small style="color: var(--text-light);">(Optional)</small></label>
+                <input type="text" id="nhisContribution" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter NHIS contribution">
+            </div>
+            <button class="btn-calc" onclick="calculatePersonalIncomeTax()">Calculate Tax</button>
+            <div class="result-box" id="taxResultBox" style="display: none;">
+                <div class="result-row">
+                    <div class="result-main">
+                        <div class="result-label">Annual Tax Payable</div>
+                        <div class="result-val" id="taxResult">₦0.00</div>
+                    </div>
+                    <div class="result-conversion">
+                        <span class="currency-item" id="taxUSD">$0.00</span>
+                        <span class="currency-item" id="taxGBP">£0.00</span>
+                    </div>
+                </div>
+                <div class="conversion-box" style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e0;">
+                    <strong>International Equivalents:</strong>
+                </div>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); text-align: left;">
+                    <div style="font-size: 0.85rem; margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
+                        <strong>Calculation Breakdown</strong>
+                        <span style="position: relative; display: inline-block; cursor: help; flex-shrink: 0;">
+                            <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                            <span style="position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); margin-bottom: 5px; padding: 15px; background: var(--text); color: var(--white); border-radius: 8px; font-size: 0.9rem; white-space: normal; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1000; width: 380px; text-align: left; line-height: 1.8; font-weight: 400; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                                <strong style="display: block; margin-bottom: 12px; text-align: center; font-size: 1rem; color: var(--white); border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 8px;">Tax Calculation Example</strong>
+                                <div style="margin-bottom: 10px;"><strong style="font-size: 0.95rem;">Example: Annual Salary ₦3,000,000, Rent ₦500,000</strong></div>
+                                <div style="margin-bottom: 10px;"><strong>Deductions:</strong><br>
+                                • Pension (8%): ₦240,000<br>
+                                • NHF (2.5%): ₦75,000<br>
+                                • Rent Relief (20%): ₦100,000<br>
+                                • Total Deductions: ₦415,000</div>
+                                <div style="margin-bottom: 10px;"><strong>Taxable Income:</strong> ₦3,000,000 - ₦415,000 = ₦2,585,000</div>
+                                <div style="margin-bottom: 10px;"><strong>Tax Calculation:</strong><br>
+                                • First ₦800,000: ₦0 (tax-free)<br>
+                                • ₦800,001 - ₦3,000,000 (15%): (₦2,585,000 - ₦800,000) × 15% = ₦267,750</div>
+                                <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.3);">
+                                    <strong style="font-size: 0.95rem;">Annual Tax: ₦267,750</strong><br>
+                                    <strong style="font-size: 0.95rem;">Monthly Tax: ₦22,312.50</strong>
+                                </div>
+                            </span>
+                        </span>
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 8px;"><strong>Monthly Tax:</strong> <span id="monthlyTax">₦0.00</span></div>
+                    <div style="font-size: 0.85rem; margin-bottom: 8px;"><strong>Taxable Income:</strong> <span id="taxableIncome">₦0.00</span></div>
+                    <div style="font-size: 0.85rem; margin-bottom: 8px;"><strong>Total Deductions:</strong> <span id="totalDeductions">₦0.00</span></div>
+                    <div style="font-size: 0.85rem; margin-bottom: 8px;"><strong>Net Income After Tax:</strong> <span id="netIncome" style="color: var(--success); font-weight: bold;">₦0.00</span></div>
+                    <div style="font-size: 0.85rem;"><strong>Effective Tax Rate:</strong> <span id="effectiveTaxRate">0%</span></div>
                 </div>
             </div>
         </div>
@@ -425,16 +635,179 @@
     }
 
     function calculateBudget() {
-        const rev = parseAmountInput(document.getElementById('revenue').value);
-        const exp = parseAmountInput(document.getElementById('expenses').value);
-        const taxRate = parseFloat(document.getElementById('tax').value) / 100;
+        // Legacy function - kept for backward compatibility if needed
+        // This is now replaced by calculateSavingsTarget()
+    }
+
+    function calculateSavingsTarget() {
+        const targetType = document.getElementById('targetType').value;
+        const targetAmount = parseAmountInput(document.getElementById('targetAmount').value);
+        const dueDateInput = document.getElementById('dueDate').value;
+
+        // Validate inputs
+        if (targetAmount <= 0) {
+            alert('Please enter a valid target amount.');
+            return;
+        }
+
+        if (!dueDateInput) {
+            alert('Please select a target month/year.');
+            return;
+        }
+
+        // Parse month/year input (format: YYYY-MM)
+        const [year, month] = dueDateInput.split('-');
+        const dueDate = new Date(parseInt(year), parseInt(month) - 1, 1); // First day of target month
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayMonth = new Date(today.getFullYear(), today.getMonth(), 1); // First day of current month
+
+        // Check if target month is in the future
+        if (dueDate <= todayMonth) {
+            alert('Target month must be in the future. Please select a future month.');
+            return;
+        }
+
+        // Calculate months remaining (from start of current month to start of target month)
+        const monthsRemaining = (dueDate.getFullYear() - todayMonth.getFullYear()) * 12 + 
+                                (dueDate.getMonth() - todayMonth.getMonth());
         
-        const grossProfit = rev - exp;
-        const netProfit = grossProfit - (grossProfit * taxRate);
+        if (monthsRemaining <= 0) {
+            alert('Invalid month calculation. Please check your target month.');
+            return;
+        }
+
+        // Calculate monthly savings required
+        const monthlySavings = targetAmount / monthsRemaining;
+
+        // Format target type display
+        const targetTypeNames = {
+            'event': 'Event Amount Target',
+            'savings': 'Savings Amount Target',
+            'school': 'School Fees Amount Target',
+            'holiday': 'Holiday Amount Target'
+        };
+
+        // Format month/year for display (e.g., "January 2027")
+        const formattedDate = dueDate.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long'
+        });
+
+        // Display results
+        document.getElementById('savingsResult').innerText = formatNaira(monthlySavings);
+        document.getElementById('totalBudgetDisplay').innerText = formatNaira(targetAmount);
+        document.getElementById('dueDateDisplay').innerText = formattedDate;
+        document.getElementById('monthlyTargetDisplay').innerText = formatNaira(monthlySavings);
+        document.getElementById('monthsRemaining').innerText = monthsRemaining;
+        document.getElementById('paymentText').innerText = monthsRemaining === 1 ? 'payment' : 'payments';
         
-        document.getElementById('budgetResult').innerText = formatNaira(netProfit);
-        document.getElementById('budgetUSD').innerText = formatForeign(netProfit / NGN_TO_USD, 'USD');
-        document.getElementById('budgetGBP').innerText = formatForeign(netProfit / NGN_TO_GBP, 'GBP');
+        // International equivalents
+        document.getElementById('savingsUSD').innerText = formatForeign(monthlySavings / NGN_TO_USD, 'USD');
+        document.getElementById('savingsGBP').innerText = formatForeign(monthlySavings / NGN_TO_GBP, 'GBP');
+        
+        // Show result box
+        document.getElementById('savingsResultBox').style.display = 'block';
+    }
+
+    function calculatePersonalIncomeTax() {
+        // Get inputs
+        const grossSalary = parseAmountInput(document.getElementById('annualSalary').value);
+        const annualRent = parseAmountInput(document.getElementById('annualRent').value);
+        const lifeInsurance = parseAmountInput(document.getElementById('lifeInsurance').value);
+        const nhisContribution = parseAmountInput(document.getElementById('nhisContribution').value);
+
+        if (grossSalary <= 0) {
+            alert('Please enter a valid annual salary.');
+            return;
+        }
+
+        // Calculate allowable deductions
+        // Pension: 8% of gross income
+        const pensionContribution = grossSalary * 0.08;
+        
+        // NHF: 2.5% of gross income
+        const nhfContribution = grossSalary * 0.025;
+        
+        // Life Insurance: Up to ₦100,000
+        const lifeInsuranceDeduction = Math.min(lifeInsurance, 100000);
+        
+        // Rent Relief: 20% of annual rent, capped at ₦500,000
+        const rentRelief = Math.min(annualRent * 0.20, 500000);
+        
+        // NHIS: User-specified
+        const nhisDeduction = nhisContribution;
+        
+        // Total deductions
+        const totalDeductions = pensionContribution + nhfContribution + lifeInsuranceDeduction + rentRelief + nhisDeduction;
+        
+        // Taxable income (gross salary minus deductions)
+        const taxableIncome = Math.max(0, grossSalary - totalDeductions);
+        
+        // Calculate tax using progressive brackets (2026 Nigeria Tax Law)
+        // First ₦800,000 is tax-free (0%)
+        let totalTax = 0;
+        
+        if (taxableIncome <= 800000) {
+            // First ₦800,000 is completely tax-free
+            totalTax = 0;
+        } else {
+            // Progressive tax brackets (2026 rates)
+            // Each bracket is taxed only on the amount within that bracket
+            
+            // ₦800,001 to ₦3,000,000: 15%
+            if (taxableIncome > 3000000) {
+                totalTax += (3000000 - 800000) * 0.15; // Full bracket
+            } else {
+                totalTax += (taxableIncome - 800000) * 0.15; // Partial bracket
+            }
+            
+            // ₦3,000,001 to ₦12,000,000: 18%
+            if (taxableIncome > 12000000) {
+                totalTax += (12000000 - 3000000) * 0.18; // Full bracket
+            } else if (taxableIncome > 3000000) {
+                totalTax += (taxableIncome - 3000000) * 0.18; // Partial bracket
+            }
+            
+            // ₦12,000,001 to ₦25,000,000: 21%
+            if (taxableIncome > 25000000) {
+                totalTax += (25000000 - 12000000) * 0.21; // Full bracket
+            } else if (taxableIncome > 12000000) {
+                totalTax += (taxableIncome - 12000000) * 0.21; // Partial bracket
+            }
+            
+            // ₦25,000,001 to ₦50,000,000: 23%
+            if (taxableIncome > 50000000) {
+                totalTax += (50000000 - 25000000) * 0.23; // Full bracket
+            } else if (taxableIncome > 25000000) {
+                totalTax += (taxableIncome - 25000000) * 0.23; // Partial bracket
+            }
+            
+            // Above ₦50,000,000: 25%
+            if (taxableIncome > 50000000) {
+                totalTax += (taxableIncome - 50000000) * 0.25; // Partial bracket
+            }
+        }
+        
+        // Calculate results
+        const monthlyTax = totalTax / 12;
+        const netIncome = grossSalary - totalTax;
+        const effectiveTaxRate = grossSalary > 0 ? (totalTax / grossSalary) * 100 : 0;
+        
+        // Display results
+        document.getElementById('taxResult').innerText = formatNaira(totalTax);
+        document.getElementById('monthlyTax').innerText = formatNaira(monthlyTax);
+        document.getElementById('taxableIncome').innerText = formatNaira(taxableIncome);
+        document.getElementById('totalDeductions').innerText = formatNaira(totalDeductions);
+        document.getElementById('netIncome').innerText = formatNaira(netIncome);
+        document.getElementById('effectiveTaxRate').innerText = effectiveTaxRate.toFixed(2) + '%';
+        
+        // International equivalents
+        document.getElementById('taxUSD').innerText = formatForeign(totalTax / NGN_TO_USD, 'USD');
+        document.getElementById('taxGBP').innerText = formatForeign(totalTax / NGN_TO_GBP, 'GBP');
+        
+        // Show result box
+        document.getElementById('taxResultBox').style.display = 'block';
     }
 
     // Load custom tools from localStorage
@@ -553,14 +926,100 @@
     }
     
     // Run calculations once on load so the screen isn't empty
+    // Set minimum month for due date input and initialize tooltip
+    function initializeSavingsTargetTool() {
+        const dueDateInput = document.getElementById('dueDate');
+        if (dueDateInput) {
+            const nextMonth = new Date();
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            const year = nextMonth.getFullYear();
+            const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+            dueDateInput.min = `${year}-${month}`;
+        }
+        
+        // Initialize info icon tooltip
+        const infoIcon = document.querySelector('label span[style*="cursor: help"]');
+        if (infoIcon) {
+            const tooltip = infoIcon.querySelector('span[style*="position: absolute"]');
+            if (tooltip) {
+                infoIcon.addEventListener('mouseenter', function() {
+                    tooltip.style.opacity = '1';
+                });
+                infoIcon.addEventListener('mouseleave', function() {
+                    tooltip.style.opacity = '0';
+                });
+            }
+        }
+    }
+
+    function initializeTaxCalculatorTooltips() {
+        // Initialize Annual Rent tooltip
+        const rentInput = document.getElementById('annualRent');
+        if (rentInput) {
+            const rentLabel = rentInput.previousElementSibling;
+            if (rentLabel) {
+                const rentInfoIcon = rentLabel.querySelector('span[style*="cursor: help"]');
+                if (rentInfoIcon) {
+                    const rentTooltip = rentInfoIcon.querySelector('span[style*="position: absolute"]');
+                    if (rentTooltip) {
+                        rentInfoIcon.addEventListener('mouseenter', function() {
+                            rentTooltip.style.opacity = '1';
+                        });
+                        rentInfoIcon.addEventListener('mouseleave', function() {
+                            rentTooltip.style.opacity = '0';
+                        });
+                    }
+                }
+            }
+        }
+        
+        // Initialize Life Insurance tooltip
+        const insuranceInput = document.getElementById('lifeInsurance');
+        if (insuranceInput) {
+            const insuranceLabel = insuranceInput.previousElementSibling;
+            if (insuranceLabel) {
+                const insuranceInfoIcon = insuranceLabel.querySelector('span[style*="cursor: help"]');
+                if (insuranceInfoIcon) {
+                    const insuranceTooltip = insuranceInfoIcon.querySelector('span[style*="position: absolute"]');
+                    if (insuranceTooltip) {
+                        insuranceInfoIcon.addEventListener('mouseenter', function() {
+                            insuranceTooltip.style.opacity = '1';
+                        });
+                        insuranceInfoIcon.addEventListener('mouseleave', function() {
+                            insuranceTooltip.style.opacity = '0';
+                        });
+                    }
+                }
+            }
+        }
+        
+        // Initialize Calculation Breakdown tooltip
+        const breakdownInfoIcon = document.querySelector('#taxResultBox span[style*="cursor: help"]');
+        if (breakdownInfoIcon) {
+            const breakdownTooltip = breakdownInfoIcon.querySelector('span[style*="position: absolute"]');
+            if (breakdownTooltip) {
+                breakdownInfoIcon.addEventListener('mouseenter', function() {
+                    breakdownTooltip.style.opacity = '1';
+                });
+                breakdownInfoIcon.addEventListener('mouseleave', function() {
+                    breakdownTooltip.style.opacity = '0';
+                });
+            }
+        }
+    }
+
     window.onload = function() {
+        initializeSavingsTargetTool();
+        initializeTaxCalculatorTooltips();
         // Load exchange rates and calculator defaults from localStorage
         loadExchangeRates();
         loadCalculatorDefaults();
         
         // Format all amount inputs on load
-        formatAmountInput(document.getElementById('revenue'));
-        formatAmountInput(document.getElementById('expenses'));
+        const targetAmountInput = document.getElementById('targetAmount');
+        if (targetAmountInput) {
+            formatAmountInput(targetAmountInput);
+        }
         formatAmountInput(document.getElementById('loanAmount'));
         formatAmountInput(document.getElementById('propPrice'));
         formatAmountInput(document.getElementById('downPayment'));
@@ -570,7 +1029,30 @@
         
         calculateLoan();
         calculateMortgage();
-        calculateBudget();
+        
+        // Initialize savings target tool (target month min and tooltip)
+        const dueDateInput = document.getElementById('dueDate');
+        if (dueDateInput) {
+            const nextMonth = new Date();
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+            const year = nextMonth.getFullYear();
+            const month = String(nextMonth.getMonth() + 1).padStart(2, '0');
+            dueDateInput.min = `${year}-${month}`;
+        }
+        
+        // Initialize info icon tooltip
+        const infoIcon = document.querySelector('label span[style*="cursor: help"]');
+        if (infoIcon) {
+            const tooltip = infoIcon.querySelector('span[style*="position: absolute"]');
+            if (tooltip) {
+                infoIcon.addEventListener('mouseenter', function() {
+                    tooltip.style.opacity = '1';
+                });
+                infoIcon.addEventListener('mouseleave', function() {
+                    tooltip.style.opacity = '0';
+                });
+            }
+        }
         
         // Load custom tools
         loadCustomTools();

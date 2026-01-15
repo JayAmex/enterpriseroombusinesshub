@@ -9,6 +9,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 // Load environment variables
 require('dotenv').config();
@@ -298,6 +299,143 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// Forgot Password - Request Reset Token
+app.post('/api/auth/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                error: true,
+                message: 'Email is required',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        // Check if user exists
+        const [users] = await pool.execute(
+            'SELECT id, email, name FROM users WHERE email = ? AND is_active = TRUE',
+            [email]
+        );
+
+        // Always return success message (security best practice - don't reveal if email exists)
+        if (users.length === 0) {
+            return res.json({
+                message: 'If an account with that email exists, a password reset link has been sent.'
+            });
+        }
+
+        const user = users[0];
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 1); // Token expires in 1 hour
+
+        // Delete any existing unused tokens for this user
+        await pool.execute(
+            'DELETE FROM password_reset_tokens WHERE user_id = ? AND used = FALSE',
+            [user.id]
+        );
+
+        // Store reset token in database
+        await pool.execute(
+            'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
+            [user.id, resetToken, expiresAt]
+        );
+
+        // In production, you would send an email here with the reset link
+        // For now, we'll return the token in the response (for development/testing)
+        // In production, remove the token from the response and send it via email
+        const resetLink = `${req.protocol}://${req.get('host')}/reset-password.html?token=${resetToken}`;
+
+        console.log(`Password reset requested for: ${email}`);
+        console.log(`Reset token: ${resetToken}`);
+        console.log(`Reset link: ${resetLink}`);
+
+        res.json({
+            message: 'If an account with that email exists, a password reset link has been sent.',
+            // Remove this in production - only for development
+            resetLink: process.env.NODE_ENV === 'development' ? resetLink : undefined
+        });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Reset Password - Use Token to Reset Password
+app.post('/api/auth/reset-password', async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({
+                error: true,
+                message: 'Token and new password are required',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                error: true,
+                message: 'Password must be at least 6 characters long',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        // Find valid reset token
+        const [tokens] = await pool.execute(
+            `SELECT prt.id, prt.user_id, prt.expires_at, prt.used, u.email 
+             FROM password_reset_tokens prt
+             INNER JOIN users u ON prt.user_id = u.id
+             WHERE prt.token = ? AND prt.used = FALSE AND prt.expires_at > NOW()`,
+            [token]
+        );
+
+        if (tokens.length === 0) {
+            return res.status(400).json({
+                error: true,
+                message: 'Invalid or expired reset token',
+                code: 'INVALID_TOKEN'
+            });
+        }
+
+        const resetToken = tokens[0];
+
+        // Hash new password
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+
+        // Update user password
+        await pool.execute(
+            'UPDATE users SET password_hash = ? WHERE id = ?',
+            [passwordHash, resetToken.user_id]
+        );
+
+        // Mark token as used
+        await pool.execute(
+            'UPDATE password_reset_tokens SET used = TRUE WHERE id = ?',
+            [resetToken.id]
+        );
+
+        res.json({
+            message: 'Password reset successfully. You can now login with your new password.'
+        });
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
 // User Register
 app.post('/api/auth/register', async (req, res) => {
     try {
@@ -446,7 +584,7 @@ app.post('/api/auth/admin/login', async (req, res) => {
 app.get('/api/users/profile', authenticateToken, async (req, res) => {
     try {
         const [users] = await pool.execute(
-            'SELECT id, name, email, phone, avatar_url, created_at FROM users WHERE id = ?',
+            'SELECT id, uuid, name, email, phone, avatar_url, title, occupation, state, country, created_at FROM users WHERE id = ?',
             [req.user.id]
         );
 
@@ -478,24 +616,113 @@ app.get('/api/users/profile', authenticateToken, async (req, res) => {
     }
 });
 
+// Get User Statistics
+app.get('/api/users/statistics', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Get registered events count
+        const [eventsCount] = await pool.execute(
+            'SELECT COUNT(*) as count FROM event_rsvps WHERE user_id = ?',
+            [userId]
+        );
+        const registeredEvents = eventsCount[0]?.count || 0;
+
+        // Get businesses count
+        const [businessesCount] = await pool.execute(
+            'SELECT COUNT(*) as count FROM businesses WHERE user_id = ?',
+            [userId]
+        );
+        const businessesRegistered = businessesCount[0]?.count || 0;
+
+        // Get saved blog posts count
+        const [blogPostsCount] = await pool.execute(
+            'SELECT COUNT(*) as count FROM saved_blog_posts WHERE user_id = ?',
+            [userId]
+        );
+        const savedBlogPosts = blogPostsCount[0]?.count || 0;
+
+        // Get user creation date to calculate days as member
+        const [userData] = await pool.execute(
+            'SELECT created_at FROM users WHERE id = ?',
+            [userId]
+        );
+        const createdAt = userData[0]?.created_at;
+        const daysAsMember = createdAt 
+            ? Math.floor((new Date() - new Date(createdAt)) / (1000 * 60 * 60 * 24))
+            : 0;
+
+        // Calculate profile completeness
+        const [profileData] = await pool.execute(
+            'SELECT name, email, phone, avatar_url, title, occupation, state, country FROM users WHERE id = ?',
+            [userId]
+        );
+        const profile = profileData[0] || {};
+        let completedFields = 0;
+        const totalFields = 8; // name, email, phone, avatar_url, title, occupation, state, country
+        
+        if (profile.name) completedFields++;
+        if (profile.email) completedFields++;
+        if (profile.phone) completedFields++;
+        if (profile.avatar_url) completedFields++;
+        if (profile.title) completedFields++;
+        if (profile.occupation) completedFields++;
+        if (profile.state) completedFields++;
+        if (profile.country) completedFields++;
+        
+        const profileCompleteness = Math.round((completedFields / totalFields) * 100);
+
+        res.json({
+            registeredEvents,
+            businessesRegistered,
+            savedBlogPosts,
+            daysAsMember,
+            profileCompleteness
+        });
+    } catch (error) {
+        console.error('Get user statistics error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
 // Update User Profile
 app.put('/api/users/profile', authenticateToken, async (req, res) => {
     try {
-        const { name, phone, avatar_url } = req.body;
+        // Note: name is NOT allowed to be updated by user (admin-only)
+        const { phone, avatar_url, title, occupation, state, country } = req.body;
         const updates = [];
         const values = [];
 
-        if (name !== undefined) {
-            updates.push('name = ?');
-            values.push(name);
-        }
+        // Phone
         if (phone !== undefined) {
             updates.push('phone = ?');
             values.push(phone);
         }
+        // Avatar URL
         if (avatar_url !== undefined) {
             updates.push('avatar_url = ?');
             values.push(avatar_url);
+        }
+        // Personal Information (editable by user)
+        if (title !== undefined) {
+            updates.push('title = ?');
+            values.push(title);
+        }
+        if (occupation !== undefined) {
+            updates.push('occupation = ?');
+            values.push(occupation);
+        }
+        if (state !== undefined) {
+            updates.push('state = ?');
+            values.push(state);
+        }
+        if (country !== undefined) {
+            updates.push('country = ?');
+            values.push(country);
         }
 
         if (updates.length === 0) {
@@ -514,7 +741,7 @@ app.put('/api/users/profile', authenticateToken, async (req, res) => {
 
         // Get updated user
         const [users] = await pool.execute(
-            'SELECT id, name, email, phone, avatar_url FROM users WHERE id = ?',
+            'SELECT id, uuid, name, email, phone, avatar_url, title, occupation, state, country FROM users WHERE id = ?',
             [req.user.id]
         );
 
@@ -524,6 +751,114 @@ app.put('/api/users/profile', authenticateToken, async (req, res) => {
         });
     } catch (error) {
         console.error('Update profile error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Change User Password
+app.put('/api/users/password', authenticateToken, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                error: true,
+                message: 'Current password and new password are required',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                error: true,
+                message: 'New password must be at least 6 characters long',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        // Get current user with password hash
+        const [users] = await pool.execute(
+            'SELECT id, password_hash FROM users WHERE id = ?',
+            [req.user.id]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'User not found',
+                code: 'NOT_FOUND'
+            });
+        }
+
+        // Verify current password
+        const passwordMatch = await bcrypt.compare(currentPassword, users[0].password_hash);
+        if (!passwordMatch) {
+            return res.status(401).json({
+                error: true,
+                message: 'Current password is incorrect',
+                code: 'INVALID_PASSWORD'
+            });
+        }
+
+        // Hash new password
+        const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+        // Update password
+        await pool.execute(
+            'UPDATE users SET password_hash = ? WHERE id = ?',
+            [newPasswordHash, req.user.id]
+        );
+
+        res.json({
+            message: 'Password changed successfully'
+        });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Delete User Account (Self-Service)
+app.delete('/api/users/account', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Get user info before deletion
+        const [users] = await pool.execute(
+            'SELECT id, email, name FROM users WHERE id = ?',
+            [userId]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'User not found',
+                code: 'NOT_FOUND'
+            });
+        }
+
+        // Delete user (CASCADE will handle related records automatically)
+        // Related tables with ON DELETE CASCADE:
+        // - businesses
+        // - event_rsvps
+        // - pitch_event_registrations
+        // - pitch_entries
+        // - saved_blog_posts
+        await pool.execute('DELETE FROM users WHERE id = ?', [userId]);
+
+        res.json({
+            message: 'Account and all associated data deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete user account error:', error);
         res.status(500).json({
             error: true,
             message: 'Server error',
@@ -995,6 +1330,32 @@ app.get('/api/events/:id/rsvp', authenticateToken, async (req, res) => {
     }
 });
 
+// Get User's Registered Events
+app.get('/api/users/events', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Get all events the user has RSVP'd to
+        const [events] = await pool.execute(
+            `SELECT e.*, er.rsvp_date
+             FROM events e
+             INNER JOIN event_rsvps er ON e.id = er.event_id
+             WHERE er.user_id = ?
+             ORDER BY e.event_date ASC, e.event_time ASC`,
+            [userId]
+        );
+
+        res.json({ events });
+    } catch (error) {
+        console.error('Get user events error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
 // Get RSVP Count for Event (Public - no auth required)
 app.get('/api/events/:id/rsvp/count', async (req, res) => {
     try {
@@ -1146,6 +1507,30 @@ app.get('/api/blog', async (req, res) => {
             message: 'Server error',
             code: 'SERVER_ERROR',
             details: error.message
+        });
+    }
+});
+
+// Get Saved Posts (Authenticated) - MUST come before /api/blog/:id
+app.get('/api/blog/saved', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        const [posts] = await pool.execute(
+            `SELECT bp.* FROM blog_posts bp
+             INNER JOIN saved_blog_posts sbp ON bp.id = sbp.blog_post_id
+             WHERE sbp.user_id = ? AND bp.is_published = TRUE
+             ORDER BY sbp.saved_at DESC`,
+            [userId]
+        );
+
+        res.json({ posts });
+    } catch (error) {
+        console.error('Get saved posts error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
         });
     }
 });
@@ -1389,7 +1774,7 @@ app.delete('/api/blog/:id/save', authenticateToken, async (req, res) => {
     }
 });
 
-// Check if Post is Saved (Authenticated)
+// Check if Post is Saved (Authenticated) - MUST come after /api/blog/saved
 app.get('/api/blog/:id/saved', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id;
@@ -1403,30 +1788,6 @@ app.get('/api/blog/:id/saved', authenticateToken, async (req, res) => {
         res.json({ saved: saved.length > 0 });
     } catch (error) {
         console.error('Check saved post error:', error);
-        res.status(500).json({
-            error: true,
-            message: 'Server error',
-            code: 'SERVER_ERROR'
-        });
-    }
-});
-
-// Get Saved Posts (Authenticated)
-app.get('/api/blog/saved', authenticateToken, async (req, res) => {
-    try {
-        const userId = req.user.id;
-
-        const [posts] = await pool.execute(
-            `SELECT bp.* FROM blog_posts bp
-             INNER JOIN saved_blog_posts sbp ON bp.id = sbp.blog_post_id
-             WHERE sbp.user_id = ? AND bp.is_published = TRUE
-             ORDER BY sbp.saved_at DESC`,
-            [userId]
-        );
-
-        res.json({ posts });
-    } catch (error) {
-        console.error('Get saved posts error:', error);
         res.status(500).json({
             error: true,
             message: 'Server error',

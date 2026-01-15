@@ -10,17 +10,23 @@
 -- =====================================================
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
+    uuid VARCHAR(36) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     phone VARCHAR(50),
     avatar_url TEXT,
+    title VARCHAR(255),
+    occupation VARCHAR(255),
+    state VARCHAR(100),
+    country VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     last_login TIMESTAMP NULL,
     is_active BOOLEAN DEFAULT TRUE,
     INDEX idx_email (email),
-    INDEX idx_created_at (created_at)
+    INDEX idx_created_at (created_at),
+    INDEX idx_uuid (uuid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
@@ -307,6 +313,21 @@ CREATE TABLE admin_sessions (
     FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE CASCADE,
     INDEX idx_session_token (session_token),
     INDEX idx_admin_id (admin_id),
+    INDEX idx_expires_at (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- 16. PASSWORD RESET TOKENS TABLE
+-- =====================================================
+CREATE TABLE password_reset_tokens (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    token VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_token (token),
     INDEX idx_expires_at (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

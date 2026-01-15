@@ -247,9 +247,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Clear authentication (logout function)
 function clearAuth() {
+    sessionStorage.removeItem('userToken');
     sessionStorage.removeItem('userAuthenticated');
     sessionStorage.removeItem('userEmail');
     sessionStorage.removeItem('userName');
+    sessionStorage.removeItem('userId');
     sessionStorage.removeItem('redirectAfterLogin');
     updateNavAuthStatus();
 }
