@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Document Templates | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <script>
+        // Check authentication before page loads
+        (function() {
+            if (sessionStorage.getItem('userAuthenticated') !== 'true') {
+                sessionStorage.setItem('redirectAfterLogin', 'templates.html');
+                window.location.replace('login.html');
+                return;
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Page-specific styles - Matching tools.html layout */
+        .templates-page-container {
+            display: flex;
+            gap: 30px;
+            max-width: 100%;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 5%;
+            min-height: calc(100vh - 200px);
+            box-sizing: border-box;
+        }
+
+        /* Sidebar Menu */
+        .templates-sidebar {
+            width: 280px;
+            background: #f5fbff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #d0e8ff;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            flex-shrink: 0;
+        }
+
+        .templates-sidebar h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 10px;
+        }
+
+        .templates-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .templates-menu li {
+            margin-bottom: 8px;
+        }
+
+        .templates-menu a {
+            display: block;
+            padding: 12px 15px;
+            color: var(--text);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+        }
+
+        .templates-menu a:hover {
+            background: #e6f2ff;
+            color: var(--accent);
+            border-left-color: var(--accent);
+        }
+
+        .templates-menu a.active {
+            background: var(--accent);
+            color: var(--white);
+            border-left-color: var(--primary);
+        }
+
+        /* Main Content Area */
+        .templates-content {
+            flex: 1;
+            min-width: 0;
+            width: 100%;
+            max-width: none;
+        }
+
+        .category-view {
+            display: none;
+            background: #f5fbff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #d0e8ff;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .category-view.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .category-view h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 2rem;
+            color: var(--primary);
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .template-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .template-card:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .template-card h3 {
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .template-card p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+            flex-grow: 1;
+        }
+
+        .template-download-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .template-download-btn:hover {
+            background: var(--accent);
+        }
+
+        .template-download-count {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .templates-sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                height: 100vh;
+                width: 280px;
+                z-index: 1000;
+                transition: left 0.3s;
+                overflow-y: auto;
+            }
+
+            .templates-sidebar.show {
+                left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .templates-page-container {
+                flex-direction: column;
+            }
+
+            .templates-content {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .templates-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .templates-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .templates-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+        <div style="position: relative;">
+            <input type="text" id="globalSearch" placeholder="Search..." style="padding: 8px 35px 8px 12px; border-radius: 20px; border: 1px solid var(--border); width: 200px; font-size: 0.9rem;" onkeyup="handleGlobalSearch(event)">
+            <span style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-light);">🔍</span>
+            <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border: 1px solid var(--border); border-radius: 8px; margin-top: 5px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
+        </div>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="eventspage.html">Events</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="tools.html">Tools</a></li>
+            <li><a href="templates.html" class="active-page">Templates</a></li>
+            <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+            <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+            <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <span>Document Templates</span>
+</div>
+
+<div class="templates-page-container">
+    <!-- Sidebar Menu -->
+    <aside class="templates-sidebar" id="templatesSidebar">
+        <h2>Template Categories</h2>
+        <ul class="templates-menu">
+            <li><a href="#" onclick="showCategory('business-planning'); return false;" class="active" data-category="business-planning">Business Planning</a></li>
+            <li><a href="#" onclick="showCategory('financial-management'); return false;" data-category="financial-management">Financial Management</a></li>
+            <li><a href="#" onclick="showCategory('legal-compliance'); return false;" data-category="legal-compliance">Legal & Compliance</a></li>
+            <li><a href="#" onclick="showCategory('hr-employee'); return false;" data-category="hr-employee">HR & Employee</a></li>
+            <li><a href="#" onclick="showCategory('sales-customer'); return false;" data-category="sales-customer">Sales & Customer</a></li>
+            <li><a href="#" onclick="showCategory('operations'); return false;" data-category="operations">Operations</a></li>
+            <li><a href="#" onclick="showCategory('marketing-branding'); return false;" data-category="marketing-branding">Marketing & Branding</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="templates-content">
+        <button class="mobile-menu-toggle" onclick="toggleTemplatesSidebar()">☰ Menu</button>
+
+        <!-- Business Planning & Strategy -->
+        <div class="category-view active" id="category-business-planning">
+            <h2>Business Planning & Strategy</h2>
+            <div class="templates-grid" id="templates-grid-business-planning">
+                <div class="template-card" data-name="Business Plan Template">
+                    <h3>Business Plan Template</h3>
+                    <p>Complete business plan with executive summary, market analysis, and financial projections.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('business-plan')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-business-plan">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="SWOT Analysis Template">
+                    <h3>SWOT Analysis Template</h3>
+                    <p>Analyze your business strengths, weaknesses, opportunities, and threats.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('swot-analysis')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-swot-analysis">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Business Model Canvas">
+                    <h3>Business Model Canvas</h3>
+                    <p>One-page visual framework to describe your business model.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('business-model-canvas')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-business-model-canvas">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Marketing Plan Template">
+                    <h3>Marketing Plan Template</h3>
+                    <p>Comprehensive marketing strategy with budget, channels, and KPIs.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('marketing-plan')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-marketing-plan">Downloads: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Management -->
+        <div class="category-view" id="category-financial-management">
+            <h2>Financial Management</h2>
+            <div class="templates-grid" id="templates-grid-financial-management">
+                <div class="template-card" data-name="Invoice Template">
+                    <h3>Invoice Template</h3>
+                    <p>Professional invoice template with tax fields for Nigerian businesses.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('invoice')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-invoice">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Quotation Template">
+                    <h3>Quotation/Quote Template</h3>
+                    <p>Professional price quotation template for services and products.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('quotation')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-quotation">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Purchase Order Template">
+                    <h3>Purchase Order Template</h3>
+                    <p>Standardized purchase order form for vendor transactions.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('purchase-order')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-purchase-order">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Expense Report Template">
+                    <h3>Expense Report Template</h3>
+                    <p>Employee expense tracking and reimbursement form.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('expense-report')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-expense-report">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Budget Template">
+                    <h3>Budget Template</h3>
+                    <p>Monthly and annual budget planning spreadsheet.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('budget')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-budget">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Cash Flow Statement Template">
+                    <h3>Cash Flow Statement Template</h3>
+                    <p>Track monthly cash inflows and outflows for your business.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('cash-flow-statement')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-cash-flow-statement">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Profit & Loss Statement Template">
+                    <h3>Profit & Loss Statement Template</h3>
+                    <p>Monthly and quarterly profit & loss statement template.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('profit-loss-statement')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-profit-loss-statement">Downloads: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legal & Compliance -->
+        <div class="category-view" id="category-legal-compliance">
+            <h2>Legal & Compliance</h2>
+            <div class="templates-grid" id="templates-grid-legal-compliance">
+                <div class="template-card" data-name="Service Agreement Template">
+                    <h3>Service Agreement Template</h3>
+                    <p>Client service contract template for service-based businesses.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('service-agreement')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-service-agreement">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Non-Disclosure Agreement">
+                    <h3>Non-Disclosure Agreement (NDA)</h3>
+                    <p>Confidentiality agreement template for protecting business information.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('nda')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-nda">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Employment Contract Template">
+                    <h3>Employment Contract Template</h3>
+                    <p>Standard employment contract with terms and conditions.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('employment-contract')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-employment-contract">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Partnership Agreement Template">
+                    <h3>Partnership Agreement Template</h3>
+                    <p>Business partnership agreement template with terms and responsibilities.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('partnership-agreement')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-partnership-agreement">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Terms of Service Template">
+                    <h3>Terms of Service Template</h3>
+                    <p>Website and service terms of service template.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('terms-of-service')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-terms-of-service">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Privacy Policy Template">
+                    <h3>Privacy Policy Template</h3>
+                    <p>Data protection and privacy policy template for compliance.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('privacy-policy')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-privacy-policy">Downloads: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HR & Employee Management -->
+        <div class="category-view" id="category-hr-employee">
+            <h2>HR & Employee Management</h2>
+            <div class="templates-grid">
+                <div class="template-card" data-name="Job Description Template">
+                    <h3>Job Description Template</h3>
+                    <p>Standardized job description template for hiring.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('job-description')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-job-description">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Employee Handbook Template">
+                    <h3>Employee Handbook Template</h3>
+                    <p>Company policies and procedures handbook template.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('employee-handbook')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-employee-handbook">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Performance Review Template">
+                    <h3>Performance Review Template</h3>
+                    <p>Employee performance evaluation and review form.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('performance-review')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-performance-review">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Leave Request Form">
+                    <h3>Leave Request Form</h3>
+                    <p>Employee time-off and leave request tracking form.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('leave-request')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-leave-request">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Timesheet Template">
+                    <h3>Timesheet Template</h3>
+                    <p>Hourly employee time tracking and timesheet template.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('timesheet')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-timesheet">Downloads: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales & Customer Management -->
+        <div class="category-view" id="category-sales-customer">
+            <h2>Sales & Customer Management</h2>
+            <div class="templates-grid" id="templates-grid-sales-customer">
+                <div class="template-card" data-name="Customer Onboarding Checklist">
+                    <h3>Customer Onboarding Checklist</h3>
+                    <p>New client setup and onboarding process checklist.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('customer-onboarding')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-customer-onboarding">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Sales Proposal Template">
+                    <h3>Sales Proposal Template</h3>
+                    <p>Professional sales proposal template for client pitches.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('sales-proposal')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-sales-proposal">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Customer Feedback Form">
+                    <h3>Customer Feedback Form</h3>
+                    <p>Customer satisfaction survey and feedback form.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('customer-feedback')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-customer-feedback">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Refund Return Policy Template">
+                    <h3>Refund/Return Policy Template</h3>
+                    <p>Clear return and refund policy template for customers.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('refund-policy')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-refund-policy">Downloads: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operations -->
+        <div class="category-view" id="category-operations">
+            <h2>Operations</h2>
+            <div class="templates-grid">
+                <div class="template-card" data-name="Inventory Checklist Template">
+                    <h3>Inventory Checklist Template</h3>
+                    <p>Stock management and inventory tracking checklist.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('inventory-checklist')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-inventory-checklist">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Vendor Supplier Agreement Template">
+                    <h3>Vendor/Supplier Agreement Template</h3>
+                    <p>Supplier contract and vendor agreement template.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('vendor-agreement')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-vendor-agreement">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Meeting Agenda Template">
+                    <h3>Meeting Agenda Template</h3>
+                    <p>Structured meeting agenda and notes template.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('meeting-agenda')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-meeting-agenda">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Project Plan Template">
+                    <h3>Project Plan Template</h3>
+                    <p>Project management framework and planning template.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('project-plan')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-project-plan">Downloads: 0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Marketing & Branding -->
+        <div class="category-view" id="category-marketing-branding">
+            <h2>Marketing & Branding</h2>
+            <div class="templates-grid" id="templates-grid-marketing-branding">
+                <div class="template-card" data-name="Social Media Content Calendar">
+                    <h3>Social Media Content Calendar</h3>
+                    <p>Monthly social media post scheduling and content calendar.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('social-media-calendar')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-social-media-calendar">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Press Release Template">
+                    <h3>Press Release Template</h3>
+                    <p>Professional press release template for media announcements.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('press-release')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-press-release">Downloads: 0</div>
+                </div>
+
+                <div class="template-card" data-name="Email Newsletter Template">
+                    <h3>Email Newsletter Template</h3>
+                    <p>Customer communication and newsletter email template.</p>
+                    <button class="template-download-btn" onclick="downloadTemplate('email-newsletter')">
+                        📥 Download
+                    </button>
+                    <div class="template-download-count" id="count-email-newsletter">Downloads: 0</div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="js/common.js"></script>
+<script>
+    // Template IDs mapping
+    const templateIds = [
+        'business-plan', 'swot-analysis', 'business-model-canvas', 'marketing-plan',
+        'invoice', 'quotation', 'purchase-order', 'expense-report', 'budget',
+        'cash-flow-statement', 'profit-loss-statement',
+        'service-agreement', 'nda', 'employment-contract', 'partnership-agreement',
+        'terms-of-service', 'privacy-policy',
+        'job-description', 'employee-handbook', 'performance-review', 'leave-request', 'timesheet',
+        'customer-onboarding', 'sales-proposal', 'customer-feedback', 'refund-policy',
+        'inventory-checklist', 'vendor-agreement', 'meeting-agenda', 'project-plan',
+        'social-media-calendar', 'press-release', 'email-newsletter'
+    ];
+
+    // Get auth token from sessionStorage
+    function getAuthToken() {
+        return sessionStorage.getItem('token') || null;
+    }
+
+    // Load download counts from API
+    async function loadDownloadCounts() {
+        try {
+            const response = await fetch('/api/templates/counts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': getAuthToken() ? `Bearer ${getAuthToken()}` : ''
+                },
+                body: JSON.stringify({ template_ids: templateIds })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load download counts');
+            }
+
+            const data = await response.json();
+            const counts = data.counts || {};
+
+            // Update display for each template
+            templateIds.forEach(id => {
+                const count = counts[id] || 0;
+                const countElement = document.getElementById('count-' + id);
+                if (countElement) {
+                    countElement.textContent = `Downloads: ${count}`;
+                }
+            });
+        } catch (error) {
+            console.error('Error loading download counts:', error);
+            // Fallback: show 0 for all if API fails
+            templateIds.forEach(id => {
+                const countElement = document.getElementById('count-' + id);
+                if (countElement) {
+                    countElement.textContent = 'Downloads: 0';
+                }
+            });
+        }
+    }
+
+    // Download template function - uses API
+    async function downloadTemplate(templateId) {
+        try {
+            // Record download via API
+            const response = await fetch(`/api/templates/${templateId}/download`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': getAuthToken() ? `Bearer ${getAuthToken()}` : ''
+                }
+            });
+
+            // Check response type - if it's PDF or HTML (file download), handle differently
+            const contentType = response.headers.get('content-type') || '';
+            
+            if (contentType.includes('application/pdf') || contentType.includes('text/html')) {
+                // File is being served directly, create blob and download
+                const arrayBuffer = await response.arrayBuffer();
+                
+                // Verify data is valid
+                if (!arrayBuffer || arrayBuffer.byteLength === 0) {
+                    throw new Error('Downloaded file is empty or corrupted');
+                }
+                
+                // Create blob with proper MIME type
+                const blob = new Blob([arrayBuffer], { 
+                    type: contentType.includes('application/pdf') ? 'application/pdf' : 'text/html' 
+                });
+                
+                // Create blob URL
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.style.display = 'none';
+                
+                // Use PDF extension if content is PDF, otherwise HTML
+                const fileExtension = contentType.includes('application/pdf') ? 'pdf' : 'html';
+                a.download = `${templateId}.${fileExtension}`;
+                
+                // Add to DOM, click, then remove
+                document.body.appendChild(a);
+                a.click();
+                
+                // Clean up after a delay to ensure download starts
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(blobUrl);
+                    if (document.body.contains(a)) {
+                        document.body.removeChild(a);
+                    }
+                }, 200);
+                
+                // Try to get download count separately after a short delay
+                setTimeout(async () => {
+                    try {
+                        const countResponse = await fetch(`/api/templates/${templateId}/count`, {
+                            headers: {
+                                'Authorization': getAuthToken() ? `Bearer ${getAuthToken()}` : ''
+                            }
+                        });
+                        if (countResponse.ok) {
+                            const countData = await countResponse.json();
+                            const countElement = document.getElementById('count-' + templateId);
+                            if (countElement) {
+                                countElement.textContent = `Downloads: ${countData.count || 0}`;
+                            }
+                        }
+                    } catch (countError) {
+                        console.error('Error fetching updated count:', countError);
+                    }
+                }, 500);
+                return;
+            }
+            
+            // If response is JSON (error or info message)
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                // If JSON parsing fails, try to open file directly
+                console.warn('Could not parse response as JSON, opening file directly');
+                window.open('templates/' + templateId + '.html', '_blank');
+                return;
+            }
+            
+            // Check if there's a database error
+            if (data.code === 'DATABASE_NOT_READY') {
+                console.warn('Database tables not found:', data.message);
+                // Still open the file even if database isn't ready
+                window.open('templates/' + templateId + '.html', '_blank');
+                return;
+            }
+            
+            if (!response.ok) {
+                // If API fails, still try to open the file
+                console.warn('API call failed, but opening template file anyway');
+                window.open('templates/' + templateId + '.html', '_blank');
+                
+                if (data.message) {
+                    console.error('API Error:', data.message);
+                }
+                return;
+            }
+            
+            // Update count display
+            const countElement = document.getElementById('count-' + templateId);
+            if (countElement && data.download_count !== undefined) {
+                countElement.textContent = `Downloads: ${data.download_count || 0}`;
+            }
+
+            // If file_path is provided, open it
+            if (data.file_path || data.download_url) {
+                const filePath = data.download_url || data.file_path || `templates/${templateId}.html`;
+                window.open(filePath, '_blank');
+            } else {
+                // Fallback: try to open file directly
+                window.open('templates/' + templateId + '.html', '_blank');
+            }
+            
+            // Show warning if tracking is unavailable
+            if (data.warning) {
+                console.warn('Download tracking warning:', data.warning);
+            }
+        } catch (error) {
+            console.error('Error recording download:', error);
+            console.error('Download error details:', error.message, error.stack);
+            
+            // Show user-friendly error message
+            alert('Error downloading template. Please try again or contact support if the problem persists.');
+            
+            // Try to open the template file directly as fallback
+            try {
+                window.open('templates/' + templateId + '.html', '_blank');
+            } catch (openError) {
+                console.error('Error opening template file:', openError);
+            }
+            
+            // Try to update count from API
+            try {
+                const countResponse = await fetch(`/api/templates/${templateId}/count`, {
+                    headers: {
+                        'Authorization': getAuthToken() ? `Bearer ${getAuthToken()}` : ''
+                    }
+                });
+                if (countResponse.ok) {
+                    const countData = await countResponse.json();
+                    const countElement = document.getElementById('count-' + templateId);
+                    if (countElement) {
+                        countElement.textContent = `Downloads: ${countData.count || 0}`;
+                    }
+                }
+            } catch (countError) {
+                console.error('Error fetching updated count:', countError);
+            }
+        }
+    }
+
+    // Show category function - matching tools.html style
+    function showCategory(categoryId) {
+        try {
+            // Hide all category views
+            const allViews = document.querySelectorAll('.category-view');
+            allViews.forEach(view => view.classList.remove('active'));
+            
+            // Show selected category
+            const selectedView = document.getElementById('category-' + categoryId);
+            if (selectedView) {
+                selectedView.classList.add('active');
+            } else {
+                console.error('Category view not found:', 'category-' + categoryId);
+                return;
+            }
+            
+            // Update menu active state
+            const menuItems = document.querySelectorAll('.templates-menu a');
+            menuItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-category') === categoryId) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Close mobile menu if open
+            const sidebar = document.getElementById('templatesSidebar');
+            if (sidebar && window.innerWidth <= 1024) {
+                sidebar.classList.remove('show');
+            }
+        } catch (error) {
+            console.error('Error in showCategory:', error);
+            alert('Error switching category: ' + error.message);
+        }
+    }
+    
+    // Make it globally available
+    window.showCategory = showCategory;
+
+    // Mobile menu toggle
+    function toggleTemplatesSidebar() {
+        const sidebar = document.getElementById('templatesSidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('show');
+        }
+    }
+    window.toggleTemplatesSidebar = toggleTemplatesSidebar;
+
+    // Initialize on page load
+    // Load templates from API and render dynamically
+    async function loadTemplates() {
+        try {
+            const response = await fetch('/api/templates');
+            if (!response.ok) {
+                throw new Error('Failed to load templates');
+            }
+            
+            const data = await response.json();
+            const templates = data.templates || [];
+            
+            // Category mapping (API category name -> HTML category ID)
+            const categoryMap = {
+                'Business Planning': { id: 'business-planning', gridId: 'templates-grid-business-planning' },
+                'Financial Management': { id: 'financial-management', gridId: 'templates-grid-financial-management' },
+                'Legal & Compliance': { id: 'legal-compliance', gridId: 'templates-grid-legal-compliance' },
+                'HR & Employee': { id: 'hr-employee', gridId: 'templates-grid-hr-employee' },
+                'Sales & Customer': { id: 'sales-customer', gridId: 'templates-grid-sales-customer' },
+                'Operations': { id: 'operations', gridId: 'templates-grid-operations' },
+                'Marketing & Branding': { id: 'marketing-branding', gridId: 'templates-grid-marketing-branding' }
+            };
+            
+            // Clear all grids first
+            Object.values(categoryMap).forEach(cat => {
+                const grid = document.getElementById(cat.gridId);
+                if (grid) {
+                    grid.innerHTML = '';
+                }
+            });
+            
+            // Group templates by category and render
+            templates.forEach(template => {
+                const categoryInfo = categoryMap[template.category];
+                if (!categoryInfo) {
+                    console.warn(`Unknown category: ${template.category} for template ${template.template_id}`);
+                    return;
+                }
+                
+                const grid = document.getElementById(categoryInfo.gridId);
+                if (!grid) {
+                    console.warn(`Grid not found: ${categoryInfo.gridId}`);
+                    return;
+                }
+                
+                // Only show active templates (API already filters, but double-check)
+                if (template.is_active !== false) {
+                    const templateCard = document.createElement('div');
+                    templateCard.className = 'template-card';
+                    templateCard.setAttribute('data-name', template.name);
+                    
+                    const templateId = template.template_id;
+                    const safeName = (template.name || 'Untitled Template').replace(/'/g, "&#39;").replace(/"/g, '&quot;');
+                    const safeDescription = (template.description || 'No description available.').replace(/'/g, "&#39;").replace(/"/g, '&quot;');
+                    
+                    templateCard.innerHTML = `
+                        <h3>${safeName}</h3>
+                        <p>${safeDescription}</p>
+                        <button class="template-download-btn" onclick="downloadTemplate('${templateId}')">
+                            📥 Download
+                        </button>
+                        <div class="template-download-count" id="count-${templateId}">Downloads: 0</div>
+                    `;
+                    
+                    grid.appendChild(templateCard);
+                }
+            });
+            
+            // Load download counts after templates are rendered
+            const activeTemplateIds = templates
+                .filter(t => t.is_active !== false)
+                .map(t => t.template_id);
+            
+            if (activeTemplateIds.length > 0) {
+                await loadDownloadCountsForTemplates(activeTemplateIds);
+            }
+        } catch (error) {
+            console.error('Error loading templates:', error);
+            // If API fails, templates will remain as hardcoded HTML (fallback)
+        }
+    }
+    
+    // Updated loadDownloadCounts to accept template IDs
+    async function loadDownloadCountsForTemplates(templateIds) {
+        try {
+            const response = await fetch('/api/templates/counts', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': getAuthToken() ? `Bearer ${getAuthToken()}` : ''
+                },
+                body: JSON.stringify({ template_ids: templateIds })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load download counts');
+            }
+
+            const data = await response.json();
+            const counts = data.counts || {};
+
+            // Update display for each template
+            templateIds.forEach(id => {
+                const count = counts[id] || 0;
+                const countElement = document.getElementById('count-' + id);
+                if (countElement) {
+                    countElement.textContent = `Downloads: ${count}`;
+                }
+            });
+        } catch (error) {
+            console.error('Error loading download counts:', error);
+        }
+    }
+
+    window.onload = function() {
+        loadTemplates();
+    };
+</script>
+
+<footer>
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <h3>Enterprise Room Business Hub</h3>
+                <p>Empowering entrepreneurs and small businesses to succeed.</p>
+            </div>
+            <div>
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="eventspage.html">Events</a></li>
+                    <li><a href="blog.html">Blog</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="tools.html">Financial Calculators</a></li>
+                    <li><a href="templates.html">Document Templates</a></li>
+                    <li><a href="directories.html">Business Directories</a></li>
+                    <li><a href="pitch.html">Pitch Competition</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="contact.html">Contact Us</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

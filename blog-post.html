@@ -272,7 +272,7 @@
         }
         
         try {
-            const response = await fetch(`http://localhost:3000/api/blog/${postId}`);
+            const response = await fetch(`/api/blog/${postId}`);
             
             if (!response.ok) {
                 if (response.status === 404) {
@@ -439,7 +439,7 @@
     // Load related posts
     async function loadRelatedPosts(postId) {
         try {
-            const response = await fetch(`http://localhost:3000/api/blog/${postId}/related`);
+            const response = await fetch(`/api/blog/${postId}/related`);
             if (!response.ok) throw new Error('Failed to load related posts');
             
             const data = await response.json();

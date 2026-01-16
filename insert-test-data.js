@@ -1,5 +1,13 @@
 // Insert Test Data into Database
+// ⚠️ WARNING: DEVELOPMENT ONLY - DO NOT RUN IN PRODUCTION
+// This script inserts test data including test user credentials
 // Run with: node insert-test-data.js
+//
+// Test Credentials Created:
+// - Admin: admin / admin123
+// - Test User: test@example.com / test123
+//
+// These are for development/testing only!
 
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');

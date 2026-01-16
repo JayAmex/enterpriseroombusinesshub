@@ -223,6 +223,7 @@
         <li><a href="eventspage.html">Events</a></li>
         <li><a href="blog.html">Blog</a></li>
         <li><a href="tools.html">Tools</a></li>
+        <li><a href="templates.html">Templates</a></li>
         <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
         <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
         <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
@@ -298,7 +299,7 @@
     // Load all blog posts from API
     async function loadBlogPosts() {
         try {
-            const response = await fetch('http://localhost:3000/api/blog?limit=100');
+            const response = await fetch('/api/blog?limit=100');
             if (!response.ok) throw new Error('Failed to load blog posts');
             
             const data = await response.json();
@@ -530,7 +531,7 @@
     // Load popular posts
     async function loadPopularPosts() {
         try {
-            const response = await fetch('http://localhost:3000/api/blog/popular?limit=5');
+            const response = await fetch('/api/blog/popular?limit=5');
             if (!response.ok) throw new Error('Failed to load popular posts');
             
             const data = await response.json();
@@ -574,7 +575,7 @@
         
         searchTimeout = setTimeout(async () => {
             try {
-                const response = await fetch(`http://localhost:3000/api/blog/search?q=${encodeURIComponent(searchTerm)}&limit=10`);
+                const response = await fetch(`/api/blog/search?q=${encodeURIComponent(searchTerm)}&limit=10`);
                 if (!response.ok) throw new Error('Search failed');
                 
                 const data = await response.json();
@@ -623,7 +624,7 @@
         
         try {
             // Check if already saved
-            const checkResponse = await fetch(`http://localhost:3000/api/blog/${postId}/saved`, {
+            const checkResponse = await fetch(`/api/blog/${postId}/saved`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -634,7 +635,7 @@
             
             if (saved) {
                 // Unsave
-                const response = await fetch(`http://localhost:3000/api/blog/${postId}/save`, {
+                const response = await fetch(`/api/blog/${postId}/save`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -647,7 +648,7 @@
                 }
             } else {
                 // Save
-                const response = await fetch(`http://localhost:3000/api/blog/${postId}/save`, {
+                const response = await fetch(`/api/blog/${postId}/save`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -673,7 +674,7 @@
         if (!token) return;
         
         try {
-            const response = await fetch(`http://localhost:3000/api/blog/${postId}/saved`, {
+            const response = await fetch(`/api/blog/${postId}/saved`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -704,7 +705,7 @@
         if (currentPage < 1) currentPage = 1;
         
         try {
-            const response = await fetch(`http://localhost:3000/api/blog?page=${currentPage}&limit=${postsPerPage}`);
+            const response = await fetch(`/api/blog?page=${currentPage}&limit=${postsPerPage}`);
             if (!response.ok) throw new Error('Failed to load posts');
             
             const data = await response.json();

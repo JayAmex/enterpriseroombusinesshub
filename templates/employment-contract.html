@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employment Contract Template - Enterprise Room Business Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .template-container {
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #1a365d;
+            border-bottom: 3px solid #3182ce;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #2d3748;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .field {
+            margin-bottom: 15px;
+        }
+        .field label {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+            color: #4a5568;
+        }
+        .field input, .field textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+            color: #718096;
+            font-size: 12px;
+        }
+        .footer .brand {
+            color: #3182ce;
+            font-weight: 600;
+        }
+        @media print {
+            .footer {
+                display: none;
+            }
+            body {
+                background: white;
+            }
+            .template-container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="template-container">
+        <h1>Employment Contract Template</h1>
+        
+        <div class="section">
+            <h2>Document Information</h2>
+            <div class="field">
+                <label>Date:</label>
+                <input type="date" id="document-date" value="">
+            </div>
+            <div class="field">
+                <label>Document Number:</label>
+                <input type="text" id="document-number" placeholder="Enter document number">
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Details</h2>
+            <div class="field">
+                <label>Description:</label>
+                <textarea id="description" placeholder="Enter description or details here..."></textarea>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Additional Information</h2>
+            <div class="field">
+                <label>Notes:</label>
+                <textarea id="notes" placeholder="Enter any additional notes or information..."></textarea>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Template provided by <span class="brand">Enterprise Room Business Hub</span></p>
+            <p>This footer can be removed after download if desired.</p>
+        </div>
+    </div>
+
+    <script>
+        // Set today's date as default
+        document.getElementById('document-date').valueAsDate = new Date();
+        
+        // Print functionality
+        function printDocument() {
+            window.print();
+        }
+        
+        // Add print button (optional)
+        // You can add a print button in the template if needed
+    </script>
+</body>
+</html>

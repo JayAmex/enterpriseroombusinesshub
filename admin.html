@@ -311,6 +311,7 @@
             <li><a href="#" onclick="showSection('homepage', this); return false;">Homepage</a></li>
             <li><a href="#" onclick="showSection('newsletter', this); return false;">Newsletter Subscribers</a></li>
             <li><a href="#" onclick="showSection('tools', this); return false;">Tools</a></li>
+            <li><a href="#" onclick="showSection('templates', this); return false;">Templates</a></li>
             <li><a href="index.html" style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">← Back to Site</a></li>
             <li><a href="#" onclick="logout(); return false;" style="margin-top: 10px; color: #fc8181;">Logout</a></li>
         </ul>
@@ -951,6 +952,23 @@
             </div>
 
             <div class="card" style="margin-top: 20px;">
+                <h4>Tool Visibility Management</h4>
+                <p style="color: var(--text-light); margin-bottom: 20px;">Control which tools are visible to users. Hide tools during maintenance or testing.</p>
+                
+                <div id="toolVisibilityList">
+                    <h5 style="margin-top: 20px; margin-bottom: 15px; color: var(--primary);">Built-in Tools</h5>
+                    <div id="builtinToolsList" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Built-in tools will be loaded here -->
+                    </div>
+                    
+                    <h5 style="margin-top: 30px; margin-bottom: 15px; color: var(--primary);">Custom Tools</h5>
+                    <div id="customToolsVisibilityList" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Custom tools will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top: 20px;">
                 <h4>Manage Custom Tools</h4>
                 <button class="btn-add" onclick="showToolForm()" style="margin-bottom: 20px;">+ Add New Tool</button>
                 
@@ -1036,6 +1054,40 @@
             </div>
         </div>
 
+        <!-- Templates Section -->
+        <div id="templates" class="admin-section">
+            <h3>Document Template Downloads</h3>
+            <p style="color: var(--text-light); margin-bottom: 20px;">View download statistics for all business document templates.</p>
+            
+            <div class="card">
+                <h4>Download Statistics</h4>
+                <div style="margin-bottom: 20px;">
+                    <button onclick="refreshTemplateStats()" class="btn-small btn-edit" style="padding: 8px 15px;">🔄 Refresh Stats</button>
+                    <button onclick="resetTemplateStats()" class="btn-small btn-delete" style="padding: 8px 15px; margin-left: 10px;">Reset All Counts</button>
+                </div>
+                
+                <div style="margin-bottom: 15px; padding: 15px; background: var(--light); border-radius: 8px;">
+                    <strong>Total Downloads:</strong> <span id="templateTotalDownloads">0</span>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="directory-table" style="width: 100%; border-collapse: collapse; background: var(--white); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: none; table-layout: fixed;">
+                        <thead style="background: var(--primary); color: var(--white);">
+                            <tr>
+                                <th style="width: 35%; padding: 10px 8px; text-align: left; font-weight: 600; font-size: 0.9rem; border: none;">Template Name</th>
+                                <th style="width: 20%; padding: 10px 8px; text-align: left; font-weight: 600; font-size: 0.9rem; border: none;">Category</th>
+                                <th style="width: 10%; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 0.9rem; border: none;">Downloads</th>
+                                <th style="width: 35%; padding: 10px 8px; text-align: center; font-weight: 600; font-size: 0.9rem; border: none;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="templateStatsList">
+                            <!-- Template download stats will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         <!-- Newsletter Subscribers Section -->
         <div id="newsletter" class="admin-section">
             <h3>Newsletter Subscribers</h3>
@@ -1093,7 +1145,8 @@
 </div>
 
 <script>
-    function showSection(sectionId, clickedElement) {
+    // Make showSection globally available
+    window.showSection = function(sectionId, clickedElement) {
         // Hide all sections
         document.querySelectorAll('.admin-section').forEach(section => {
             section.classList.remove('active');
@@ -1125,6 +1178,27 @@
                     link.classList.add('active');
                 }
             });
+        }
+        
+        // Load section-specific data
+        if (sectionId === 'users') {
+            loadUsers();
+        } else if (sectionId === 'members') {
+            loadMembers();
+        } else if (sectionId === 'events') {
+            loadEvents();
+        } else if (sectionId === 'blog') {
+            loadBlogPosts();
+        } else if (sectionId === 'directories') {
+            loadDirectories();
+        } else if (sectionId === 'newsletter') {
+            loadNewsletterSubscribers();
+        } else if (sectionId === 'templates') {
+            loadTemplateStats();
+        } else if (sectionId === 'tools') {
+            loadToolVisibility();
+        } else if (sectionId === 'templates') {
+            loadTemplateStats();
         }
         
         // Always refresh overview stats when showing overview section
@@ -1172,12 +1246,17 @@
             } else if (sectionId === 'tools') {
                 if (typeof loadTools === 'function') {
                     loadTools();
+                    loadToolVisibility();
+                }
+            } else if (sectionId === 'templates') {
+                if (typeof loadTemplateStats === 'function') {
+                    loadTemplateStats();
                 }
             }
         } catch (error) {
             console.error('Error loading section data:', error);
         }
-    }
+    };
     
     // ========== EVENTS MANAGEMENT ==========
     let currentEventsPage = 1;
@@ -1215,7 +1294,7 @@
         
         try {
             // Build URL with pagination
-            const url = `http://localhost:3000/api/admin/events?page=${page}&limit=${eventsPerPage}`;
+            const url = `/api/admin/events?page=${page}&limit=${eventsPerPage}`;
             
             const response = await fetch(url, {
                 headers: {
@@ -1506,7 +1585,7 @@
 
         try {
             // Fetch event from API
-            const response = await fetch(`http://localhost:3000/api/admin/events?page=1&limit=1000`, {
+            const response = await fetch(`/api/admin/events?page=1&limit=1000`, {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
@@ -1632,7 +1711,7 @@
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/events/${eventId}/rsvps?limit=100`, {
+            const response = await fetch(`/api/admin/events/${eventId}/rsvps?limit=100`, {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
@@ -1725,7 +1804,7 @@
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/events/${eventId}/status`, {
+            const response = await fetch(`/api/admin/events/${eventId}/status`, {
                 method: 'PATCH',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`,
@@ -1769,7 +1848,7 @@
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/admin/events/update-statuses', {
+            const response = await fetch('/api/admin/events/update-statuses', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
@@ -1819,7 +1898,7 @@
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/events/${eventId}`, {
+            const response = await fetch(`/api/admin/events/${eventId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
@@ -1936,8 +2015,8 @@
 
         try {
             const url = eventId 
-                ? `http://localhost:3000/api/admin/events/${eventId}`
-                : 'http://localhost:3000/api/admin/events';
+                ? `/api/admin/events/${eventId}`
+                : '/api/admin/events';
             
             const method = eventId ? 'PUT' : 'POST';
             
@@ -2331,7 +2410,7 @@
                 const formData = new FormData();
                 formData.append('image', file);
                 
-                const uploadResponse = await fetch('http://localhost:3000/api/admin/blog/upload-image', {
+                const uploadResponse = await fetch('/api/admin/blog/upload-image', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
@@ -2363,8 +2442,8 @@
             };
             
             const url = blogId 
-                ? `http://localhost:3000/api/admin/blog/${blogId}`
-                : 'http://localhost:3000/api/admin/blog';
+                ? `/api/admin/blog/${blogId}`
+                : '/api/admin/blog';
             
             const method = blogId ? 'PUT' : 'POST';
             
@@ -2405,7 +2484,7 @@
         if (!adminToken) return;
         
         try {
-            const response = await fetch('http://localhost:3000/api/admin/blog', {
+            const response = await fetch('/api/admin/blog', {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
@@ -2460,7 +2539,7 @@
         }
         
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/blog/${blogId}`, {
+            const response = await fetch(`/api/admin/blog/${blogId}`, {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
@@ -2524,7 +2603,7 @@
         }
         
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/blog/${blogId}`, {
+            const response = await fetch(`/api/admin/blog/${blogId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
@@ -2882,8 +2961,8 @@
                 };
                 
                 const url = entryId 
-                    ? `http://localhost:3000/api/admin/directories/members/${entryId}`
-                    : 'http://localhost:3000/api/admin/directories/members';
+                    ? `/api/admin/directories/members/${entryId}`
+                    : '/api/admin/directories/members';
                 const method = entryId ? 'PUT' : 'POST';
                 
                 const response = await fetch(url, {
@@ -2918,8 +2997,8 @@
                 };
                 
                 const url = entryId 
-                    ? `http://localhost:3000/api/admin/directories/partners/${entryId}`
-                    : 'http://localhost:3000/api/admin/directories/partners';
+                    ? `/api/admin/directories/partners/${entryId}`
+                    : '/api/admin/directories/partners';
                 const method = entryId ? 'PUT' : 'POST';
                 
                 const response = await fetch(url, {
@@ -2988,7 +3067,7 @@
         businessList.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--text-light);">Loading businesses...</td></tr>';
         
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/directories/business?page=${page}&limit=${dirBusinessPerPage}`, {
+            const response = await fetch(`/api/admin/directories/business?page=${page}&limit=${dirBusinessPerPage}`, {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
@@ -3085,7 +3164,7 @@
         membersList.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--text-light);">Loading members...</td></tr>';
         
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/directories/members?page=${page}&limit=${dirMemberPerPage}`, {
+            const response = await fetch(`/api/admin/directories/members?page=${page}&limit=${dirMemberPerPage}`, {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
@@ -3226,7 +3305,7 @@
         partnersList.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-light);">Loading partners...</td></tr>';
         
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/directories/partners?page=${page}&limit=${dirPartnerPerPage}`, {
+            const response = await fetch(`/api/admin/directories/partners?page=${page}&limit=${dirPartnerPerPage}`, {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
@@ -3323,7 +3402,7 @@
         }
         
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/directories/${type}/${entryId}`, {
+            const response = await fetch(`/api/admin/directories/${type}/${entryId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
@@ -3364,7 +3443,7 @@
         try {
             if (type === 'members') {
                 // Fetch full member data from API
-                const response = await fetch(`http://localhost:3000/api/admin/directories/members?limit=1000`, {
+                const response = await fetch(`/api/admin/directories/members?limit=1000`, {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
                     }
@@ -3408,7 +3487,7 @@
                 }
             } else if (type === 'partners') {
                 // Fetch partner data from API
-                const response = await fetch(`http://localhost:3000/api/admin/directories/partners?limit=1000`, {
+                const response = await fetch(`/api/admin/directories/partners?limit=1000`, {
                     headers: {
                         'Authorization': `Bearer ${adminToken}`
                     }
@@ -3468,30 +3547,236 @@
         }
     }
 
-    // Tool Management Functions
-    function loadTools() {
-        const tools = JSON.parse(localStorage.getItem('customTools') || '[]');
-        const toolsList = document.getElementById('toolsList');
-        
-        if (!toolsList) return;
-        
-        if (tools.length === 0) {
-            toolsList.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: 40px;">No custom tools found. Click "+ Add New Tool" to create one.</p>';
+    // Tool Visibility Management Functions - Using API
+    async function loadToolVisibility() {
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            console.warn('No admin token - cannot load tool visibility');
             return;
         }
         
-        toolsList.innerHTML = tools.map(tool => `
-            <div class="content-item" data-tool-id="${tool.id}">
-                <h4>${tool.name}</h4>
-                <p><strong>Description:</strong> ${tool.description || 'No description'}</p>
-                <p><strong>Input Fields:</strong> ${tool.inputs ? tool.inputs.length : 0}</p>
-                <p><strong>Result Label:</strong> ${tool.resultLabel || 'N/A'}</p>
-                <div class="content-actions">
-                    <button class="btn-small btn-edit" onclick="editTool('${tool.id}')">Edit</button>
-                    <button class="btn-small btn-delete" onclick="deleteTool('${tool.id}')">Delete</button>
-                </div>
-            </div>
-        `).join('');
+        try {
+            // Load built-in tools from API
+            const toolsResponse = await fetch('/api/tools/builtin');
+            let builtinTools = [];
+            if (toolsResponse.ok) {
+                const toolsData = await toolsResponse.json();
+                builtinTools = toolsData.tools || [];
+            } else {
+                // Fallback to hardcoded list if API fails
+                builtinTools = [
+                    { tool_id: 'savings', name: 'Savings Target Calculator', description: 'Calculate monthly savings needed to reach financial goals' },
+                    { tool_id: 'loan', name: 'Business Loan Calculator', description: 'Calculate monthly loan repayments' },
+                    { tool_id: 'mortgage', name: 'Mortgage Calculator', description: 'Calculate mortgage payments for property purchases' },
+                    { tool_id: 'pit', name: 'PIT Calculator (Nigeria)', description: 'Calculate Personal Income Tax based on Nigeria 2026 tax law' },
+                    { tool_id: 'cit', name: 'CIT Calculator (Nigeria)', description: 'Calculate Company Income Tax based on Nigeria 2026 tax law' },
+                    { tool_id: 'breakeven', name: 'Break-Even Calculator', description: 'Calculate break-even point for pricing decisions' },
+                    { tool_id: 'cashflow', name: 'Cash Flow Forecast', description: 'Project monthly cash inflows and outflows' },
+                    { tool_id: 'profitmargin', name: 'Profit Margin Calculator', description: 'Calculate gross, operating, and net profit margins' },
+                    { tool_id: 'payroll', name: 'Payroll Calculator (Nigeria)', description: 'Calculate employee salaries with Nigerian deductions' },
+                    { tool_id: 'roi', name: 'ROI Calculator', description: 'Calculate Return on Investment for decision making' }
+                ];
+            }
+            
+            // Load visibility settings from API
+            const visResponse = await fetch('/api/tools/visibility');
+            let visibilitySettings = {};
+            if (visResponse.ok) {
+                const visData = await visResponse.json();
+                visibilitySettings = visData.visibility || {};
+            }
+        
+            // Load built-in tools visibility
+            const builtinList = document.getElementById('builtinToolsList');
+            if (builtinList) {
+                builtinList.innerHTML = builtinTools.map(tool => {
+                    const toolId = tool.tool_id || tool.id;
+                    const isVisible = visibilitySettings[toolId] !== false; // Default to true
+                return `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: ${isVisible ? '#f0fff4' : '#fff5f5'}; border: 1px solid ${isVisible ? '#c6f6d5' : '#feb2b2'}; border-radius: 8px;">
+                        <div style="flex: 1;">
+                            <strong style="color: var(--primary); display: block; margin-bottom: 5px;">${tool.name}</strong>
+                            <small style="color: var(--text-light);">${tool.description}</small>
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-left: 20px;">
+                            <span style="color: ${isVisible ? 'var(--success)' : 'var(--text-light)'}; font-weight: 600; font-size: 0.9rem;">
+                                ${isVisible ? 'Visible' : 'Hidden'}
+                            </span>
+                            <div style="position: relative; width: 50px; height: 26px;">
+                                <input type="checkbox" 
+                                       ${isVisible ? 'checked' : ''} 
+                                       onchange="toggleToolVisibility('${toolId}', this.checked, 'builtin')"
+                                       style="opacity: 0; width: 0; height: 0;">
+                                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${isVisible ? 'var(--success)' : '#cbd5e0'}; border-radius: 26px; transition: background-color 0.3s;">
+                                    <span style="position: absolute; content: ''; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: transform 0.3s; transform: ${isVisible ? 'translateX(24px)' : 'translateX(0)'};"></span>
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                `;
+                }).join('');
+            }
+            
+            // Load custom tools visibility
+            const customList = document.getElementById('customToolsVisibilityList');
+            if (customList) {
+                // Load custom tools from API
+                try {
+                    const customToolsResponse = await fetch('/api/tools/custom', {
+                        headers: {
+                            'Authorization': `Bearer ${adminToken}`
+                        }
+                    });
+                    
+                    let customTools = [];
+                    if (customToolsResponse.ok) {
+                        const customToolsData = await customToolsResponse.json();
+                        customTools = customToolsData.tools || [];
+                    }
+                    
+                    if (customTools.length === 0) {
+                        customList.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: 20px;">No custom tools created yet.</p>';
+                    } else {
+                        customList.innerHTML = customTools.map(tool => {
+                            const toolId = tool.id.toString();
+                            const isVisible = visibilitySettings[toolId] !== false; // Default to true
+                            return `
+                                <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px; background: ${isVisible ? '#f0fff4' : '#fff5f5'}; border: 1px solid ${isVisible ? '#c6f6d5' : '#feb2b2'}; border-radius: 8px;">
+                                    <div style="flex: 1;">
+                                        <strong style="color: var(--primary); display: block; margin-bottom: 5px;">${tool.name}</strong>
+                                        <small style="color: var(--text-light);">${tool.description || 'Custom tool'}</small>
+                                    </div>
+                                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-left: 20px;">
+                                        <span style="color: ${isVisible ? 'var(--success)' : 'var(--text-light)'}; font-weight: 600; font-size: 0.9rem;">
+                                            ${isVisible ? 'Visible' : 'Hidden'}
+                                        </span>
+                                        <div style="position: relative; width: 50px; height: 26px;">
+                                            <input type="checkbox" 
+                                                   ${isVisible ? 'checked' : ''} 
+                                                   onchange="toggleToolVisibility('${toolId}', this.checked, 'custom')"
+                                                   style="opacity: 0; width: 0; height: 0;">
+                                            <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: ${isVisible ? 'var(--success)' : '#cbd5e0'}; border-radius: 26px; transition: background-color 0.3s;">
+                                                <span style="position: absolute; content: ''; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; border-radius: 50%; transition: transform 0.3s; transform: ${isVisible ? 'translateX(24px)' : 'translateX(0)'};"></span>
+                                            </span>
+                                        </div>
+                                    </label>
+                                </div>
+                            `;
+                        }).join('');
+                    }
+                } catch (customError) {
+                    console.error('Error loading custom tools:', customError);
+                    customList.innerHTML = '<p style="text-align: center; color: var(--error); padding: 20px;">Error loading custom tools.</p>';
+                }
+            }
+        } catch (error) {
+            console.error('Error loading tool visibility:', error);
+        }
+    }
+    
+    // Toggle tool visibility function
+    async function toggleToolVisibility(toolId, isVisible, type) {
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Please log in to change tool visibility');
+            return;
+        }
+        
+        try {
+            // Update via API
+            const response = await fetch(`/api/admin/tools/${toolId}/visibility`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ is_visible: isVisible })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update tool visibility');
+            }
+            
+            // Reload to update visual feedback
+            await loadToolVisibility();
+            
+            // Show confirmation
+            const status = isVisible ? 'visible' : 'hidden';
+            const toolName = type === 'builtin' 
+                ? document.querySelector(`#builtinToolsList [onchange*="${toolId}"]`)?.closest('div')?.querySelector('strong')?.textContent
+                : document.querySelector(`#customToolsVisibilityList [onchange*="${toolId}"]`)?.closest('div')?.querySelector('strong')?.textContent;
+            
+            const message = `Tool "${toolName || toolId}" is now ${status}. Users will see this change immediately.`;
+            console.log(message);
+            
+            // Show brief notification
+            const notification = document.createElement('div');
+            notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: var(--success); color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); z-index: 10000; font-weight: 600;';
+            notification.textContent = `Tool ${status}!`;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
+        } catch (error) {
+            console.error('Error toggling tool visibility:', error);
+            alert('Error updating tool visibility: ' + error.message);
+        }
+    }
+
+    // Tool Management Functions - Using API
+    async function loadTools() {
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            console.warn('No admin token - cannot load tools');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/tools/custom', {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load tools');
+            }
+            
+            const data = await response.json();
+            const tools = data.tools || [];
+            
+            const toolsList = document.getElementById('toolsList');
+            if (!toolsList) return;
+            
+            if (tools.length === 0) {
+                toolsList.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: 40px;">No custom tools found. Click "+ Add New Tool" to create one.</p>';
+                return;
+            }
+            
+            toolsList.innerHTML = tools.map(tool => {
+                const inputs = typeof tool.inputs === 'string' ? JSON.parse(tool.inputs) : tool.inputs;
+                return `
+                    <div class="content-item" data-tool-id="${tool.id}">
+                        <h4>${tool.name}</h4>
+                        <p><strong>Description:</strong> ${tool.description || 'No description'}</p>
+                        <p><strong>Input Fields:</strong> ${inputs ? inputs.length : 0}</p>
+                        <p><strong>Result Label:</strong> ${tool.result_label || 'N/A'}</p>
+                        <div class="content-actions">
+                            <button class="btn-small btn-edit" onclick="editTool('${tool.id}')">Edit</button>
+                            <button class="btn-small btn-delete" onclick="deleteTool('${tool.id}')">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (error) {
+            console.error('Error loading tools:', error);
+            const toolsList = document.getElementById('toolsList');
+            if (toolsList) {
+                toolsList.innerHTML = '<p style="text-align: center; color: var(--error); padding: 40px;">Error loading tools. Please try again.</p>';
+            }
+        }
     }
 
     function showToolForm(toolId = null) {
@@ -3513,21 +3798,36 @@
         document.getElementById('toolResultColor').value = 'default';
         
         if (toolId) {
-            // Load existing tool
-            const tools = JSON.parse(localStorage.getItem('customTools') || '[]');
-            const tool = tools.find(t => t.id === toolId);
-            if (tool) {
-                document.getElementById('toolId').value = tool.id;
-                document.getElementById('toolName').value = tool.name || '';
-                document.getElementById('toolDescription').value = tool.description || '';
-                document.getElementById('toolFunction').value = tool.function || '';
-                document.getElementById('toolInputs').value = JSON.stringify(tool.inputs || [], null, 2);
-                document.getElementById('toolResultLabel').value = tool.resultLabel || '';
-                document.getElementById('toolResultId').value = tool.resultId || '';
-                document.getElementById('toolButtonText').value = tool.buttonText || 'Calculate';
-                document.getElementById('toolButtonColor').value = tool.buttonColor || 'var(--primary)';
-                document.getElementById('toolShowConversion').value = tool.showConversion !== false ? 'true' : 'false';
-                document.getElementById('toolResultColor').value = tool.resultColor || 'default';
+            // Load existing tool from API
+            const adminToken = sessionStorage.getItem('adminToken');
+            if (adminToken) {
+                fetch(`/api/admin/tools/${toolId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.tool) {
+                        const tool = data.tool;
+                        document.getElementById('toolId').value = tool.id;
+                        document.getElementById('toolName').value = tool.name || '';
+                        document.getElementById('toolDescription').value = tool.description || '';
+                        document.getElementById('toolFunction').value = tool.function_code || '';
+                        const inputs = typeof tool.inputs === 'string' ? JSON.parse(tool.inputs) : tool.inputs;
+                        document.getElementById('toolInputs').value = JSON.stringify(inputs || [], null, 2);
+                        document.getElementById('toolResultLabel').value = tool.result_label || '';
+                        document.getElementById('toolResultId').value = tool.result_id || '';
+                        document.getElementById('toolButtonText').value = tool.button_text || 'Calculate';
+                        document.getElementById('toolButtonColor').value = tool.button_color || 'var(--primary)';
+                        document.getElementById('toolShowConversion').value = tool.show_conversion ? 'true' : 'false';
+                        document.getElementById('toolResultColor').value = tool.result_color || 'default';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading tool:', error);
+                    alert('Error loading tool. Please try again.');
+                });
             }
             formTitle.textContent = 'Edit Tool';
             saveBtn.textContent = 'Update Tool';
@@ -3544,8 +3844,14 @@
         document.getElementById('toolForm').style.display = 'none';
     }
 
-    function saveTool(e) {
+    async function saveTool(e) {
         e.preventDefault();
+        
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Please log in to save tools.');
+            return;
+        }
         
         const toolId = document.getElementById('toolId').value;
         const name = document.getElementById('toolName').value;
@@ -3565,52 +3871,297 @@
         const showConversion = document.getElementById('toolShowConversion').value === 'true';
         const resultColor = document.getElementById('toolResultColor').value;
         
+        // Prepare data for API (match server.js endpoint format)
         const toolData = {
-            id: toolId || Date.now().toString(),
             name: name,
-            description: description,
-            function: func,
+            description: description || null,
             inputs: inputs,
-            resultLabel: resultLabel,
-            resultId: resultId,
-            buttonText: buttonText,
-            buttonColor: buttonColor,
-            showConversion: showConversion,
-            resultColor: resultColor
+            function_code: func,
+            result_label: resultLabel,
+            result_id: resultId,
+            button_text: buttonText || 'Calculate',
+            button_color: buttonColor || '#1a365d',
+            result_color: resultColor || 'default',
+            show_conversion: showConversion || false
         };
         
-        let tools = JSON.parse(localStorage.getItem('customTools') || '[]');
-        
-        if (toolId) {
-            const toolIndex = tools.findIndex(t => t.id === toolId);
-            if (toolIndex !== -1) {
-                tools[toolIndex] = toolData;
+        try {
+            const url = toolId ? `/api/admin/tools/${toolId}` : '/api/admin/tools';
+            const method = toolId ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(toolData)
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to save tool');
             }
-            alert('Tool updated successfully!');
-        } else {
-            tools.push(toolData);
-            alert('Tool created successfully!');
+            
+            alert(toolId ? 'Tool updated successfully!' : 'Tool created successfully!');
+            await loadTools();
+            await loadToolVisibility(); // Reload visibility list when tools change
+            hideToolForm();
+        } catch (error) {
+            console.error('Error saving tool:', error);
+            alert('Error saving tool: ' + error.message);
         }
-        
-        localStorage.setItem('customTools', JSON.stringify(tools));
-        loadTools();
-        hideToolForm();
     }
 
     function editTool(toolId) {
         showToolForm(toolId);
     }
 
-    function deleteTool(toolId) {
+    async function deleteTool(toolId) {
         if (!confirm('Are you sure you want to delete this tool?')) {
             return;
         }
         
-        let tools = JSON.parse(localStorage.getItem('customTools') || '[]');
-        tools = tools.filter(t => t.id !== toolId);
-        localStorage.setItem('customTools', JSON.stringify(tools));
-        loadTools();
-        alert('Tool deleted successfully!');
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Please log in to delete tools');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/admin/tools/${toolId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to delete tool');
+            }
+            
+            alert('Tool deleted successfully!');
+            await loadTools();
+            await loadToolVisibility(); // Reload visibility list when tools are deleted
+        } catch (error) {
+            console.error('Error deleting tool:', error);
+            alert('Error deleting tool: ' + error.message);
+        }
+    }
+
+    // Template Download Statistics Functions - Using API
+    async function loadTemplateStats() {
+        const templateList = document.getElementById('templateStatsList');
+        if (!templateList) return;
+
+        try {
+            const token = sessionStorage.getItem('adminToken');
+            if (!token) {
+                templateList.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-light);">Please log in to view template statistics.</td></tr>';
+                return;
+            }
+
+            const response = await fetch('/api/admin/templates/stats', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load template statistics');
+            }
+
+            const data = await response.json();
+            const stats = data.stats || [];
+            const totalDownloads = data.total_downloads || 0;
+
+            if (stats.length === 0) {
+                templateList.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-light);">No template statistics available.</td></tr>';
+                return;
+            }
+            
+            // Update colspan for error messages
+            const errorColspan = 4;
+
+            templateList.innerHTML = stats.map(template => {
+                const count = parseInt(template.download_count) || 0;
+                // Properly check is_active: MySQL returns 0/1, JavaScript boolean, or undefined
+                // is_active === 1 or is_active === true means active, everything else (0, false, undefined) means inactive
+                const isActive = template.is_active === 1 || template.is_active === true;
+                const statusStyle = isActive ? '' : 'opacity: 0.6; text-decoration: line-through;';
+                const templateNameEscaped = (template.name || template.template_id).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                // Hide button: red when hidden (isActive = false), blue (accent color #2b6cb0) when visible (isActive = true)
+                const hideButtonColor = isActive ? '#2b6cb0' : '#e53e3e';
+                const hideButtonText = isActive ? 'Hide' : 'Show';
+                return `
+                    <tr style="${statusStyle}">
+                        <td style="padding: 12px 8px; border-bottom: 1px solid var(--border); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${template.name || template.template_id}">${template.name || template.template_id}</td>
+                        <td style="padding: 12px 8px; border-bottom: 1px solid var(--border); color: var(--text-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${template.category || 'N/A'}</td>
+                        <td style="padding: 12px 8px; border-bottom: 1px solid var(--border); text-align: center; font-weight: bold; color: var(--primary);">${count}</td>
+                        <td style="padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap;">
+                            <button onclick="toggleTemplateVisibility('${template.template_id}', ${!isActive})" class="btn-small" style="padding: 4px 8px; font-size: 0.7rem; margin: 0 1px; background: ${hideButtonColor}; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">${hideButtonText}</button>
+                            <button onclick="resetTemplateCount('${template.template_id}')" class="btn-small" style="padding: 4px 8px; font-size: 0.7rem; margin: 0 1px; background: #2b6cb0; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">Reset</button>
+                            <button onclick="deleteTemplate('${template.template_id}', '${templateNameEscaped}')" class="btn-small" style="padding: 4px 8px; font-size: 0.7rem; margin: 0 1px; background: #2b6cb0; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            const totalElement = document.getElementById('templateTotalDownloads');
+            if (totalElement) {
+                totalElement.textContent = totalDownloads;
+            }
+        } catch (error) {
+            console.error('Error loading template stats:', error);
+            templateList.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--error);">Error loading template statistics. Please try again.</td></tr>';
+            const totalElement = document.getElementById('templateTotalDownloads');
+            if (totalElement) {
+                totalElement.textContent = '0';
+            }
+        }
+    }
+
+    async function refreshTemplateStats() {
+        await loadTemplateStats();
+        alert('Template statistics refreshed!');
+    }
+
+    async function resetTemplateStats() {
+        if (!confirm('Are you sure you want to reset ALL template download counts? This will delete all download records from the database. This cannot be undone.')) {
+            return;
+        }
+        
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Please log in to reset template counts.');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/admin/templates/downloads', {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to reset all template counts');
+            }
+            
+            // Reload stats to show updated counts
+            await loadTemplateStats();
+            alert('All template download counts reset successfully!');
+        } catch (error) {
+            console.error('Error resetting all template counts:', error);
+            alert('Error resetting template counts: ' + error.message);
+        }
+    }
+    
+    async function resetTemplateCount(templateId) {
+        if (!confirm('Are you sure you want to reset the download count for this template? This will delete all download records for this template from the database.')) {
+            return;
+        }
+        
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Please log in to reset template counts.');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/admin/templates/${templateId}/downloads`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to reset template count');
+            }
+            
+            // Reload stats to show updated counts
+            await loadTemplateStats();
+            alert('Template download count reset successfully!');
+        } catch (error) {
+            console.error('Error resetting template count:', error);
+            alert('Error resetting template count: ' + error.message);
+        }
+    }
+    
+    async function toggleTemplateVisibility(templateId, isActive) {
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Please log in to manage templates.');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/admin/templates/${templateId}/visibility`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ is_active: isActive })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to update template visibility');
+            }
+            
+            // Reload stats to show updated status (button color will change)
+            await loadTemplateStats();
+            
+            // Show success message
+            alert(`Template ${isActive ? 'shown' : 'hidden'} successfully! The change will be visible on the templates page immediately.`);
+        } catch (error) {
+            console.error('Error toggling template visibility:', error);
+            alert('Error updating template visibility: ' + error.message);
+        }
+    }
+    
+    async function deleteTemplate(templateId, templateName) {
+        if (!confirm(`Are you sure you want to delete "${templateName}"? This will permanently delete the template and all its download records. This cannot be undone.`)) {
+            return;
+        }
+        
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Please log in to delete templates.');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/admin/templates/${templateId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to delete template');
+            }
+            
+            // Reload stats to show updated list
+            await loadTemplateStats();
+            alert('Template deleted successfully!');
+        } catch (error) {
+            console.error('Error deleting template:', error);
+            alert('Error deleting template: ' + error.message);
+        }
     }
 
     // Logout function
@@ -3702,7 +4253,7 @@
         
         try {
             // Build URL with pagination
-            const url = `http://localhost:3000/api/admin/users?page=${page}&limit=${usersPerPage}`;
+            const url = `/api/admin/users?page=${page}&limit=${usersPerPage}`;
             
             const response = await fetch(url, {
                 headers: {
@@ -3880,7 +4431,7 @@
             if (newPhone === null) return; // User cancelled
 
             // Update user via API
-            const updateResponse = await fetch(`http://localhost:3000/api/admin/users/${userId}`, {
+            const updateResponse = await fetch(`/api/admin/users/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`,
@@ -3920,7 +4471,7 @@
             }
 
             // Delete user via API
-            const deleteResponse = await fetch(`http://localhost:3000/api/admin/users/${userId}`, {
+            const deleteResponse = await fetch(`/api/admin/users/${userId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
@@ -3964,7 +4515,7 @@
 
         try {
             console.log('Fetching stats from API...');
-            const response = await fetch('http://localhost:3000/api/admin/dashboard/stats', {
+            const response = await fetch('/api/admin/dashboard/stats', {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
@@ -3981,73 +4532,90 @@
                     window.location.href = 'admin-login.html';
                     return;
                 }
-                const errorText = await response.text();
-                console.error('API error response:', errorText);
-                throw new Error(`HTTP error! status: ${response.status}`);
+                let errorText;
+                try {
+                    const errorData = await response.json();
+                    errorText = errorData.message || errorData.error || JSON.stringify(errorData);
+                    console.error('API error response:', errorText);
+                    console.error('Error details:', errorData);
+                } catch (e) {
+                    errorText = await response.text();
+                    console.error('API error response (text):', errorText);
+                }
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
             }
 
             const stats = await response.json();
             console.log('Stats received from API:', stats);
             console.log('Full API response:', JSON.stringify(stats, null, 2));
             
-            // Update stat values - use a small delay to ensure DOM is ready
-            setTimeout(() => {
-                const statEvents = document.getElementById('statEvents');
-                const statBlogPosts = document.getElementById('statBlogPosts');
-                const statDirectoryEntries = document.getElementById('statDirectoryEntries');
-                const statRegisteredUsers = document.getElementById('statRegisteredUsers');
-                const statMembers = document.getElementById('statMembers');
-                console.log('DOM elements check:', {
-                    statEvents: !!statEvents,
-                    statBlogPosts: !!statBlogPosts,
-                    statDirectoryEntries: !!statDirectoryEntries,
-                    statRegisteredUsers: !!statRegisteredUsers,
-                    statMembers: !!statMembers
-                });
-                
-                // Map API response to stat elements
-                if (statEvents) {
-                    const value = stats.total_events || 0;
-                    statEvents.textContent = value;
-                    console.log(`✅ Updated statEvents to: ${value}`);
-                } else {
-                    console.warn('❌ statEvents element not found!');
-                }
-                
-                if (statBlogPosts) {
-                    const value = stats.total_blog_posts || 0;
-                    statBlogPosts.textContent = value;
-                    console.log(`✅ Updated statBlogPosts to: ${value}`);
-                } else {
-                    console.warn('❌ statBlogPosts element not found!');
-                }
-                
-                if (statDirectoryEntries) {
-                    const value = stats.total_directory_entries || 0;
-                    statDirectoryEntries.textContent = value;
-                    console.log(`✅ Updated statDirectoryEntries to: ${value}`);
-                } else {
-                    console.warn('❌ statDirectoryEntries element not found!');
-                }
-                
-                if (statRegisteredUsers) {
-                    const value = stats.total_registered_users || 0;
-                    statRegisteredUsers.textContent = value;
-                    console.log(`✅ Updated statRegisteredUsers to: ${value}`);
-                } else {
-                    console.warn('❌ statRegisteredUsers element not found!');
-                }
-                
-                if (statMembers) {
-                    const value = stats.total_members || 0;
-                    statMembers.textContent = value;
-                    console.log(`✅ Updated statMembers to: ${value}`);
-                } else {
-                    console.warn('❌ statMembers element not found!');
-                }
-                
-                console.log('✅ Overview stats updated from API');
-            }, 50);
+            // Validate that stats object exists and has the expected fields
+            if (!stats || typeof stats !== 'object') {
+                throw new Error('Invalid stats response format');
+            }
+            
+            console.log('Event stats value:', stats.total_events, 'Type:', typeof stats.total_events);
+            
+            // Update stat values immediately
+            const statEvents = document.getElementById('statEvents');
+            const statBlogPosts = document.getElementById('statBlogPosts');
+            const statDirectoryEntries = document.getElementById('statDirectoryEntries');
+            const statRegisteredUsers = document.getElementById('statRegisteredUsers');
+            const statMembers = document.getElementById('statMembers');
+            
+            console.log('DOM elements check:', {
+                statEvents: !!statEvents,
+                statBlogPosts: !!statBlogPosts,
+                statDirectoryEntries: !!statDirectoryEntries,
+                statRegisteredUsers: !!statRegisteredUsers,
+                statMembers: !!statMembers
+            });
+            
+            // Map API response to stat elements
+            if (statEvents) {
+                // Ensure we convert to number and handle null/undefined
+                const value = stats.total_events !== undefined && stats.total_events !== null 
+                    ? parseInt(stats.total_events, 10) || 0 
+                    : 0;
+                statEvents.textContent = value;
+                console.log(`✅ Updated statEvents to: ${value} (from ${stats.total_events})`);
+            } else {
+                console.warn('❌ statEvents element not found!');
+            }
+            
+            if (statBlogPosts) {
+                const value = parseInt(stats.total_blog_posts) || 0;
+                statBlogPosts.textContent = value;
+                console.log(`✅ Updated statBlogPosts to: ${value}`);
+            } else {
+                console.warn('❌ statBlogPosts element not found!');
+            }
+            
+            if (statDirectoryEntries) {
+                const value = parseInt(stats.total_directory_entries) || 0;
+                statDirectoryEntries.textContent = value;
+                console.log(`✅ Updated statDirectoryEntries to: ${value}`);
+            } else {
+                console.warn('❌ statDirectoryEntries element not found!');
+            }
+            
+            if (statRegisteredUsers) {
+                const value = parseInt(stats.total_registered_users) || 0;
+                statRegisteredUsers.textContent = value;
+                console.log(`✅ Updated statRegisteredUsers to: ${value}`);
+            } else {
+                console.warn('❌ statRegisteredUsers element not found!');
+            }
+            
+            if (statMembers) {
+                const value = parseInt(stats.total_members) || 0;
+                statMembers.textContent = value;
+                console.log(`✅ Updated statMembers to: ${value}`);
+            } else {
+                console.warn('❌ statMembers element not found!');
+            }
+            
+            console.log('✅ Overview stats updated from API');
         } catch (error) {
             console.error('❌ Error updating overview stats:', error);
             console.error('Error details:', error.message, error.stack);
@@ -4099,7 +4667,7 @@
             }
             
             // Build URL with pagination and search
-            let url = `http://localhost:3000/api/admin/directories/members?page=${page}&limit=${membersPerPage}`;
+            let url = `/api/admin/directories/members?page=${page}&limit=${membersPerPage}`;
             if (searchTerm) {
                 url += `&search=${encodeURIComponent(searchTerm)}`;
             }
@@ -4310,7 +4878,7 @@
 
         try {
             // Always fetch full member details from API to get all social media fields
-            const response = await fetch(`http://localhost:3000/api/admin/directories/members?limit=1000`, {
+            const response = await fetch(`/api/admin/directories/members?limit=1000`, {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
@@ -4361,7 +4929,7 @@
         }
 
         try {
-            const response = await fetch(`http://localhost:3000/api/admin/directories/members/${memberId}`, {
+            const response = await fetch(`/api/admin/directories/members/${memberId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
@@ -4424,7 +4992,7 @@
             const statusFilter = document.getElementById('businessFilter')?.value || 'all';
             
             // Build URL with pagination and status filter
-            let url = `http://localhost:3000/api/admin/businesses?page=${page}&limit=${businessesPerPage}`;
+            let url = `/api/admin/businesses?page=${page}&limit=${businessesPerPage}`;
             if (statusFilter !== 'all') {
                 url += `&status=${encodeURIComponent(statusFilter === 'pending' ? 'Pending Review' : statusFilter === 'verified' ? 'Verified Business' : statusFilter === 'approved' ? 'Approved' : 'Rejected')}`;
             }
@@ -4599,45 +5167,57 @@
         loadBusinesses(1);
     }
     
-    function viewBusinessDetails(businessId) {
-        const businesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
-        let business = null;
-        let ownerEmail = null;
-        
-        // Find the business
-        Object.keys(businesses).forEach(email => {
-            const userBusinesses = businesses[email] || [];
-            const found = userBusinesses.find(b => b.id === businessId);
-            if (found) {
-                business = found;
-                ownerEmail = email;
-            }
-        });
-        
-        if (!business) {
-            alert('Business not found!');
+    async function viewBusinessDetails(businessId) {
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Please log in to view business details.');
             return;
         }
         
-        const details = `
-Business Name: ${business.businessName || 'Not specified'}
-Owner: ${business.ownerName || 'Not specified'}
-Owner Email: ${ownerEmail || 'Not specified'}
-Relationship: ${business.ownerRelationship || 'Not specified'}
-Sector: ${business.businessSector || 'Not specified'}
-Address: ${business.businessAddress || 'Not specified'}
-Year of Formation: ${business.yearOfFormation || 'Not specified'}
-Number of Employees: ${business.numberOfEmployees || 'Not specified'}
-CAC Registered: ${business.cacRegistered === 'yes' ? 'Yes' : 'No'}
-Has Business Bank Account: ${business.hasBusinessBankAccount === 'yes' ? 'Yes' : 'No'}
-${business.bankName ? `Bank Name: ${business.bankName}` : ''}
-${business.accountNumber ? `Account Number: ${business.accountNumber}` : ''}
-${business.accountName ? `Account Name: ${business.accountName}` : ''}
+        try {
+            // Fetch business from API
+            const response = await fetch(`/api/admin/businesses?limit=1000`, {
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load businesses');
+            }
+            
+            const data = await response.json();
+            const businesses = data.businesses || [];
+            const business = businesses.find(b => b.id == businessId);
+            
+            if (!business) {
+                alert('Business not found!');
+                return;
+            }
+            
+            const details = `
+Business Name: ${business.business_name || 'Not specified'}
+Owner: ${business.owner_name || 'Not specified'}
+Owner Email: ${business.owner_email || 'Not specified'}
+Relationship: ${business.owner_relationship || 'Not specified'}
+Sector: ${business.business_sector || 'Not specified'}
+Address: ${business.business_address || 'Not specified'}
+Year of Formation: ${business.year_of_formation || 'Not specified'}
+Number of Employees: ${business.number_of_employees || 'Not specified'}
+CAC Registered: ${business.cac_registered ? 'Yes' : 'No'}
+Has Business Bank Account: ${business.has_business_bank_account ? 'Yes' : 'No'}
+${business.bank_name ? `Bank Name: ${business.bank_name}` : ''}
+${business.account_number ? `Account Number: ${business.account_number}` : ''}
+${business.account_name ? `Account Name: ${business.account_name}` : ''}
 Status: ${business.status || 'Pending Review'}
-Registered Date: ${business.registeredDate || 'Not specified'}
+Registered Date: ${business.registered_date || 'Not specified'}
         `;
         
         alert(details);
+        } catch (error) {
+            console.error('Error loading business details:', error);
+            alert('Error loading business details: ' + error.message);
+        }
     }
     
     function approveBusiness(businessId) {
@@ -4667,7 +5247,7 @@ Registered Date: ${business.registeredDate || 'Not specified'}
         }
     }
     
-    function rejectBusiness(businessId) {
+    async function rejectBusiness(businessId) {
         const reason = prompt('Please provide a reason for rejection (optional):');
         if (reason === null) return; // User cancelled
         
@@ -4675,28 +5255,34 @@ Registered Date: ${business.registeredDate || 'Not specified'}
             return;
         }
         
-        const businesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
-        let updated = false;
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Please log in to reject businesses.');
+            return;
+        }
         
-        Object.keys(businesses).forEach(email => {
-            const userBusinesses = businesses[email] || [];
-            const business = userBusinesses.find(b => b.id === businessId);
-            if (business) {
-                business.status = 'Rejected';
-                if (reason) {
-                    business.rejectionReason = reason;
-                }
-                updated = true;
+        try {
+            const response = await fetch(`/api/admin/businesses/${businessId}/reject`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ reason: reason || null })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to reject business');
             }
-        });
-        
-        if (updated) {
-            localStorage.setItem('registeredBusinesses', JSON.stringify(businesses));
-            loadBusinesses();
+            
+            await loadBusinesses();
             updateOverviewStats(); // Update stats after business rejection
             alert('Business rejected successfully!');
-        } else {
-            alert('Business not found!');
+        } catch (error) {
+            console.error('Error rejecting business:', error);
+            alert('Error rejecting business: ' + error.message);
         }
     }
     
@@ -4731,65 +5317,93 @@ Registered Date: ${business.registeredDate || 'Not specified'}
         `);
     }
     
-    function verifyCACCertificate(businessId) {
+    async function verifyCACCertificate(businessId) {
         if (!confirm('Have you verified the CAC certificate is valid? This will mark the business as "Verified Business".')) {
             return;
         }
         
-        const businesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
-        let updated = false;
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Please log in to verify CAC certificates.');
+            return;
+        }
         
-        Object.keys(businesses).forEach(email => {
-            const userBusinesses = businesses[email] || [];
-            const business = userBusinesses.find(b => b.id === businessId);
-            if (business) {
-                business.status = 'Verified Business';
-                business.cacVerified = true;
-                business.cacVerifiedDate = new Date().toISOString();
-                updated = true;
+        try {
+            const response = await fetch(`/api/admin/businesses/${businessId}/verify`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${adminToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to verify business');
             }
-        });
-        
-        if (updated) {
-            localStorage.setItem('registeredBusinesses', JSON.stringify(businesses));
-            loadBusinesses();
+            
+            await loadBusinesses();
             updateOverviewStats(); // Update stats after business verification
             alert('CAC certificate verified! Business marked as "Verified Business".');
-        } else {
-            alert('Business not found!');
+        } catch (error) {
+            console.error('Error verifying CAC certificate:', error);
+            alert('Error verifying CAC certificate: ' + error.message);
         }
     }
     
-    // Debug function to check localStorage data
-    window.debugAdminData = function() {
+    // Debug function to check API data (updated to use API instead of localStorage)
+    window.debugAdminData = async function() {
         console.log('=== ADMIN DASHBOARD DEBUG ===');
-        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
-        const registeredBusinesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
+        const adminToken = sessionStorage.getItem('adminToken');
         
-        console.log('Registered Users:', registeredUsers);
-        console.log('Number of users:', Object.keys(registeredUsers).length);
-        console.log('User emails:', Object.keys(registeredUsers));
+        if (!adminToken) {
+            console.error('No admin token found. Please log in.');
+            return { error: 'Not authenticated' };
+        }
         
-        // Log each user's details
-        Object.keys(registeredUsers).forEach(email => {
-            console.log(`User: ${email}`, registeredUsers[email]);
-        });
-        
-        console.log('Registered Businesses:', registeredBusinesses);
-        const totalBusinesses = Object.values(registeredBusinesses).reduce((sum, arr) => sum + (arr ? arr.length : 0), 0);
-        console.log('Total businesses:', totalBusinesses);
-        console.log('Business owners:', Object.keys(registeredBusinesses));
-        
-        // Force reload users
-        console.log('Forcing reload of users...');
-        loadUsers();
-        
-        return {
-            users: registeredUsers,
-            businesses: registeredBusinesses,
-            userCount: Object.keys(registeredUsers).length,
-            businessCount: totalBusinesses
-        };
+        try {
+            // Fetch users from API
+            const usersResponse = await fetch('/api/admin/users?page=1&limit=1000', {
+                headers: { 'Authorization': `Bearer ${adminToken}` }
+            });
+            const usersData = await usersResponse.json();
+            const users = usersData.users || [];
+            
+            // Fetch businesses from API
+            const businessesResponse = await fetch('/api/admin/businesses?page=1&limit=1000', {
+                headers: { 'Authorization': `Bearer ${adminToken}` }
+            });
+            const businessesData = await businessesResponse.json();
+            const businesses = businessesData.businesses || [];
+            
+            console.log('Registered Users:', users);
+            console.log('Number of users:', users.length);
+            console.log('User emails:', users.map(u => u.email));
+            
+            // Log each user's details
+            users.forEach(user => {
+                console.log(`User: ${user.email}`, user);
+            });
+            
+            console.log('Registered Businesses:', businesses);
+            console.log('Total businesses:', businesses.length);
+            console.log('Business owners:', [...new Set(businesses.map(b => b.owner_email || b.user_email))]);
+            
+            // Force reload users
+            console.log('Forcing reload of users...');
+            loadUsers();
+            
+            return {
+                users: users,
+                businesses: businesses,
+                userCount: users.length,
+                businessCount: businesses.length
+            };
+        } catch (error) {
+            console.error('Error fetching debug data:', error);
+            return { error: error.message };
+        }
     };
     
     // Initialize overview stats on page load
@@ -4801,19 +5415,7 @@ Registered Date: ${business.registeredDate || 'Not specified'}
         }, 100);
     });
     
-    // Also call when overview section is shown
-    const originalShowSection = window.showSection;
-    if (typeof originalShowSection === 'function') {
-        window.showSection = function(sectionId, linkElement) {
-            originalShowSection.call(this, sectionId, linkElement);
-            if (sectionId === 'overview') {
-                console.log('Overview section shown, refreshing stats...');
-                setTimeout(() => {
-                    updateOverviewStats();
-                }, 100);
-            }
-        };
-    }
+    // showSection is already defined above and handles overview stats refresh
     
     // =====================================================
     // NEWSLETTER SUBSCRIBERS FUNCTIONS
@@ -4833,7 +5435,7 @@ Registered Date: ${business.registeredDate || 'Not specified'}
             }
             
             const status = newsletterStatusFilter === 'all' ? 'all' : newsletterStatusFilter;
-            const response = await fetch(`http://localhost:3000/api/admin/newsletter/subscribers?page=${page}&limit=${newsletterPageSize}&status=${status}`, {
+            const response = await fetch(`/api/admin/newsletter/subscribers?page=${page}&limit=${newsletterPageSize}&status=${status}`, {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
@@ -4978,7 +5580,7 @@ Registered Date: ${business.registeredDate || 'Not specified'}
             if (!adminToken) return;
             
             // Update in database
-            const response = await fetch(`http://localhost:3000/api/admin/newsletter/subscribers/${encodeURIComponent(email)}/unsubscribe`, {
+            const response = await fetch(`/api/admin/newsletter/subscribers/${encodeURIComponent(email)}/unsubscribe`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`,
@@ -5008,7 +5610,7 @@ Registered Date: ${business.registeredDate || 'Not specified'}
             if (!adminToken) return;
             
             // Update in database
-            const response = await fetch(`http://localhost:3000/api/admin/newsletter/subscribers/${encodeURIComponent(email)}/resubscribe`, {
+            const response = await fetch(`/api/admin/newsletter/subscribers/${encodeURIComponent(email)}/resubscribe`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${adminToken}`,

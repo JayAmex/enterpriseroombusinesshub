@@ -140,7 +140,7 @@
         
         try {
             // Try API login first
-            const response = await fetch('http://localhost:3000/api/auth/login', {
+            const response = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -172,63 +172,13 @@
                 // Redirect to intended page or profile
                 window.location.href = redirectUrl;
             } else {
-                // Fallback to legacy authentication for backward compatibility
-                const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
-                // Test users removed - use database accounts instead
-                
-                const isRegisteredUser = registeredUsers[email] && registeredUsers[email].password === password;
-                
-                if (isRegisteredUser) {
-                    // Store user session (legacy method - no token)
-                    sessionStorage.setItem('userAuthenticated', 'true');
-                    sessionStorage.setItem('userEmail', email);
-                    const userName = registeredUsers[email]?.name || email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
-                    sessionStorage.setItem('userName', userName);
-                    
-                    // Get the page they were trying to access, or default to profile
-                    const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 
-                                       sessionStorage.getItem('redirectAfterLogin') || 
-                                       'profile.html';
-                    sessionStorage.removeItem('redirectAfterLogin');
-                    
-                    // Update navigation on all pages (if function exists)
-                    if (typeof updateNavAuthStatus === 'function') {
-                        updateNavAuthStatus();
-                    }
-                    
-                    // Redirect to intended page or profile
-                    window.location.href = redirectUrl;
-                } else {
-                    alert('Invalid email or password. Please try again.\n\nNote: If you have an account in the database, please use your registered email and password.');
-                }
+                // API login failed - show error message
+                const errorMessage = data.message || 'Invalid email or password. Please try again.';
+                alert(errorMessage);
             }
         } catch (error) {
             console.error('Login error:', error);
-            // Fallback to legacy authentication
-            const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
-            // Test users removed - use database accounts instead
-            
-            const isRegisteredUser = registeredUsers[email] && registeredUsers[email].password === password;
-            
-            if (isRegisteredUser) {
-                sessionStorage.setItem('userAuthenticated', 'true');
-                sessionStorage.setItem('userEmail', email);
-                const userName = registeredUsers[email]?.name || email.split('@')[0].charAt(0).toUpperCase() + email.split('@')[0].slice(1);
-                sessionStorage.setItem('userName', userName);
-                
-                const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 
-                                   sessionStorage.getItem('redirectAfterLogin') || 
-                                   'profile.html';
-                sessionStorage.removeItem('redirectAfterLogin');
-                
-                if (typeof updateNavAuthStatus === 'function') {
-                    updateNavAuthStatus();
-                }
-                
-                window.location.href = redirectUrl;
-            } else {
-                alert('Invalid email or password. Please try again.\n\nNote: If you have an account in the database, please use your registered email and password.');
-            }
+            alert('An error occurred during login. Please try again.');
         } finally {
             if (submitButton) {
                 submitButton.disabled = false;

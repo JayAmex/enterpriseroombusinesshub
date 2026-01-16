@@ -11,6 +11,14 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 
+// PDF generation (optional - only load if puppeteer is available)
+let puppeteer = null;
+try {
+    puppeteer = require('puppeteer');
+} catch (e) {
+    console.warn('⚠️  Puppeteer not installed. PDF generation will be disabled. Install with: npm install puppeteer');
+}
+
 // Load environment variables
 require('dotenv').config();
 
@@ -59,16 +67,20 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, 'uploads', 'blog');
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
+// Create uploads directories if they don't exist
+const blogUploadsDir = path.join(__dirname, 'uploads', 'blog');
+const avatarUploadsDir = path.join(__dirname, 'uploads', 'avatars');
+if (!fs.existsSync(blogUploadsDir)) {
+    fs.mkdirSync(blogUploadsDir, { recursive: true });
+}
+if (!fs.existsSync(avatarUploadsDir)) {
+    fs.mkdirSync(avatarUploadsDir, { recursive: true });
 }
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
+// Configure multer for blog image uploads
+const blogStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, uploadsDir);
+        cb(null, blogUploadsDir);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -77,10 +89,39 @@ const storage = multer.diskStorage({
     }
 });
 
+// Configure multer for avatar uploads
+const avatarStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, avatarUploadsDir);
+    },
+    filename: function (req, file, cb) {
+        // Use user ID from token to create unique filename
+        const userId = req.user ? req.user.id : 'temp';
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, `avatar-${userId}-${uniqueSuffix}${ext}`);
+    }
+});
+
 const upload = multer({
-    storage: storage,
+    storage: blogStorage,
     limits: {
         fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: function (req, file, cb) {
+        // Accept only image files
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'), false);
+        }
+    }
+});
+
+const avatarUpload = multer({
+    storage: avatarStorage,
+    limits: {
+        fileSize: 2 * 1024 * 1024 // 2MB limit for avatars
     },
     fileFilter: function (req, file, cb) {
         // Accept only image files
@@ -96,6 +137,8 @@ const upload = multer({
 app.use(express.static(__dirname));
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve template files
+app.use('/templates', express.static(path.join(__dirname, 'templates')));
 
 // Test database connection on startup
 async function testConnection() {
@@ -689,6 +732,46 @@ app.get('/api/users/statistics', authenticateToken, async (req, res) => {
     }
 });
 
+// Upload User Avatar
+app.post('/api/users/avatar', authenticateToken, avatarUpload.single('avatar'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                error: true,
+                message: 'No file uploaded',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+
+        // Update user's avatar_url in database
+        await pool.execute(
+            'UPDATE users SET avatar_url = ? WHERE id = ?',
+            [avatarUrl, req.user.id]
+        );
+
+        // Get updated user
+        const [users] = await pool.execute(
+            'SELECT id, uuid, name, email, avatar_url FROM users WHERE id = ?',
+            [req.user.id]
+        );
+
+        res.json({
+            message: 'Avatar uploaded successfully',
+            avatar_url: avatarUrl,
+            user: users[0]
+        });
+    } catch (error) {
+        console.error('Upload avatar error:', error);
+        res.status(500).json({
+            error: true,
+            message: error.message || 'Failed to upload avatar',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
 // Update User Profile
 app.put('/api/users/profile', authenticateToken, async (req, res) => {
     try {
@@ -1024,6 +1107,229 @@ app.get('/api/businesses/:id', async (req, res) => {
     }
 });
 
+// Update User's Business
+app.put('/api/businesses/:id', authenticateToken, async (req, res) => {
+    try {
+        const businessId = req.params.id;
+        const {
+            business_name,
+            business_address,
+            business_sector,
+            year_of_formation,
+            number_of_employees,
+            cac_registered,
+            cac_certificate_url,
+            has_business_bank_account,
+            bank_name,
+            account_number,
+            account_name,
+            owner_name,
+            owner_relationship,
+            newsletter_optin
+        } = req.body;
+
+        // Verify business exists and belongs to user
+        const [existing] = await pool.execute(
+            'SELECT id, user_id, status FROM businesses WHERE id = ?',
+            [businessId]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Business not found',
+                code: 'NOT_FOUND'
+            });
+        }
+
+        if (existing[0].user_id !== req.user.id) {
+            return res.status(403).json({
+                error: true,
+                message: 'You can only update your own businesses',
+                code: 'FORBIDDEN'
+            });
+        }
+
+        // Build update query dynamically based on provided fields
+        const updates = [];
+        const values = [];
+
+        if (business_name !== undefined) {
+            // Check for duplicate name (excluding current business)
+            const [duplicate] = await pool.execute(
+                'SELECT id FROM businesses WHERE user_id = ? AND LOWER(TRIM(business_name)) = LOWER(TRIM(?)) AND id != ?',
+                [req.user.id, business_name, businessId]
+            );
+            if (duplicate.length > 0) {
+                return res.status(409).json({
+                    error: true,
+                    message: 'You already have a business with this name',
+                    code: 'DUPLICATE_ENTRY'
+                });
+            }
+            updates.push('business_name = ?');
+            values.push(business_name);
+        }
+
+        if (business_address !== undefined) {
+            updates.push('business_address = ?');
+            values.push(business_address);
+        }
+        if (business_sector !== undefined) {
+            updates.push('business_sector = ?');
+            values.push(business_sector);
+        }
+        if (year_of_formation !== undefined) {
+            updates.push('year_of_formation = ?');
+            values.push(year_of_formation);
+        }
+        if (number_of_employees !== undefined) {
+            updates.push('number_of_employees = ?');
+            values.push(number_of_employees);
+        }
+        if (cac_registered !== undefined) {
+            updates.push('cac_registered = ?');
+            values.push(cac_registered);
+        }
+        if (cac_certificate_url !== undefined) {
+            updates.push('cac_certificate_url = ?');
+            values.push(cac_certificate_url);
+            // Update status if CAC certificate is provided
+            if (cac_certificate_url) {
+                updates.push('status = ?');
+                values.push('Verified Business');
+            }
+        }
+        if (has_business_bank_account !== undefined) {
+            updates.push('has_business_bank_account = ?');
+            values.push(has_business_bank_account);
+        }
+        if (bank_name !== undefined) {
+            updates.push('bank_name = ?');
+            values.push(bank_name);
+        }
+        if (account_number !== undefined) {
+            updates.push('account_number = ?');
+            values.push(account_number);
+        }
+        if (account_name !== undefined) {
+            updates.push('account_name = ?');
+            values.push(account_name);
+        }
+        if (owner_name !== undefined) {
+            updates.push('owner_name = ?');
+            values.push(owner_name);
+        }
+        if (owner_relationship !== undefined) {
+            updates.push('owner_relationship = ?');
+            values.push(owner_relationship);
+        }
+        if (newsletter_optin !== undefined) {
+            updates.push('newsletter_optin = ?');
+            values.push(newsletter_optin);
+        }
+
+        if (updates.length === 0) {
+            return res.status(400).json({
+                error: true,
+                message: 'No fields to update',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        // Add business ID to values for WHERE clause
+        values.push(businessId);
+
+        // Update business
+        await pool.execute(
+            `UPDATE businesses SET ${updates.join(', ')} WHERE id = ?`,
+            values
+        );
+
+        // Also update directory_businesses if business_name or address changed
+        if (business_name !== undefined || business_address !== undefined) {
+            const [userData] = await pool.execute('SELECT email FROM users WHERE id = ?', [req.user.id]);
+            const userEmail = userData[0]?.email || null;
+            const finalBusinessName = business_name || existing[0].business_name;
+            const finalAddress = business_address || existing[0].business_address;
+
+            await pool.execute(
+                `UPDATE directory_businesses 
+                 SET business_name = ?, address = ?, email = ?
+                 WHERE LOWER(TRIM(business_name)) = LOWER(TRIM(?))`,
+                [finalBusinessName, finalAddress, userEmail, existing[0].business_name]
+            );
+        }
+
+        // Get updated business
+        const [updated] = await pool.execute('SELECT * FROM businesses WHERE id = ?', [businessId]);
+
+        res.json({
+            message: 'Business updated successfully',
+            business: updated[0]
+        });
+    } catch (error) {
+        console.error('Update business error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Delete User's Business
+app.delete('/api/businesses/:id', authenticateToken, async (req, res) => {
+    try {
+        const businessId = req.params.id;
+
+        // Verify business exists and belongs to user
+        const [existing] = await pool.execute(
+            'SELECT id, user_id, business_name FROM businesses WHERE id = ?',
+            [businessId]
+        );
+
+        if (existing.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Business not found',
+                code: 'NOT_FOUND'
+            });
+        }
+
+        if (existing[0].user_id !== req.user.id) {
+            return res.status(403).json({
+                error: true,
+                message: 'You can only delete your own businesses',
+                code: 'FORBIDDEN'
+            });
+        }
+
+        const businessName = existing[0].business_name;
+
+        // Delete from businesses table
+        await pool.execute('DELETE FROM businesses WHERE id = ?', [businessId]);
+
+        // Also remove from directory_businesses if it exists
+        await pool.execute(
+            'DELETE FROM directory_businesses WHERE LOWER(TRIM(business_name)) = LOWER(TRIM(?))',
+            [businessName]
+        );
+
+        res.json({
+            message: 'Business deleted successfully',
+            business_id: businessId
+        });
+    } catch (error) {
+        console.error('Delete business error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
 // Get Approved Businesses (Directory)
 app.get('/api/businesses/approved', async (req, res) => {
     try {
@@ -1110,18 +1416,35 @@ app.get('/api/events', async (req, res) => {
         }
         
         if (type) {
-            query += ' AND event_type = ?';
-            params.push(type);
+            // Handle both exact match and case-insensitive matching
+            // Also handle NULL/empty event_type as 'regular' for backward compatibility
+            if (type.toLowerCase() === 'regular') {
+                query += ' AND (event_type IS NULL OR event_type = ? OR event_type = ? OR LOWER(COALESCE(event_type, "")) = ?)';
+                params.push('', 'regular', 'regular');
+            } else {
+                query += ' AND (event_type = ? OR LOWER(COALESCE(event_type, "")) = ?)';
+                params.push(type, type.toLowerCase());
+            }
         }
+        // If no type specified, we'll get all events and filter pitch events in application logic
         
         query += ` ORDER BY event_date DESC, id DESC LIMIT ${limitNum} OFFSET ${offset}`;
         
         const [events] = await pool.execute(query, params);
         
         // Filter out archived events in application logic (if column exists)
-        const filteredEvents = events.filter(event => event.is_archived !== true);
+        const filteredEvents = events.filter(event => {
+            // Exclude archived events
+            if (event.is_archived === true) return false;
+            // Also filter out pitch events if type is not specified or is 'regular'
+            if (!type || type.toLowerCase() === 'regular') {
+                const eventType = (event.event_type || '').toLowerCase();
+                if (eventType === 'pitch') return false;
+            }
+            return true;
+        });
         
-        // Get total count
+        // Get total count (matching the same filters)
         let countQuery = 'SELECT COUNT(*) as total FROM events WHERE 1=1';
         const countParams = [];
         if (status) {
@@ -1129,8 +1452,13 @@ app.get('/api/events', async (req, res) => {
             countParams.push(status);
         }
         if (type) {
-            countQuery += ' AND event_type = ?';
-            countParams.push(type);
+            if (type.toLowerCase() === 'regular') {
+                countQuery += ' AND (event_type IS NULL OR event_type = ? OR event_type = ? OR LOWER(COALESCE(event_type, "")) = ?)';
+                countParams.push('', 'regular', 'regular');
+            } else {
+                countQuery += ' AND (event_type = ? OR LOWER(COALESCE(event_type, "")) = ?)';
+                countParams.push(type, type.toLowerCase());
+            }
         }
         const [countResult] = await pool.execute(countQuery, countParams);
         const total = countResult[0]?.total || 0;
@@ -2288,6 +2616,235 @@ app.get('/api/tools/custom', async (req, res) => {
     }
 });
 
+// Get Built-in Tools
+app.get('/api/tools/builtin', async (req, res) => {
+    try {
+        const [tools] = await pool.execute(
+            'SELECT tool_id, name, description, category, is_active, is_visible, display_order FROM builtin_tools WHERE is_active = TRUE ORDER BY display_order ASC'
+        );
+        res.json({ tools });
+    } catch (error) {
+        console.error('Get built-in tools error:', error);
+        // If table doesn't exist, return empty array
+        if (error.code === 'ER_NO_SUCH_TABLE') {
+            res.json({ tools: [] });
+        } else {
+            res.status(500).json({
+                error: true,
+                message: 'Server error',
+                code: 'SERVER_ERROR'
+            });
+        }
+    }
+});
+
+// Get Tool Visibility Settings
+app.get('/api/tools/visibility', async (req, res) => {
+    try {
+        // Get visibility from builtin_tools table
+        const [builtinTools] = await pool.execute(
+            'SELECT tool_id, is_visible FROM builtin_tools WHERE is_active = TRUE'
+        );
+        
+        // Convert to object format { tool_id: is_visible }
+        const visibility = {};
+        builtinTools.forEach(tool => {
+            visibility[tool.tool_id] = tool.is_visible === 1 || tool.is_visible === true;
+        });
+        
+        res.json({ visibility });
+    } catch (error) {
+        console.error('Get tool visibility error:', error);
+        // If table doesn't exist, return empty object
+        if (error.code === 'ER_NO_SUCH_TABLE') {
+            res.json({ visibility: {} });
+        } else {
+            res.status(500).json({
+                error: true,
+                message: 'Server error',
+                code: 'SERVER_ERROR'
+            });
+        }
+    }
+});
+
+// Update Tool Visibility (Admin)
+app.put('/api/admin/tools/:id/visibility', authenticateAdmin, async (req, res) => {
+    try {
+        const toolId = req.params.id;
+        const { is_visible } = req.body;
+        
+        if (typeof is_visible !== 'boolean') {
+            return res.status(400).json({
+                error: true,
+                message: 'is_visible must be a boolean',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        await pool.execute(
+            'UPDATE builtin_tools SET is_visible = ? WHERE tool_id = ?',
+            [is_visible, toolId]
+        );
+        
+        res.json({
+            message: 'Tool visibility updated',
+            tool_id: toolId,
+            is_visible: is_visible
+        });
+    } catch (error) {
+        console.error('Update tool visibility error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Admin: Create Custom Tool
+app.post('/api/admin/tools', authenticateAdmin, async (req, res) => {
+    try {
+        const { name, description, inputs, function_code, result_label, result_id, button_text, button_color, result_color, show_conversion } = req.body;
+        
+        if (!name || !inputs || !function_code || !result_label || !result_id) {
+            return res.status(400).json({
+                error: true,
+                message: 'Missing required fields: name, inputs, function_code, result_label, result_id',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        const [result] = await pool.execute(
+            `INSERT INTO custom_tools (name, description, inputs, function_code, result_label, result_id, button_text, button_color, result_color, show_conversion, created_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                name,
+                description || null,
+                JSON.stringify(inputs),
+                function_code,
+                result_label,
+                result_id,
+                button_text || 'Calculate',
+                button_color || '#1a365d',
+                result_color || 'default',
+                show_conversion || false,
+                req.admin.id
+            ]
+        );
+        
+        const [tool] = await pool.execute('SELECT * FROM custom_tools WHERE id = ?', [result.insertId]);
+        
+        res.status(201).json({
+            message: 'Tool created successfully',
+            tool: tool[0]
+        });
+    } catch (error) {
+        console.error('Create custom tool error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Admin: Update Custom Tool
+app.put('/api/admin/tools/:id', authenticateAdmin, async (req, res) => {
+    try {
+        const toolId = req.params.id;
+        const { name, description, inputs, function_code, result_label, result_id, button_text, button_color, result_color, show_conversion } = req.body;
+        
+        const updateFields = [];
+        const updateValues = [];
+        
+        if (name !== undefined) { updateFields.push('name = ?'); updateValues.push(name); }
+        if (description !== undefined) { updateFields.push('description = ?'); updateValues.push(description); }
+        if (inputs !== undefined) { updateFields.push('inputs = ?'); updateValues.push(JSON.stringify(inputs)); }
+        if (function_code !== undefined) { updateFields.push('function_code = ?'); updateValues.push(function_code); }
+        if (result_label !== undefined) { updateFields.push('result_label = ?'); updateValues.push(result_label); }
+        if (result_id !== undefined) { updateFields.push('result_id = ?'); updateValues.push(result_id); }
+        if (button_text !== undefined) { updateFields.push('button_text = ?'); updateValues.push(button_text); }
+        if (button_color !== undefined) { updateFields.push('button_color = ?'); updateValues.push(button_color); }
+        if (result_color !== undefined) { updateFields.push('result_color = ?'); updateValues.push(result_color); }
+        if (show_conversion !== undefined) { updateFields.push('show_conversion = ?'); updateValues.push(show_conversion); }
+        
+        if (updateFields.length === 0) {
+            return res.status(400).json({
+                error: true,
+                message: 'No fields to update',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        updateValues.push(toolId);
+        
+        await pool.execute(
+            `UPDATE custom_tools SET ${updateFields.join(', ')}, updated_at = NOW() WHERE id = ?`,
+            updateValues
+        );
+        
+        const [tool] = await pool.execute('SELECT * FROM custom_tools WHERE id = ?', [toolId]);
+        
+        res.json({
+            message: 'Tool updated successfully',
+            tool: tool[0]
+        });
+    } catch (error) {
+        console.error('Update custom tool error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Admin: Delete Custom Tool
+app.delete('/api/admin/tools/:id', authenticateAdmin, async (req, res) => {
+    try {
+        const toolId = req.params.id;
+        
+        await pool.execute('DELETE FROM custom_tools WHERE id = ?', [toolId]);
+        
+        res.json({
+            message: 'Tool deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete custom tool error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Admin: Get Custom Tool by ID
+app.get('/api/admin/tools/:id', authenticateAdmin, async (req, res) => {
+    try {
+        const toolId = req.params.id;
+        const [tools] = await pool.execute('SELECT * FROM custom_tools WHERE id = ?', [toolId]);
+        
+        if (tools.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Tool not found',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        res.json({ tool: tools[0] });
+    } catch (error) {
+        console.error('Get custom tool error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
 // =====================================================
 // PUBLIC STATISTICS ENDPOINT (for homepage)
 // =====================================================
@@ -2596,9 +3153,34 @@ app.get('/api/admin/newsletter/subscribers', authenticateAdmin, async (req, res)
 // Dashboard Statistics
 app.get('/api/admin/dashboard/stats', authenticateAdmin, async (req, res) => {
     try {
-        const [stats] = await pool.execute('SELECT * FROM vw_dashboard_stats');
+        // Try to use the view first
+        let result = {};
+        try {
+            const [stats] = await pool.execute('SELECT * FROM vw_dashboard_stats');
+            result = stats[0] || {};
+        } catch (viewError) {
+            // If view doesn't exist, calculate stats directly
+            console.warn('vw_dashboard_stats view not found, calculating stats directly:', viewError.message);
+            
+            const [usersCount] = await pool.execute('SELECT COUNT(*) as count FROM users WHERE is_active = TRUE');
+            const [businessesCount] = await pool.execute('SELECT COUNT(*) as count FROM businesses');
+            const [membersCount] = await pool.execute('SELECT COUNT(*) as count FROM directory_members');
+            const [eventsCount] = await pool.execute('SELECT COUNT(*) as count FROM events');
+            const [blogCount] = await pool.execute('SELECT COUNT(*) as count FROM blog_posts WHERE is_published = TRUE');
+            const [dirMembersCount] = await pool.execute('SELECT COUNT(*) as count FROM directory_members');
+            const [dirPartnersCount] = await pool.execute('SELECT COUNT(*) as count FROM directory_partners');
+            const [dirBusinessesCount] = await pool.execute('SELECT COUNT(*) as count FROM directory_businesses');
+            
+            result = {
+                registered_users_count: usersCount[0]?.count || 0,
+                registered_businesses_count: businessesCount[0]?.count || 0,
+                members_count: membersCount[0]?.count || 0,
+                events_count: eventsCount[0]?.count || 0,
+                blog_posts_count: blogCount[0]?.count || 0,
+                directory_entries_count: (dirMembersCount[0]?.count || 0) + (dirPartnersCount[0]?.count || 0) + (dirBusinessesCount[0]?.count || 0)
+            };
+        }
         
-        const result = stats[0] || {};
         res.json({
             total_events: result.events_count || 0,
             total_blog_posts: result.blog_posts_count || 0,
@@ -2608,10 +3190,12 @@ app.get('/api/admin/dashboard/stats', authenticateAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Get dashboard stats error:', error);
+        console.error('Error details:', error.message, error.code, error.stack);
         res.status(500).json({
             error: true,
-            message: 'Server error',
-            code: 'SERVER_ERROR'
+            message: error.message || 'Server error',
+            code: error.code || 'SERVER_ERROR',
+            details: error.stack
         });
     }
 });
@@ -3756,6 +4340,668 @@ app.post('/api/admin/directories/:type', authenticateAdmin, async (req, res) => 
 });
 
 // =====================================================
+// TEMPLATES API ENDPOINTS
+// =====================================================
+
+// Get all templates
+app.get('/api/templates', async (req, res) => {
+    try {
+        const { category } = req.query;
+        
+        let query = 'SELECT template_id, name, description, category, file_path, is_active FROM templates WHERE is_active = 1';
+        let params = [];
+        
+        if (category) {
+            query += ' AND category = ?';
+            params.push(category);
+        }
+        
+        query += ' ORDER BY category, name';
+        
+        const [templates] = await pool.execute(query, params);
+        
+        // Verify file existence for each template
+        const templatesWithFileCheck = templates.map(template => {
+            const filePath = path.join(__dirname, template.file_path);
+            return {
+                ...template,
+                file_exists: fs.existsSync(filePath),
+                download_url: `/${template.file_path}`
+            };
+        });
+        
+        res.json({ templates: templatesWithFileCheck });
+    } catch (error) {
+        console.error('Get templates error:', error);
+        // If table doesn't exist, return empty array
+        if (error.code === 'ER_NO_SUCH_TABLE') {
+            res.json({ templates: [] });
+        } else {
+            res.status(500).json({
+                error: true,
+                message: 'Server error',
+                code: 'SERVER_ERROR'
+            });
+        }
+    }
+});
+
+// Get template download statistics
+app.get('/api/templates/stats', async (req, res) => {
+    try {
+        // Use stored procedure if available, otherwise use direct query
+        try {
+            const [stats] = await pool.execute('CALL sp_get_template_download_stats()');
+            // Stored procedure returns results in nested array
+            const results = stats[0] || [];
+            res.json({ stats: results });
+        } catch (procError) {
+            // Fallback to direct query if stored procedure doesn't exist
+            try {
+                const [stats] = await pool.execute(`
+                    SELECT 
+                        t.template_id,
+                        t.name,
+                        t.category,
+                        COUNT(td.id) as download_count,
+                        COUNT(DISTINCT td.user_id) as unique_users,
+                        MAX(td.downloaded_at) as last_downloaded
+                    FROM templates t
+                    LEFT JOIN template_downloads td ON t.template_id = td.template_id
+                    WHERE t.is_active = TRUE
+                    GROUP BY t.template_id, t.name, t.category
+                    ORDER BY download_count DESC, t.category, t.name
+                `);
+                res.json({ stats });
+            } catch (queryError) {
+                // If tables don't exist, return empty stats
+                if (queryError.code === 'ER_NO_SUCH_TABLE') {
+                    res.json({ stats: [] });
+                } else {
+                    throw queryError;
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Get template stats error:', error);
+        // If tables don't exist, return empty stats
+        if (error.code === 'ER_NO_SUCH_TABLE') {
+            res.json({ stats: [] });
+        } else {
+            res.status(500).json({
+                error: true,
+                message: 'Server error',
+                code: 'SERVER_ERROR'
+            });
+        }
+    }
+});
+
+// Record template download
+app.post('/api/templates/:id/download', async (req, res) => {
+    try {
+        const templateId = req.params.id;
+        
+        // Get user ID from token if available (optional authentication)
+        let userId = null;
+        try {
+            const token = req.headers.authorization?.replace('Bearer ', '');
+            if (token) {
+                try {
+                    const decoded = jwt.verify(token, JWT_SECRET);
+                    userId = decoded.id || null;
+                } catch (jwtError) {
+                    // Token invalid or expired, continue as anonymous
+                    console.log('Invalid token for template download, proceeding as anonymous');
+                }
+            }
+        } catch (authError) {
+            // Continue as anonymous user
+        }
+        
+        const ipAddress = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || null;
+        const userAgent = req.get('user-agent') || null;
+
+        // Verify template exists and is active
+        let templates;
+        try {
+            [templates] = await pool.execute(
+                'SELECT template_id, file_path FROM templates WHERE template_id = ? AND is_active = TRUE',
+                [templateId]
+            );
+        } catch (dbError) {
+            // Check if tables don't exist
+            if (dbError.code === 'ER_NO_SUCH_TABLE') {
+                console.error('Templates table does not exist. Please run the database migration.');
+                return res.status(500).json({
+                    error: true,
+                    message: 'Database tables not found. Please run the migration script: add-template-tables.sql',
+                    code: 'DATABASE_NOT_READY',
+                    details: 'The templates and template_downloads tables need to be created first.'
+                });
+            }
+            throw dbError;
+        }
+
+        if (templates.length === 0) {
+            // Template not in database, but try to serve the file anyway
+            console.warn(`Template ${templateId} not found in database, but attempting to serve file`);
+            const filePath = path.join(__dirname, `templates/${templateId}.html`);
+            
+            if (fs.existsSync(filePath)) {
+                // Try to serve as PDF if puppeteer is available
+                if (puppeteer) {
+                    try {
+                        const htmlContent = fs.readFileSync(filePath, 'utf8');
+                        const browser = await puppeteer.launch({
+                            headless: true,
+                            args: ['--no-sandbox', '--disable-setuid-sandbox']
+                        });
+                        const page = await browser.newPage();
+                        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+                        const pdfBuffer = await page.pdf({
+                            format: 'A4',
+                            printBackground: true,
+                            margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' }
+                        });
+                        await browser.close();
+                        res.setHeader('Content-Type', 'application/pdf');
+                        res.setHeader('Content-Disposition', `attachment; filename="${templateId}.pdf"; filename*=UTF-8''${encodeURIComponent(templateId + '.pdf')}`);
+                        res.setHeader('Content-Length', pdfBuffer.length);
+                        res.setHeader('Cache-Control', 'no-cache');
+                        return res.end(pdfBuffer, 'binary');
+                    } catch (pdfError) {
+                        console.error('PDF generation failed, serving HTML:', pdfError);
+                    }
+                }
+                // Fallback to HTML
+                res.setHeader('Content-Type', 'text/html');
+                res.setHeader('Content-Disposition', `attachment; filename="${templateId}.html"`);
+                return res.sendFile(filePath);
+            } else {
+                return res.status(404).json({
+                    error: true,
+                    message: 'Template not found',
+                    code: 'NOT_FOUND',
+                    template_id: templateId
+                });
+            }
+        }
+
+        const template = templates[0];
+
+        // Record download (if table exists)
+        try {
+            await pool.execute(
+                'INSERT INTO template_downloads (template_id, user_id, ip_address, user_agent) VALUES (?, ?, ?, ?)',
+                [templateId, userId, ipAddress, userAgent]
+            );
+
+            // Get updated download count
+            const [countResult] = await pool.execute(
+                'SELECT COUNT(*) as count FROM template_downloads WHERE template_id = ?',
+                [templateId]
+            );
+
+            // Serve the file as PDF
+            const filePath = path.join(__dirname, template.file_path);
+            
+            // Check if file exists
+            if (fs.existsSync(filePath)) {
+                // Check if puppeteer is available for PDF conversion
+                if (puppeteer) {
+                    try {
+                        // Read HTML file
+                        const htmlContent = fs.readFileSync(filePath, 'utf8');
+                        
+                        // Convert HTML to PDF using Puppeteer
+                        const browser = await puppeteer.launch({
+                            headless: true,
+                            args: ['--no-sandbox', '--disable-setuid-sandbox']
+                        });
+                        const page = await browser.newPage();
+                        
+                        // Set content and wait for it to load
+                        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+                        
+                        // Generate PDF
+                        const pdfBuffer = await page.pdf({
+                            format: 'A4',
+                            printBackground: true,
+                            margin: {
+                                top: '20mm',
+                                right: '15mm',
+                                bottom: '20mm',
+                                left: '15mm'
+                            }
+                        });
+                        
+                        await browser.close();
+                        
+                        // Set headers for PDF download
+                        const pdfFileName = path.basename(template.file_path, '.html') + '.pdf';
+                        res.setHeader('Content-Type', 'application/pdf');
+                        res.setHeader('Content-Disposition', `attachment; filename="${pdfFileName}"; filename*=UTF-8''${encodeURIComponent(pdfFileName)}`);
+                        res.setHeader('Content-Length', pdfBuffer.length);
+                        res.setHeader('Cache-Control', 'no-cache');
+                        
+                        // Send PDF buffer
+                        return res.end(pdfBuffer, 'binary');
+                    } catch (pdfError) {
+                        console.error('Error generating PDF:', pdfError);
+                        console.error('PDF Error details:', pdfError.message, pdfError.stack);
+                        // Fallback to HTML if PDF generation fails
+                        res.setHeader('Content-Type', 'text/html');
+                        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(template.file_path)}"`);
+                        return res.sendFile(filePath);
+                    }
+                } else {
+                    // Puppeteer not available, serve as HTML
+                    res.setHeader('Content-Type', 'text/html');
+                    res.setHeader('Content-Disposition', `attachment; filename="${path.basename(template.file_path)}"`);
+                    return res.sendFile(filePath);
+                }
+            } else {
+                // File doesn't exist, return JSON with download URL
+                res.json({
+                    message: 'Download recorded',
+                    download_count: countResult[0].count,
+                    file_path: template.file_path,
+                    download_url: `/${template.file_path}`,
+                    warning: 'Template file not found on server'
+                });
+            }
+        } catch (downloadError) {
+            // If template_downloads table doesn't exist, still serve the file
+            if (downloadError.code === 'ER_NO_SUCH_TABLE') {
+                console.warn('template_downloads table does not exist, serving file without tracking');
+                
+                // Try to serve the file anyway (as PDF if possible)
+                const filePath = path.join(__dirname, template.file_path);
+                if (fs.existsSync(filePath)) {
+                    if (puppeteer) {
+                        try {
+                            const htmlContent = fs.readFileSync(filePath, 'utf8');
+                            const browser = await puppeteer.launch({
+                                headless: true,
+                                args: ['--no-sandbox', '--disable-setuid-sandbox']
+                            });
+                            const page = await browser.newPage();
+                            await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+                            const pdfBuffer = await page.pdf({
+                                format: 'A4',
+                                printBackground: true,
+                                margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' }
+                            });
+                        await browser.close();
+                        const pdfFileName = path.basename(template.file_path, '.html') + '.pdf';
+                        res.setHeader('Content-Type', 'application/pdf');
+                        res.setHeader('Content-Disposition', `attachment; filename="${pdfFileName}"; filename*=UTF-8''${encodeURIComponent(pdfFileName)}`);
+                        res.setHeader('Content-Length', pdfBuffer.length);
+                        res.setHeader('Cache-Control', 'no-cache');
+                        return res.end(pdfBuffer, 'binary');
+                        } catch (pdfError) {
+                            console.error('PDF generation failed, serving HTML:', pdfError);
+                        }
+                    }
+                    // Fallback to HTML
+                    res.setHeader('Content-Type', 'text/html');
+                    res.setHeader('Content-Disposition', `attachment; filename="${path.basename(template.file_path)}"`);
+                    return res.sendFile(filePath);
+                } else {
+                    res.json({
+                        message: 'Download served (tracking unavailable)',
+                        download_count: 0,
+                        file_path: template.file_path,
+                        download_url: `/${template.file_path}`,
+                        warning: 'Download tracking table not found. Please run the migration script.'
+                    });
+                }
+            } else {
+                throw downloadError;
+            }
+        }
+    } catch (error) {
+        console.error('Record template download error:', error);
+        console.error('Error details:', error.message, error.code);
+        res.status(500).json({
+            error: true,
+            message: error.message || 'Server error',
+            code: error.code || 'SERVER_ERROR',
+            details: error.code === 'ER_NO_SUCH_TABLE' 
+                ? 'Database tables not found. Please run add-template-tables.sql migration script.'
+                : undefined
+        });
+    }
+});
+
+// Get template download counts (for frontend display)
+app.get('/api/templates/:id/count', async (req, res) => {
+    try {
+        const templateId = req.params.id;
+        
+        // Check if template exists
+        const [templateCheck] = await pool.execute(
+            'SELECT template_id FROM templates WHERE template_id = ? AND is_active = TRUE',
+            [templateId]
+        );
+        
+        if (templateCheck.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Template not found',
+                code: 'NOT_FOUND',
+                count: 0
+            });
+        }
+        
+        const [result] = await pool.execute(
+            'SELECT COUNT(*) as count FROM template_downloads WHERE template_id = ?',
+            [templateId]
+        );
+        res.json({ count: result[0].count || 0 });
+    } catch (error) {
+        console.error('Get template count error:', error);
+        // If table doesn't exist, return 0
+        if (error.code === 'ER_NO_SUCH_TABLE') {
+            res.json({ count: 0 });
+        } else {
+            res.status(500).json({
+                error: true,
+                message: 'Server error',
+                code: 'SERVER_ERROR'
+            });
+        }
+    }
+});
+
+// Get all template download counts (batch)
+app.post('/api/templates/counts', async (req, res) => {
+    try {
+        const { template_ids } = req.body;
+        if (!Array.isArray(template_ids) || template_ids.length === 0) {
+            return res.status(400).json({
+                error: true,
+                message: 'template_ids array is required',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        try {
+            const placeholders = template_ids.map(() => '?').join(',');
+            const [results] = await pool.execute(
+                `SELECT template_id, COUNT(*) as count 
+                 FROM template_downloads 
+                 WHERE template_id IN (${placeholders})
+                 GROUP BY template_id`,
+                template_ids
+            );
+
+            // Convert to object for easy lookup
+            const counts = {};
+            results.forEach(row => {
+                counts[row.template_id] = row.count;
+            });
+            
+            // Ensure all requested template_ids have a count (default to 0)
+            template_ids.forEach(id => {
+                if (!(id in counts)) {
+                    counts[id] = 0;
+                }
+            });
+
+            // Include all requested IDs (with 0 if no downloads)
+            const response = {};
+            template_ids.forEach(id => {
+                response[id] = counts[id] || 0;
+            });
+
+            res.json({ counts: response });
+        } catch (dbError) {
+            // If table doesn't exist, return all zeros
+            if (dbError.code === 'ER_NO_SUCH_TABLE') {
+                const counts = {};
+                template_ids.forEach(id => {
+                    counts[id] = 0;
+                });
+                res.json({ counts });
+            } else {
+                throw dbError;
+            }
+        }
+    } catch (error) {
+        console.error('Get template counts error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Admin: Delete all template downloads (reset all counts)
+app.delete('/api/admin/templates/downloads', authenticateAdmin, async (req, res) => {
+    try {
+        await pool.execute('DELETE FROM template_downloads');
+        
+        res.json({
+            message: 'All template download counts have been reset',
+            deleted_count: 'all'
+        });
+    } catch (error) {
+        console.error('Delete all template downloads error:', error);
+        if (error.code === 'ER_NO_SUCH_TABLE') {
+            res.status(404).json({
+                error: true,
+                message: 'Template downloads table does not exist',
+                code: 'TABLE_NOT_FOUND'
+            });
+        } else {
+            res.status(500).json({
+                error: true,
+                message: 'Server error',
+                code: 'SERVER_ERROR'
+            });
+        }
+    }
+});
+
+// Admin: Delete downloads for a specific template (reset count)
+app.delete('/api/admin/templates/:id/downloads', authenticateAdmin, async (req, res) => {
+    try {
+        const templateId = req.params.id;
+        
+        // Verify template exists
+        const [templates] = await pool.execute(
+            'SELECT template_id FROM templates WHERE template_id = ? AND is_active = TRUE',
+            [templateId]
+        );
+        
+        if (templates.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Template not found',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        // Delete all downloads for this template
+        const [result] = await pool.execute(
+            'DELETE FROM template_downloads WHERE template_id = ?',
+            [templateId]
+        );
+        
+        res.json({
+            message: 'Template download count has been reset',
+            template_id: templateId,
+            deleted_count: result.affectedRows
+        });
+    } catch (error) {
+        console.error('Delete template downloads error:', error);
+        if (error.code === 'ER_NO_SUCH_TABLE') {
+            res.status(404).json({
+                error: true,
+                message: 'Template downloads table does not exist',
+                code: 'TABLE_NOT_FOUND'
+            });
+        } else {
+            res.status(500).json({
+                error: true,
+                message: 'Server error',
+                code: 'SERVER_ERROR'
+            });
+        }
+    }
+});
+
+
+// Admin: Toggle template visibility (hide/show)
+app.put('/api/admin/templates/:id/visibility', authenticateAdmin, async (req, res) => {
+    try {
+        const templateId = req.params.id;
+        const { is_active } = req.body;
+        
+        if (typeof is_active !== 'boolean') {
+            return res.status(400).json({
+                error: true,
+                message: 'is_active must be a boolean',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        
+        // Convert boolean to 1/0 for MySQL compatibility
+        const isActiveValue = is_active ? 1 : 0;
+        await pool.execute(
+            'UPDATE templates SET is_active = ? WHERE template_id = ?',
+            [isActiveValue, templateId]
+        );
+        
+        res.json({
+            message: `Template ${is_active ? 'shown' : 'hidden'} successfully`,
+            template_id: templateId,
+            is_active: is_active
+        });
+    } catch (error) {
+        console.error('Toggle template visibility error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Admin: Delete template
+app.delete('/api/admin/templates/:id', authenticateAdmin, async (req, res) => {
+    try {
+        const templateId = req.params.id;
+        
+        // Verify template exists
+        const [templates] = await pool.execute(
+            'SELECT template_id FROM templates WHERE template_id = ?',
+            [templateId]
+        );
+        
+        if (templates.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Template not found',
+                code: 'NOT_FOUND'
+            });
+        }
+        
+        // Delete template (cascade will delete downloads)
+        await pool.execute(
+            'DELETE FROM templates WHERE template_id = ?',
+            [templateId]
+        );
+        
+        res.json({
+            message: 'Template deleted successfully',
+            template_id: templateId
+        });
+    } catch (error) {
+        console.error('Delete template error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Admin: Get template download statistics
+app.get('/api/admin/templates/stats', authenticateAdmin, async (req, res) => {
+    try {
+        // Use stored procedure if available
+        try {
+            const [stats] = await pool.execute('CALL sp_get_template_download_stats()');
+            const results = stats[0] || [];
+            
+            // Get is_active status for each template (if not already included)
+            if (!results[0] || results[0].is_active === undefined) {
+                const templateIds = results.map(s => s.template_id);
+                if (templateIds.length > 0) {
+                    const placeholders = templateIds.map(() => '?').join(',');
+                    const [activeStatus] = await pool.execute(
+                        `SELECT template_id, is_active FROM templates WHERE template_id IN (${placeholders})`,
+                        templateIds
+                    );
+                    const activeMap = {};
+                    activeStatus.forEach(t => {
+                        // MySQL returns 0/1, so check for both
+                        activeMap[t.template_id] = t.is_active === 1 || t.is_active === true;
+                    });
+                    results.forEach(stat => {
+                        stat.is_active = activeMap[stat.template_id] !== undefined ? activeMap[stat.template_id] : true;
+                    });
+                }
+            }
+            
+            // Calculate total downloads
+            const totalDownloads = results.reduce((sum, stat) => sum + (parseInt(stat.download_count) || 0), 0);
+            
+            res.json({
+                stats: results,
+                total_downloads: totalDownloads,
+                total_templates: results.length
+            });
+        } catch (procError) {
+            // Fallback to direct query
+            const [stats] = await pool.execute(`
+                SELECT 
+                    t.template_id,
+                    t.name,
+                    t.category,
+                    t.is_active,
+                    COUNT(td.id) as download_count,
+                    COUNT(DISTINCT td.user_id) as unique_users,
+                    MAX(td.downloaded_at) as last_downloaded
+                FROM templates t
+                LEFT JOIN template_downloads td ON t.template_id = td.template_id
+                GROUP BY t.template_id, t.name, t.category, t.is_active
+                ORDER BY t.category, t.name
+            `);
+            
+            const totalDownloads = stats.reduce((sum, stat) => sum + (parseInt(stat.download_count) || 0), 0);
+            
+            res.json({
+                stats,
+                total_downloads: totalDownloads,
+                total_templates: stats.length
+            });
+        }
+    } catch (error) {
+        console.error('Get admin template stats error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// =====================================================
 // START SERVER
 // =====================================================
 
@@ -3784,10 +5030,13 @@ async function startServer() {
         console.log('\n👤 Users:');
         console.log('  GET  /api/users/profile - Get profile (auth)');
         console.log('  PUT  /api/users/profile - Update profile (auth)');
+        console.log('  POST /api/users/avatar - Upload user avatar (auth)');
         console.log('  GET  /api/users/businesses - Get user businesses (auth)');
         console.log('\n🏢 Businesses:');
         console.log('  POST /api/businesses - Register business (auth)');
         console.log('  GET  /api/businesses/:id - Get business details');
+        console.log('  PUT  /api/businesses/:id - Update user business (auth)');
+        console.log('  DELETE /api/businesses/:id - Delete user business (auth)');
         console.log('  GET  /api/businesses/approved - Get approved businesses');
         console.log('\n📅 Events:');
         console.log('  GET  /api/events - Get all events');
@@ -3805,8 +5054,26 @@ async function startServer() {
         console.log('\n🛠️  Tools:');
         console.log('  GET  /api/tools/settings - Get calculator settings');
         console.log('  GET  /api/tools/custom - Get custom tools');
+        console.log('  GET  /api/tools/builtin - Get built-in tools');
+        console.log('  GET  /api/tools/visibility - Get tool visibility settings');
+        console.log('\n📄 Templates:');
+        console.log('  GET  /api/templates - Get all templates');
+        console.log('  GET  /api/templates/stats - Get download statistics');
+        console.log('  POST /api/templates/:id/download - Download template (records download)');
+        console.log('  GET  /api/templates/:id/count - Get download count for template');
+        console.log('  POST /api/templates/counts - Get download counts (batch)');
         console.log('\n⚙️  Admin (requires admin auth):');
         console.log('  GET  /api/admin/dashboard/stats - Dashboard statistics');
+        console.log('  GET  /api/admin/templates/stats - Template download statistics (admin)');
+        console.log('  PUT  /api/admin/templates/:id/visibility - Toggle template visibility (hide/show)');
+        console.log('  DELETE /api/admin/templates/:id - Delete template');
+        console.log('  DELETE /api/admin/templates/:id/downloads - Reset template download count');
+        console.log('  DELETE /api/admin/templates/downloads - Reset all template download counts');
+        console.log('  GET  /api/admin/tools/:id - Get custom tool by ID');
+        console.log('  POST /api/admin/tools - Create custom tool');
+        console.log('  PUT  /api/admin/tools/:id - Update custom tool');
+        console.log('  DELETE /api/admin/tools/:id - Delete custom tool');
+        console.log('  PUT  /api/admin/tools/:id/visibility - Update tool visibility');
         console.log('  GET  /api/admin/events - Get all events');
         console.log('  POST /api/admin/events - Create event');
         console.log('  PUT  /api/admin/events/:id - Update event');
@@ -3814,6 +5081,7 @@ async function startServer() {
         console.log('  GET  /api/admin/users - Get all users');
         console.log('  GET  /api/admin/businesses - Get all businesses');
         console.log('  PUT  /api/admin/businesses/:id/approve - Approve business');
+        console.log('  PUT  /api/admin/businesses/:id/reject - Reject business');
         console.log('  PUT  /api/admin/businesses/:id/verify - Verify business');
         console.log('  GET  /api/admin/settings - Get settings');
         console.log('  PUT  /api/admin/settings - Update settings');

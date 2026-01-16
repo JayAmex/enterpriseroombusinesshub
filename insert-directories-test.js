@@ -12,13 +12,17 @@ const dbConfig = {
     database: process.env.DB_NAME
 };
 
+// ⚠️ WARNING: DEVELOPMENT ONLY - DO NOT RUN IN PRODUCTION
+// This script inserts test directory data for development/testing
+
 async function insertDirectories() {
     let connection;
     try {
         connection = await mysql.createConnection(dbConfig);
         console.log('✅ Connected to database\n');
         console.log('='.repeat(60));
-        console.log('Inserting test data into all directory tables...');
+        console.log('⚠️  WARNING: Inserting TEST DATA into directory tables...');
+        console.log('   This script is for DEVELOPMENT/TESTING only!');
         console.log('='.repeat(60));
         console.log('');
 

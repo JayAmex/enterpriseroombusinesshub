@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Template | Enterprise Room Business Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f5f5f5;
+        }
+        .invoice-container {
+            background: white;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #333;
+        }
+        .company-info h1 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        .invoice-details {
+            text-align: right;
+        }
+        .invoice-details h2 {
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        .billing-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .billing-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        th {
+            background: #1e40af;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        .totals {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .totals-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+        .totals-label {
+            width: 150px;
+            font-weight: bold;
+        }
+        .totals-value {
+            width: 120px;
+            text-align: right;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .enterprise-footer {
+            margin-top: 30px;
+            padding: 15px;
+            background: #e6f2ff;
+            border-left: 4px solid #1e40af;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        .enterprise-footer strong {
+            color: #1e40af;
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .enterprise-footer {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="header">
+            <div class="company-info">
+                <h1>[YOUR COMPANY NAME]</h1>
+                <p>[Company Address]</p>
+                <p>[City, State, ZIP Code]</p>
+                <p>Phone: [Phone Number]</p>
+                <p>Email: [Email Address]</p>
+            </div>
+            <div class="invoice-details">
+                <h2>INVOICE</h2>
+                <p><strong>Invoice #:</strong> [INV-001]</p>
+                <p><strong>Date:</strong> [Date]</p>
+                <p><strong>Due Date:</strong> [Due Date]</p>
+            </div>
+        </div>
+
+        <div class="billing-section">
+            <div class="billing-box">
+                <h3>Bill To:</h3>
+                <p>[Client Name]</p>
+                <p>[Client Address]</p>
+                <p>[City, State, ZIP]</p>
+            </div>
+            <div class="billing-box">
+                <h3>Payment Terms:</h3>
+                <p>[Payment Terms]</p>
+                <p><strong>Tax ID:</strong> [Tax ID Number]</p>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Unit Price (₦)</th>
+                    <th>Total (₦)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>[Item/Service Description]</td>
+                    <td>[Qty]</td>
+                    <td>[Unit Price]</td>
+                    <td>[Total]</td>
+                </tr>
+                <tr>
+                    <td>[Item/Service Description]</td>
+                    <td>[Qty]</td>
+                    <td>[Unit Price]</td>
+                    <td>[Total]</td>
+                </tr>
+                <!-- Add more rows as needed -->
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div class="totals-row">
+                <div class="totals-label">Subtotal:</div>
+                <div class="totals-value">₦0.00</div>
+            </div>
+            <div class="totals-row">
+                <div class="totals-label">VAT (7.5%):</div>
+                <div class="totals-value">₦0.00</div>
+            </div>
+            <div class="totals-row" style="font-size: 1.2rem; font-weight: bold; margin-top: 10px; padding-top: 10px; border-top: 2px solid #333;">
+                <div class="totals-label">Total:</div>
+                <div class="totals-value">₦0.00</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Payment Instructions:</strong></p>
+            <p>Bank: [Bank Name] | Account: [Account Number] | Account Name: [Account Name]</p>
+            <p>Thank you for your business!</p>
+        </div>
+
+        <div class="enterprise-footer">
+            <strong>Template provided by Enterprise Room Business Hub</strong><br>
+            This document template is free to use. You may remove this footer if desired.
+        </div>
+    </div>
+</body>
+</html>

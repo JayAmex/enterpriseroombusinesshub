@@ -267,6 +267,7 @@
         <li><a href="eventspage.html">Events</a></li>
         <li><a href="blog.html">Blog</a></li>
         <li><a href="tools.html">Tools</a></li>
+        <li><a href="templates.html">Templates</a></li>
         <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
         <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
         <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
@@ -608,7 +609,7 @@
         const newCountry = document.getElementById('editUserCountry').value.trim();
 
         try {
-            const response = await fetch('http://localhost:3000/api/users/profile', {
+            const response = await fetch('/api/users/profile', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -822,185 +823,277 @@
             return;
         }
         
-        // Save verified contact details
-        let registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
-        let userData = registeredUsers[userEmail];
-        
-        if (userData) {
-            // If email changed, reset verification status
-            if (emailChanged) {
-                userData.emailVerified = emailVerified;
-            } else {
-                // Keep existing verification status if email didn't change
-                userData.emailVerified = emailVerified || userData.emailVerified || false;
-            }
-            
-            // If phone changed, reset verification status
-            if (phoneChanged) {
-                userData.phoneVerified = phoneVerified;
-            } else {
-                // Keep existing verification status if phone didn't change
-                userData.phoneVerified = phoneVerified || userData.phoneVerified || false;
-            }
-            
-            userData.email = newEmail;
-            userData.phone = newPhone;
-        } else {
-            registeredUsers[userEmail] = {
-                name: sessionStorage.getItem('userName') || 'User',
-                email: newEmail,
-                phone: newPhone,
-                emailVerified: emailVerified,
-                phoneVerified: phoneVerified,
-                registrationDate: new Date().toISOString().split('T')[0]
-            };
+        // Save verified contact details via API
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            alert('Error: You must be logged in to update your contact details.');
+            return;
         }
         
-        localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
-        
-        // Update session email if changed
-        if (newEmail !== userEmail) {
-            sessionStorage.setItem('userEmail', newEmail);
+        try {
+            const response = await fetch('/api/users/profile', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    email: newEmail,
+                    phone: newPhone || null
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Update session email if changed
+                if (newEmail !== userEmail) {
+                    sessionStorage.setItem('userEmail', newEmail);
+                }
+                
+                // Reload data on page (this will update verification badges)
+                await loadUserData();
+                toggleContactEdit(); // Close edit mode
+                
+                alert('Contact details updated successfully!');
+            } else {
+                alert(data.message || 'Failed to update contact details. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error updating contact details:', error);
+            alert('An error occurred. Please try again.');
         }
-        
-        loadUserData(); // Reload data on page (this will update verification badges)
-        toggleContactEdit(); // Close edit mode
-        
-        alert('Contact details updated successfully!');
     }
     
-    function saveBusinessInfo() {
-        const userEmail = sessionStorage.getItem('userEmail');
-        if (!userEmail) {
+    // Edit business from profile page
+    async function editBusinessFromProfile(businessId) {
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            alert('Please log in to edit businesses.');
+            return;
+        }
+
+        try {
+            // Fetch business details
+            const response = await fetch(`/api/businesses/${businessId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to load business details');
+            }
+
+            const business = await response.json();
+
+            // Verify business belongs to user
+            const userBusinessesResponse = await fetch('/api/users/businesses', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const userBusinessesData = await userBusinessesResponse.json();
+            const userBusinesses = userBusinessesData.businesses || [];
+            const userOwnsBusiness = userBusinesses.some(b => b.id === businessId);
+
+            if (!userOwnsBusiness) {
+                alert('You can only edit your own businesses.');
+                return;
+            }
+
+            // Populate edit form (only fields that exist in database)
+            document.getElementById('editingBusinessId').value = businessId;
+            document.getElementById('editBusinessName').value = business.business_name || '';
+            document.getElementById('editIndustry').value = business.business_sector || '';
+            // Note: Description, Email, Phone, Website fields in form are not in database schema
+            // These fields are kept for UI consistency but won't be saved
+            document.getElementById('editBusinessDescription').value = '';
+            document.getElementById('editBusinessEmail').value = '';
+            document.getElementById('editBusinessPhone').value = '';
+            document.getElementById('editBusinessWebsite').value = '';
+
+            // Show edit form, hide display
+            document.getElementById('businessInfo').style.display = 'none';
+            document.getElementById('businessInfoEdit').style.display = 'block';
+        } catch (error) {
+            console.error('Error loading business for edit:', error);
+            alert('Failed to load business details. Please try again.');
+        }
+    }
+
+    // Save business information via API
+    async function saveBusinessInfo() {
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
             alert('Error: You must be logged in to save business information.');
             return;
         }
-        
+
         const businessId = document.getElementById('editingBusinessId').value;
-        
-        // Get business data from form
-        const businessData = {
-            businessName: document.getElementById('editBusinessName').value.trim(),
-            industry: document.getElementById('editIndustry').value.trim(),
-            description: document.getElementById('editBusinessDescription').value.trim(),
-            email: document.getElementById('editBusinessEmail').value.trim(),
-            phone: document.getElementById('editBusinessPhone').value.trim(),
-            website: document.getElementById('editBusinessWebsite').value.trim(),
-            ownerEmail: userEmail
-        };
-        
-        if (!businessData.businessName) {
-            alert('Business Name is required.');
-            return;
-        }
-        
-        // Save to businesses storage
-        let businesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
-        let userBusinesses = businesses[userEmail] || [];
-        
-        if (businessId) {
-            // Update existing business
-            const businessIndex = userBusinesses.findIndex(b => b.id === businessId);
-            if (businessIndex !== -1) {
-                // Preserve existing fields
-                businessData.id = businessId;
-                businessData.registeredDate = userBusinesses[businessIndex].registeredDate;
-                businessData.status = userBusinesses[businessIndex].status || 'Active';
-                businessData.newsletter = userBusinesses[businessIndex].newsletter || false;
-                
-                userBusinesses[businessIndex] = businessData;
-                businesses[userEmail] = userBusinesses;
-                localStorage.setItem('registeredBusinesses', JSON.stringify(businesses));
-                alert('Business information updated successfully!');
-            } else {
-                alert('Business not found.');
-                return;
-            }
-        } else {
-            // This shouldn't happen from the profile page, but handle it just in case
+        if (!businessId) {
             alert('Error: No business ID found.');
             return;
         }
-        
-        // Reload business data to display
-        cancelBusinessEdit();
-    }
-    
-    // Load business data
-    function loadBusinessData() {
-        const userEmail = sessionStorage.getItem('userEmail');
-        if (!userEmail) return;
-        
-        const businesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
-        const userBusinesses = businesses[userEmail] || [];
-        
-        const noBusinessMessage = document.getElementById('noBusinessMessage');
-        const businessesList = document.getElementById('businessesList');
-        const businessInfoEdit = document.getElementById('businessInfoEdit');
-        
-        // Update button text based on whether businesses exist
-        const registerBusinessBtn = document.getElementById('registerBusinessBtn');
-        if (registerBusinessBtn) {
-            if (userBusinesses.length === 0) {
-                registerBusinessBtn.textContent = 'Register Business';
+
+        // Get business data from form
+        const businessName = document.getElementById('editBusinessName').value.trim();
+        const businessSector = document.getElementById('editIndustry').value.trim();
+
+        if (!businessName) {
+            alert('Business Name is required.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/businesses/${businessId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    business_name: businessName,
+                    business_sector: businessSector || null
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Business information updated successfully!');
+                // Reload business data to display
+                await loadBusinessData();
+                cancelBusinessEdit();
             } else {
-                registerBusinessBtn.textContent = 'Register Another Business';
+                alert(data.message || 'Failed to update business information. Please try again.');
             }
-        }
-        
-        if (userBusinesses.length === 0) {
-            // No business registered - show prominent message
-            if (noBusinessMessage) {
-                noBusinessMessage.style.display = 'block';
-            }
-            if (businessesList) {
-                businessesList.style.display = 'none';
-            }
-            if (businessInfoEdit) {
-                businessInfoEdit.style.display = 'none';
-            }
-        } else {
-            // Businesses exist - show list
-            if (noBusinessMessage) {
-                noBusinessMessage.style.display = 'none';
-            }
-            if (businessesList) {
-                businessesList.style.display = 'block';
-                businessesList.innerHTML = userBusinesses.map((business, index) => `
-                    <div class="business-item" style="padding: 20px; margin-bottom: 15px; background: var(--light); border-radius: 8px; border: 1px solid var(--border);">
-                        <h4 style="margin-top: 0; color: var(--primary);">${business.businessName || 'Unnamed Business'}</h4>
-                        <p><strong>Industry:</strong> ${business.industry || '-'}</p>
-                        <p><strong>Description:</strong> ${business.description || '-'}</p>
-                        <p><strong>Business Email:</strong> ${business.email || '-'}</p>
-                        <p><strong>Business Phone:</strong> ${business.phone || '-'}</p>
-                        <p><strong>Website:</strong> ${business.website ? `<a href="${business.website}" target="_blank" rel="noopener noreferrer">${business.website}</a>` : '-'}</p>
-                        <p><strong>Status:</strong> <span class="status-badge">${business.status || 'Active'}</span></p>
-                        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button onclick="deleteBusiness('${business.id}')" class="btn-small btn-delete" style="padding: 8px 15px; background: var(--live); color: var(--white); border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">Delete</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
+        } catch (error) {
+            console.error('Error updating business:', error);
+            alert('An error occurred. Please try again.');
         }
     }
     
-    function deleteBusiness(businessId) {
-        if (!confirm('Are you sure you want to delete this business? This action cannot be undone.')) {
+    // Load business data from API
+    async function loadBusinessData() {
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            // Show no business message if not logged in
+            const noBusinessMessage = document.getElementById('noBusinessMessage');
+            const businessesList = document.getElementById('businessesList');
+            if (noBusinessMessage) noBusinessMessage.style.display = 'block';
+            if (businessesList) businessesList.style.display = 'none';
             return;
         }
         
-        const userEmail = sessionStorage.getItem('userEmail');
-        if (!userEmail) return;
-        
-        const businesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
-        const userBusinesses = businesses[userEmail] || [];
-        
-        // Remove business from array
-        businesses[userEmail] = userBusinesses.filter(b => b.id !== businessId);
-        localStorage.setItem('registeredBusinesses', JSON.stringify(businesses));
-        
-        alert('Business deleted successfully!');
-        loadBusinessData(); // Reload the list
+        try {
+            const response = await fetch('/api/users/businesses', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to load businesses');
+            }
+            
+            const data = await response.json();
+            const userBusinesses = data.businesses || [];
+            
+            const noBusinessMessage = document.getElementById('noBusinessMessage');
+            const businessesList = document.getElementById('businessesList');
+            const businessInfoEdit = document.getElementById('businessInfoEdit');
+            
+            // Update button text based on whether businesses exist
+            const registerBusinessBtn = document.getElementById('registerBusinessBtn');
+            if (registerBusinessBtn) {
+                if (userBusinesses.length === 0) {
+                    registerBusinessBtn.textContent = 'Register Business';
+                } else {
+                    registerBusinessBtn.textContent = 'Register Another Business';
+                }
+            }
+            
+            if (userBusinesses.length === 0) {
+                // No business registered - show prominent message
+                if (noBusinessMessage) {
+                    noBusinessMessage.style.display = 'block';
+                }
+                if (businessesList) {
+                    businessesList.style.display = 'none';
+                }
+                if (businessInfoEdit) {
+                    businessInfoEdit.style.display = 'none';
+                }
+            } else {
+                // Businesses exist - show list
+                if (noBusinessMessage) {
+                    noBusinessMessage.style.display = 'none';
+                }
+                if (businessesList) {
+                    businessesList.style.display = 'block';
+                    businessesList.innerHTML = userBusinesses.map((business) => {
+                        const safeName = (business.business_name || 'Unnamed Business').replace(/'/g, "&#39;").replace(/"/g, '&quot;');
+                        const safeId = business.id;
+                        return `
+                            <div class="business-item" style="padding: 20px; margin-bottom: 15px; background: var(--light); border-radius: 8px; border: 1px solid var(--border);">
+                                <h4 style="margin-top: 0; color: var(--primary);">${safeName}</h4>
+                                <p><strong>Address:</strong> ${business.business_address || '-'}</p>
+                                <p><strong>Sector:</strong> ${business.business_sector || '-'}</p>
+                                <p><strong>Status:</strong> <span class="status-badge">${business.status || 'Pending Review'}</span></p>
+                                <p><strong>Registered:</strong> ${business.registered_date ? new Date(business.registered_date).toLocaleDateString() : '-'}</p>
+                                <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button onclick="editBusinessFromProfile(${safeId})" class="btn-small" style="padding: 8px 15px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">Edit</button>
+                                    <button onclick="deleteBusiness(${safeId})" class="btn-small btn-delete" style="padding: 8px 15px; background: var(--live); color: var(--white); border: none; border-radius: 5px; cursor: pointer; font-size: 0.9rem;">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+        } catch (error) {
+            console.error('Error loading businesses:', error);
+            // Show no business message on error
+            const noBusinessMessage = document.getElementById('noBusinessMessage');
+            const businessesList = document.getElementById('businessesList');
+            if (noBusinessMessage) noBusinessMessage.style.display = 'block';
+            if (businessesList) businessesList.style.display = 'none';
+        }
+    }
+    
+    // Delete business via API
+    async function deleteBusiness(businessId) {
+        if (!confirm('Are you sure you want to delete this business? This action cannot be undone.')) {
+            return;
+        }
+
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            alert('Please log in to delete businesses.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/businesses/${businessId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('Business deleted successfully!');
+                // Reload business data to display
+                await loadBusinessData();
+            } else {
+                alert(data.message || 'Failed to delete business. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error deleting business:', error);
+            alert('An error occurred. Please try again.');
+        }
     }
     
     function cancelBusinessEdit() {
@@ -1019,8 +1112,8 @@
         }
     }
     
-    // Handle avatar upload
-    function handleAvatarUpload(event) {
+    // Handle avatar upload - Upload to server instead of localStorage
+    async function handleAvatarUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
         
@@ -1030,48 +1123,67 @@
             return;
         }
         
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Image size must be less than 5MB.');
+        // Validate file size (max 2MB for avatars)
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Image size must be less than 2MB.');
             return;
         }
         
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const imageData = e.target.result;
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            alert('Please log in to upload an avatar.');
+            return;
+        }
+        
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('avatar', file);
+        
+        try {
+            const response = await fetch('/api/users/avatar', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                    // Don't set Content-Type - browser will set it with boundary for FormData
+                },
+                body: formData
+            });
             
-            // Display the image
-            const avatarImage = document.getElementById('avatarImage');
-            const avatarInitials = document.getElementById('avatarInitials');
+            const data = await response.json();
             
-            avatarImage.src = imageData;
-            avatarImage.style.display = 'block';
-            avatarInitials.style.display = 'none';
-            
-            // Save to localStorage
-            localStorage.setItem('userAvatar', imageData);
-            
-            // Update navigation avatar
-            if (typeof loadNavAvatar === 'function') {
-                loadNavAvatar();
+            if (response.ok && data.avatar_url) {
+                // Display the uploaded image
+                const avatarImage = document.getElementById('avatarImage');
+                const avatarInitials = document.getElementById('avatarInitials');
+                
+                avatarImage.src = data.avatar_url;
+                avatarImage.style.display = 'block';
+                avatarInitials.style.display = 'none';
+                
+                // Update navigation avatar
+                if (typeof loadNavAvatar === 'function') {
+                    loadNavAvatar();
+                }
+                
+                // Reload user data to get updated avatar_url
+                await loadUserData();
+                
+                alert('Avatar uploaded successfully!');
+            } else {
+                alert(data.message || 'Failed to upload avatar. Please try again.');
             }
-            
-            alert('Avatar uploaded successfully!');
-        };
-        reader.readAsDataURL(file);
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            alert('An error occurred while uploading the avatar. Please try again.');
+        }
     }
     
-    // Load saved avatar on page load
+    // Load avatar from API (avatar_url in database)
+    // This is now handled by loadUserData() which fetches avatar_url from API
     function loadAvatar() {
-        const savedAvatar = localStorage.getItem('userAvatar');
-        if (savedAvatar) {
-            const avatarImage = document.getElementById('avatarImage');
-            const avatarInitials = document.getElementById('avatarInitials');
-            
-            avatarImage.src = savedAvatar;
-            avatarImage.style.display = 'block';
-            avatarInitials.style.display = 'none';
-        }
+        // Avatar is loaded via loadUserData() which fetches from API
+        // This function kept for backward compatibility but does nothing
+        // The avatar will be loaded when loadUserData() is called
     }
     
     // Load user data from API
@@ -1083,7 +1195,7 @@
         }
 
         try {
-            const response = await fetch('http://localhost:3000/api/users/profile', {
+            const response = await fetch('/api/users/profile', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -1320,7 +1432,7 @@
             }
             
             try {
-                const response = await fetch('http://localhost:3000/api/blog/saved', {
+                const response = await fetch('/api/blog/saved', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -1393,7 +1505,7 @@
         }
         
         try {
-            const response = await fetch(`http://localhost:3000/api/blog/${postId}/save`, {
+            const response = await fetch(`/api/blog/${postId}/save`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -1432,7 +1544,7 @@
         if (!token) return;
 
         try {
-            const response = await fetch('http://localhost:3000/api/users/statistics', {
+            const response = await fetch('/api/users/statistics', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -1578,7 +1690,7 @@
         }
         
         try {
-            const response = await fetch('http://localhost:3000/api/users/password', {
+            const response = await fetch('/api/users/password', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1625,7 +1737,7 @@
         if (!token) return;
 
         try {
-            const response = await fetch('http://localhost:3000/api/users/profile', {
+            const response = await fetch('/api/users/profile', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -1812,7 +1924,7 @@
         }
         
         try {
-            const response = await fetch('http://localhost:3000/api/users/account', {
+            const response = await fetch('/api/users/account', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,0 +1,37 @@
+// This is a helper script to understand template structure
+// All templates follow a similar pattern with Enterprise Hub footer
+
+const templates = [
+    { id: 'business-plan', title: 'Business Plan Template', type: 'document' },
+    { id: 'swot-analysis', title: 'SWOT Analysis Template', type: 'form' },
+    { id: 'business-model-canvas', title: 'Business Model Canvas', type: 'canvas' },
+    { id: 'marketing-plan', title: 'Marketing Plan Template', type: 'document' },
+    { id: 'quotation', title: 'Quotation Template', type: 'document' },
+    { id: 'purchase-order', title: 'Purchase Order Template', type: 'form' },
+    { id: 'expense-report', title: 'Expense Report Template', type: 'form' },
+    { id: 'budget', title: 'Budget Template', type: 'spreadsheet' },
+    { id: 'cash-flow-statement', title: 'Cash Flow Statement Template', type: 'spreadsheet' },
+    { id: 'profit-loss-statement', title: 'Profit & Loss Statement Template', type: 'spreadsheet' },
+    { id: 'service-agreement', title: 'Service Agreement Template', type: 'legal' },
+    { id: 'nda', title: 'Non-Disclosure Agreement', type: 'legal' },
+    { id: 'employment-contract', title: 'Employment Contract Template', type: 'legal' },
+    { id: 'partnership-agreement', title: 'Partnership Agreement Template', type: 'legal' },
+    { id: 'terms-of-service', title: 'Terms of Service Template', type: 'legal' },
+    { id: 'privacy-policy', title: 'Privacy Policy Template', type: 'legal' },
+    { id: 'job-description', title: 'Job Description Template', type: 'form' },
+    { id: 'employee-handbook', title: 'Employee Handbook Template', type: 'document' },
+    { id: 'performance-review', title: 'Performance Review Template', type: 'form' },
+    { id: 'leave-request', title: 'Leave Request Form', type: 'form' },
+    { id: 'timesheet', title: 'Timesheet Template', type: 'form' },
+    { id: 'customer-onboarding', title: 'Customer Onboarding Checklist', type: 'checklist' },
+    { id: 'sales-proposal', title: 'Sales Proposal Template', type: 'document' },
+    { id: 'customer-feedback', title: 'Customer Feedback Form', type: 'form' },
+    { id: 'refund-policy', title: 'Refund/Return Policy Template', type: 'document' },
+    { id: 'inventory-checklist', title: 'Inventory Checklist Template', type: 'checklist' },
+    { id: 'vendor-agreement', title: 'Vendor/Supplier Agreement Template', type: 'legal' },
+    { id: 'meeting-agenda', title: 'Meeting Agenda Template', type: 'form' },
+    { id: 'project-plan', title: 'Project Plan Template', type: 'document' },
+    { id: 'social-media-calendar', title: 'Social Media Content Calendar', type: 'calendar' },
+    { id: 'press-release', title: 'Press Release Template', type: 'document' },
+    { id: 'email-newsletter', title: 'Email Newsletter Template', type: 'document' }
+];

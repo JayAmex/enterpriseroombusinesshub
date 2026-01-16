@@ -268,7 +268,41 @@ CREATE TABLE custom_tools (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 13. SETTINGS TABLE (Exchange Rates, Calculator Defaults, etc.)
+-- 13. BUILTIN_TOOLS TABLE
+-- =====================================================
+-- Stores metadata for built-in calculator tools
+CREATE TABLE builtin_tools (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    tool_id VARCHAR(100) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(100) DEFAULT 'Financial',
+    is_active BOOLEAN DEFAULT TRUE,
+    is_visible BOOLEAN DEFAULT TRUE,
+    display_order INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_tool_id (tool_id),
+    INDEX idx_is_active (is_active),
+    INDEX idx_is_visible (is_visible),
+    INDEX idx_display_order (display_order)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Insert all built-in tools (4 original + 6 new from today)
+INSERT INTO builtin_tools (tool_id, name, description, category, is_active, is_visible, display_order) VALUES
+('savings', 'Savings Target Calculator', 'Calculate monthly savings needed to reach financial goals', 'Financial', TRUE, TRUE, 1),
+('loan', 'Business Loan Calculator', 'Calculate monthly loan repayments', 'Financial', TRUE, TRUE, 2),
+('mortgage', 'Mortgage Calculator', 'Calculate mortgage payments for property purchases', 'Financial', TRUE, TRUE, 3),
+('pit', 'PIT Calculator (Nigeria)', 'Calculate Personal Income Tax based on Nigeria 2026 tax law', 'Tax', TRUE, TRUE, 4),
+('cit', 'CIT Calculator (Nigeria)', 'Calculate Company Income Tax based on Nigeria 2026 tax law', 'Tax', TRUE, TRUE, 5),
+('breakeven', 'Break-Even Calculator', 'Calculate break-even point for pricing decisions', 'Business', TRUE, TRUE, 6),
+('cashflow', 'Cash Flow Forecast', 'Project monthly cash inflows and outflows', 'Financial', TRUE, TRUE, 7),
+('profitmargin', 'Profit Margin Calculator', 'Calculate gross, operating, and net profit margins', 'Business', TRUE, TRUE, 8),
+('payroll', 'Payroll Calculator (Nigeria)', 'Calculate employee salaries with Nigerian deductions', 'HR', TRUE, TRUE, 9),
+('roi', 'ROI Calculator', 'Calculate Return on Investment for decision making', 'Business', TRUE, TRUE, 10);
+
+-- =====================================================
+-- 14. SETTINGS TABLE (Exchange Rates, Calculator Defaults, etc.)
 -- =====================================================
 CREATE TABLE settings (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -283,7 +317,7 @@ CREATE TABLE settings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 14. USER SESSIONS TABLE (Optional - for session management)
+-- 15. USER SESSIONS TABLE (Optional - for session management)
 -- =====================================================
 CREATE TABLE user_sessions (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -317,7 +351,7 @@ CREATE TABLE admin_sessions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 16. PASSWORD RESET TOKENS TABLE
+-- 17. PASSWORD RESET TOKENS TABLE
 -- =====================================================
 CREATE TABLE password_reset_tokens (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -329,6 +363,43 @@ CREATE TABLE password_reset_tokens (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_token (token),
     INDEX idx_expires_at (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- 17. TEMPLATES TABLE
+-- =====================================================
+-- Stores metadata for all available document templates
+CREATE TABLE templates (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    template_id VARCHAR(100) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(100) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_template_id (template_id),
+    INDEX idx_category (category),
+    INDEX idx_is_active (is_active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
+-- 19. TEMPLATE_DOWNLOADS TABLE
+-- =====================================================
+-- Tracks individual template downloads
+CREATE TABLE template_downloads (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    template_id VARCHAR(100) NOT NULL,
+    user_id INT,
+    downloaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    FOREIGN KEY (template_id) REFERENCES templates(template_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+    INDEX idx_template_id (template_id),
+    INDEX idx_user_id (user_id),
+    INDEX idx_downloaded_at (downloaded_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
@@ -349,6 +420,49 @@ INSERT INTO settings (setting_key, setting_value, setting_type, description) VAL
 ('calculator_default_mortgage_rate', '16', 'number', 'Default mortgage interest rate (%)'),
 ('calculator_default_mortgage_term', '15', 'number', 'Default mortgage term (years)'),
 ('calculator_default_tax_rate', '7.5', 'number', 'Default tax rate (%)');
+
+-- Insert default template metadata (all 33 templates)
+INSERT INTO templates (template_id, name, description, category, file_path) VALUES
+-- Business Planning & Strategy
+('business-plan', 'Business Plan Template', 'Complete business plan with executive summary, market analysis, and financial projections.', 'Business Planning', 'templates/business-plan.html'),
+('swot-analysis', 'SWOT Analysis Template', 'Analyze your business strengths, weaknesses, opportunities, and threats.', 'Business Planning', 'templates/swot-analysis.html'),
+('business-model-canvas', 'Business Model Canvas', 'One-page visual framework to describe your business model.', 'Business Planning', 'templates/business-model-canvas.html'),
+('marketing-plan', 'Marketing Plan Template', 'Comprehensive marketing strategy with budget, channels, and KPIs.', 'Business Planning', 'templates/marketing-plan.html'),
+-- Financial Management
+('invoice', 'Invoice Template', 'Professional invoice template with tax fields for Nigerian businesses.', 'Financial Management', 'templates/invoice.html'),
+('quotation', 'Quotation/Quote Template', 'Professional price quotation template for services and products.', 'Financial Management', 'templates/quotation.html'),
+('purchase-order', 'Purchase Order Template', 'Standardized purchase order form for vendor transactions.', 'Financial Management', 'templates/purchase-order.html'),
+('expense-report', 'Expense Report Template', 'Employee expense tracking and reimbursement form.', 'Financial Management', 'templates/expense-report.html'),
+('budget', 'Budget Template', 'Monthly and annual budget planning spreadsheet.', 'Financial Management', 'templates/budget.html'),
+('cash-flow-statement', 'Cash Flow Statement Template', 'Track monthly cash inflows and outflows for your business.', 'Financial Management', 'templates/cash-flow-statement.html'),
+('profit-loss-statement', 'Profit & Loss Statement Template', 'Monthly and quarterly profit & loss statement template.', 'Financial Management', 'templates/profit-loss-statement.html'),
+-- Legal & Compliance
+('service-agreement', 'Service Agreement Template', 'Client service contract template for service-based businesses.', 'Legal & Compliance', 'templates/service-agreement.html'),
+('nda', 'Non-Disclosure Agreement (NDA)', 'Confidentiality agreement template for protecting business information.', 'Legal & Compliance', 'templates/nda.html'),
+('employment-contract', 'Employment Contract Template', 'Standard employment contract with terms and conditions.', 'Legal & Compliance', 'templates/employment-contract.html'),
+('partnership-agreement', 'Partnership Agreement Template', 'Business partnership agreement template with terms and responsibilities.', 'Legal & Compliance', 'templates/partnership-agreement.html'),
+('terms-of-service', 'Terms of Service Template', 'Website and service terms of service template.', 'Legal & Compliance', 'templates/terms-of-service.html'),
+('privacy-policy', 'Privacy Policy Template', 'Data protection and privacy policy template for compliance.', 'Legal & Compliance', 'templates/privacy-policy.html'),
+-- HR & Employee Management
+('job-description', 'Job Description Template', 'Standardized job description template for hiring.', 'HR & Employee', 'templates/job-description.html'),
+('employee-handbook', 'Employee Handbook Template', 'Company policies and procedures handbook template.', 'HR & Employee', 'templates/employee-handbook.html'),
+('performance-review', 'Performance Review Template', 'Employee performance evaluation and review form.', 'HR & Employee', 'templates/performance-review.html'),
+('leave-request', 'Leave Request Form', 'Employee time-off and leave request tracking form.', 'HR & Employee', 'templates/leave-request.html'),
+('timesheet', 'Timesheet Template', 'Hourly employee time tracking and timesheet template.', 'HR & Employee', 'templates/timesheet.html'),
+-- Sales & Customer Management
+('customer-onboarding', 'Customer Onboarding Checklist', 'New client setup and onboarding process checklist.', 'Sales & Customer', 'templates/customer-onboarding.html'),
+('sales-proposal', 'Sales Proposal Template', 'Professional sales proposal template for client pitches.', 'Sales & Customer', 'templates/sales-proposal.html'),
+('customer-feedback', 'Customer Feedback Form', 'Customer satisfaction survey and feedback form.', 'Sales & Customer', 'templates/customer-feedback.html'),
+('refund-policy', 'Refund/Return Policy Template', 'Clear return and refund policy template for customers.', 'Sales & Customer', 'templates/refund-policy.html'),
+-- Operations
+('inventory-checklist', 'Inventory Checklist Template', 'Stock management and inventory tracking checklist.', 'Operations', 'templates/inventory-checklist.html'),
+('vendor-agreement', 'Vendor/Supplier Agreement Template', 'Supplier contract and vendor agreement template.', 'Operations', 'templates/vendor-agreement.html'),
+('meeting-agenda', 'Meeting Agenda Template', 'Structured meeting agenda and notes template.', 'Operations', 'templates/meeting-agenda.html'),
+('project-plan', 'Project Plan Template', 'Project management framework and planning template.', 'Operations', 'templates/project-plan.html'),
+-- Marketing & Branding
+('social-media-calendar', 'Social Media Content Calendar', 'Monthly social media post scheduling and content calendar.', 'Marketing & Branding', 'templates/social-media-calendar.html'),
+('press-release', 'Press Release Template', 'Professional press release template for media announcements.', 'Marketing & Branding', 'templates/press-release.html'),
+('email-newsletter', 'Email Newsletter Template', 'Customer communication and newsletter email template.', 'Marketing & Branding', 'templates/email-newsletter.html');
 
 -- Note: Homepage content is managed directly from the admin dashboard
 -- and can be stored in localStorage or in the settings table if needed
@@ -421,7 +535,9 @@ SELECT
     (SELECT COUNT(*) FROM blog_posts WHERE is_published = TRUE) as blog_posts_count,
     (SELECT COUNT(*) FROM directory_members) + 
     (SELECT COUNT(*) FROM directory_partners) + 
-    (SELECT COUNT(*) FROM directory_businesses) as directory_entries_count;
+    (SELECT COUNT(*) FROM directory_businesses) as directory_entries_count,
+    (SELECT COUNT(*) FROM template_downloads) as total_template_downloads,
+    (SELECT COUNT(DISTINCT template_id) FROM template_downloads) as unique_templates_downloaded;
 
 -- =====================================================
 -- STORED PROCEDURES (Optional - for complex operations)
@@ -454,6 +570,23 @@ BEGIN
     LEFT JOIN event_rsvps er ON e.id = er.event_id
     WHERE e.id = p_event_id
     GROUP BY e.id;
+END //
+
+-- Procedure: Get template download statistics
+CREATE PROCEDURE sp_get_template_download_stats()
+BEGIN
+    SELECT 
+        t.template_id,
+        t.name,
+        t.category,
+        COUNT(td.id) as download_count,
+        COUNT(DISTINCT td.user_id) as unique_users,
+        MAX(td.downloaded_at) as last_downloaded
+    FROM templates t
+    LEFT JOIN template_downloads td ON t.template_id = td.template_id
+    WHERE t.is_active = TRUE
+    GROUP BY t.template_id, t.name, t.category
+    ORDER BY download_count DESC, t.name ASC;
 END //
 
 DELIMITER ;

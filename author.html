@@ -200,7 +200,7 @@
         document.getElementById('author-name-breadcrumb').textContent = decodedName;
         
         try {
-            const response = await fetch(`http://localhost:3000/api/blog/author/${encodeURIComponent(decodedName)}`);
+            const response = await fetch(`/api/blog/author/${encodeURIComponent(decodedName)}`);
             if (!response.ok) throw new Error('Failed to load author posts');
             
             const data = await response.json();

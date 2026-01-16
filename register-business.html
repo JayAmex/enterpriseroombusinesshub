@@ -362,17 +362,37 @@
         document.getElementById('businessForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    // Load user name from profile
-    function loadUserName() {
-        const userName = sessionStorage.getItem('userName');
-        const userEmail = sessionStorage.getItem('userEmail');
-        const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
-        const userData = registeredUsers[userEmail];
+    // Load user name from profile - Now uses API
+    async function loadUserName() {
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            const ownerNameInput = document.getElementById('ownerName');
+            if (ownerNameInput) {
+                ownerNameInput.value = 'User';
+            }
+            return;
+        }
         
-        const ownerNameInput = document.getElementById('ownerName');
-        if (ownerNameInput) {
-            const name = userName || userData?.name || 'User';
-            ownerNameInput.value = name;
+        try {
+            const response = await fetch('/api/users/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                const ownerNameInput = document.getElementById('ownerName');
+                if (ownerNameInput) {
+                    ownerNameInput.value = userData.name || 'User';
+                }
+            }
+        } catch (error) {
+            console.error('Error loading user name:', error);
+            const ownerNameInput = document.getElementById('ownerName');
+            if (ownerNameInput) {
+                ownerNameInput.value = sessionStorage.getItem('userName') || 'User';
+            }
         }
     }
     
@@ -468,7 +488,7 @@
         `;
     }
 
-    document.getElementById('businessForm').onsubmit = function(e) {
+    document.getElementById('businessForm').onsubmit = async function(e) {
         e.preventDefault();
         
         // Get current user email
@@ -507,24 +527,54 @@
             return;
         }
         
-        // Save business data to localStorage
-        // Structure: { userEmail: [business1, business2, ...] }
-        let businesses = JSON.parse(localStorage.getItem('registeredBusinesses') || '{}');
-        
-        // Generate unique ID for this business
-        businessData.id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
-        
-        // Initialize array if user has no businesses yet
-        if (!businesses[userEmail]) {
-            businesses[userEmail] = [];
+        // Get authentication token
+        const token = sessionStorage.getItem('userToken');
+        if (!token) {
+            alert('Error: You must be logged in to register a business.');
+            window.location.href = 'login.html';
+            return;
         }
         
-        // Add new business to user's business array
-        businesses[userEmail].push(businessData);
-        localStorage.setItem('registeredBusinesses', JSON.stringify(businesses));
+        // Prepare data for API (match server.js endpoint format)
+        const apiData = {
+            business_name: businessData.businessName,
+            business_address: businessData.businessAddress,
+            business_sector: businessData.businessSector,
+            year_of_formation: parseInt(businessData.yearOfFormation) || null,
+            number_of_employees: businessData.numberOfEmployees,
+            cac_registered: businessData.cacRegistered === 'yes',
+            cac_certificate_url: businessData.cacCertificate || null,
+            has_business_bank_account: businessData.hasBusinessBankAccount === 'yes',
+            bank_name: businessData.bankName || null,
+            account_number: businessData.accountNumber || null,
+            account_name: businessData.accountName || null,
+            owner_name: businessData.ownerName,
+            owner_relationship: businessData.ownerRelationship,
+            newsletter_optin: businessData.newsletter || false
+        };
         
-        alert("Business registered successfully! Your business has been added to our database.");
-        window.location.href = 'profile.html';
+        try {
+            const response = await fetch('/api/businesses', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(apiData)
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to register business');
+            }
+            
+            alert("Business registered successfully! Your business has been added to our database.");
+            window.location.href = 'profile.html';
+        } catch (error) {
+            console.error('Error registering business:', error);
+            alert('Error registering business: ' + error.message);
+        }
     };
     
     // Load user name on page load

@@ -13,7 +13,8 @@
     "apply-constraints": "node apply-unique-constraints.js",
     "add-social-media": "node add-social-media-platforms.js",
     "remove-duplicates": "node remove-duplicates.js",
-    "fix-flier-url": "node fix-flier-url-column.js"
+    "fix-flier-url": "node fix-flier-url-column.js",
+    "run-migrations": "node run-migrations.js"
   },
   "keywords": [
     "database",

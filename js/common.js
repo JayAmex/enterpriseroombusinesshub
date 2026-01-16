@@ -132,10 +132,35 @@ function initFadeIn() {
     });
 }
 
-// Load user avatar in navigation
-function loadNavAvatar() {
+// Load user avatar in navigation - Now uses API instead of localStorage
+async function loadNavAvatar() {
     const profileLinks = document.querySelectorAll('nav .btn-profile');
-    const savedAvatar = localStorage.getItem('userAvatar');
+    let avatarUrl = null;
+    
+    // Try to get avatar from API first (preferred method)
+    const token = sessionStorage.getItem('userToken');
+    if (token) {
+        try {
+            const response = await fetch('/api/users/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const userData = await response.json();
+                if (userData.avatar_url) {
+                    avatarUrl = userData.avatar_url;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading avatar from API:', error);
+            // Fall back to localStorage if API fails (backward compatibility)
+            avatarUrl = localStorage.getItem('userAvatar');
+        }
+    } else {
+        // No token, check localStorage as fallback (backward compatibility)
+        avatarUrl = localStorage.getItem('userAvatar');
+    }
     
     profileLinks.forEach(link => {
         // Get or create avatar text span
@@ -163,7 +188,7 @@ function loadNavAvatar() {
         }
         
         // Show avatar if available, otherwise show text
-        if (savedAvatar && savedAvatar.trim() !== '') {
+        if (avatarUrl && avatarUrl.trim() !== '') {
             avatarImg.onload = function() {
                 // Image loaded successfully
                 avatarImg.style.display = 'block';
@@ -178,7 +203,7 @@ function loadNavAvatar() {
                 avatarText.style.display = 'inline-block';
                 avatarText.classList.remove('hide');
             };
-            avatarImg.src = savedAvatar;
+            avatarImg.src = avatarUrl;
         } else {
             // No avatar saved, show text
             avatarImg.style.display = 'none';

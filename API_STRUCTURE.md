@@ -62,8 +62,18 @@ Response: { "id": 1, "name": "John Doe", "email": "...", "avatar_url": "...", "b
 #### Update User Profile
 ```
 PUT /api/users/profile
-Body: { "name": "John Doe", "phone": "1234567890", "avatar_url": "..." }
+Headers: { "Authorization": "Bearer <token>" }
+Body: { "phone": "1234567890", "avatar_url": "...", "title": "...", "occupation": "...", "state": "...", "country": "..." }
 Response: { "message": "Profile updated", "user": { ... } }
+Note: name field cannot be updated by user (admin-only)
+```
+
+#### Upload User Avatar
+```
+POST /api/users/avatar
+Headers: { "Authorization": "Bearer <token>" }
+Body: FormData with "avatar" file field
+Response: { "message": "Avatar uploaded successfully", "avatar_url": "/uploads/avatars/avatar-1-1234567890.jpg", "user": { ... } }
 ```
 
 #### Get User's Businesses
@@ -79,6 +89,7 @@ Response: { "businesses": [{ "id": 1, "business_name": "...", "status": "Approve
 #### Register Business
 ```
 POST /api/businesses
+Headers: { "Authorization": "Bearer <token>" }
 Body: {
   "business_name": "My Business",
   "business_address": "123 Main St",
@@ -86,7 +97,8 @@ Body: {
   "year_of_formation": 2020,
   "number_of_employees": 10,
   "cac_registered": "yes",
-  "cac_certificate": "<base64_or_file>",
+  "cac_certificate_url": "<url>",
+  "owner_name": "John Doe",
   "owner_relationship": "Owner/Founder",
   ...
 }
@@ -97,6 +109,26 @@ Response: { "message": "Business registered", "business": { "id": 1, ... } }
 ```
 GET /api/businesses/:id
 Response: { "id": 1, "business_name": "...", "status": "Approved", ... }
+```
+
+#### Update User's Business
+```
+PUT /api/businesses/:id
+Headers: { "Authorization": "Bearer <token>" }
+Body: {
+  "business_name": "Updated Business Name",
+  "business_address": "New Address",
+  "business_sector": "Technology",
+  ...
+}
+Response: { "message": "Business updated successfully", "business": { ... } }
+```
+
+#### Delete User's Business
+```
+DELETE /api/businesses/:id
+Headers: { "Authorization": "Bearer <token>" }
+Response: { "message": "Business deleted successfully", "business_id": 1 }
 ```
 
 #### Get Approved Businesses (Directory)
@@ -258,6 +290,76 @@ Response: {
 
 ---
 
+### Templates
+
+#### Get All Templates
+```
+GET /api/templates
+Response: {
+  "templates": [
+    {
+      "template_id": "business-plan",
+      "name": "Business Plan Template",
+      "description": "Complete business plan with executive summary...",
+      "category": "Business Planning",
+      "file_path": "templates/business-plan.html",
+      "is_active": true
+    },
+    ...
+  ]
+}
+```
+
+#### Get Template Download Statistics
+```
+GET /api/templates/stats
+Response: {
+  "stats": [
+    {
+      "template_id": "business-plan",
+      "name": "Business Plan Template",
+      "category": "Business Planning",
+      "download_count": 45,
+      "unique_users": 32,
+      "last_downloaded": "2026-01-15T10:30:00Z"
+    },
+    ...
+  ]
+}
+```
+
+#### Record Template Download
+```
+POST /api/templates/:id/download
+Headers: { "Authorization": "Bearer <token>" } (optional)
+Response: {
+  "message": "Download recorded",
+  "download_count": 46,
+  "file_path": "templates/business-plan.html"
+}
+```
+
+#### Get Template Download Count
+```
+GET /api/templates/:id/count
+Response: { "count": 45 }
+```
+
+#### Get Multiple Template Download Counts (Batch)
+```
+POST /api/templates/counts
+Body: { "template_ids": ["business-plan", "invoice", "quotation"] }
+Response: {
+  "counts": {
+    "business-plan": 45,
+    "invoice": 120,
+    "quotation": 89
+  }
+}
+```
+
+---
+
 ### Admin Endpoints
 
 #### Dashboard Statistics
@@ -338,6 +440,26 @@ POST /api/admin/tools
 PUT /api/admin/tools/:id
 DELETE /api/admin/tools/:id
 GET /api/admin/tools
+```
+
+#### Template Management
+```
+GET /api/admin/templates/stats
+Response: {
+  "stats": [
+    {
+      "template_id": "business-plan",
+      "name": "Business Plan Template",
+      "category": "Business Planning",
+      "download_count": 45,
+      "unique_users": 32,
+      "last_downloaded": "2026-01-15T10:30:00Z"
+    },
+    ...
+  ],
+  "total_downloads": 1250,
+  "total_templates": 33
+}
 ```
 
 ---
