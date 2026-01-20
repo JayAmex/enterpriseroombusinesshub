@@ -1863,40 +1863,7 @@ app.get('/api/blog/saved', authenticateToken, async (req, res) => {
     }
 });
 
-// Get Single Blog Post
-app.get('/api/blog/:id', async (req, res) => {
-    try {
-        const [posts] = await pool.execute(
-            'SELECT * FROM blog_posts WHERE id = ? AND is_published = TRUE',
-            [req.params.id]
-        );
-
-        if (posts.length === 0) {
-            return res.status(404).json({
-                error: true,
-                message: 'Blog post not found',
-                code: 'NOT_FOUND'
-            });
-        }
-
-        // Increment view count
-        await pool.execute(
-            'UPDATE blog_posts SET view_count = COALESCE(view_count, 0) + 1 WHERE id = ?',
-            [req.params.id]
-        );
-
-        res.json(posts[0]);
-    } catch (error) {
-        console.error('Get blog post error:', error);
-        res.status(500).json({
-            error: true,
-            message: 'Server error',
-            code: 'SERVER_ERROR'
-        });
-    }
-});
-
-// Search Blog Posts
+// Search Blog Posts - MUST come before /api/blog/:id
 app.get('/api/blog/search', async (req, res) => {
     try {
         const { q, category, limit = 50 } = req.query;
@@ -1942,21 +1909,61 @@ app.get('/api/blog/search', async (req, res) => {
     }
 });
 
-// Get Popular/Trending Posts
+// Get Popular/Trending Posts - MUST come before /api/blog/:id
 app.get('/api/blog/popular', async (req, res) => {
     try {
         const { limit = 5 } = req.query;
+        const limitNum = parseInt(limit, 10) || 5;
+        
+        // MySQL doesn't allow LIMIT as a parameter in prepared statements
+        // So we need to use the limit directly in the query (safely validated as integer)
+        const safeLimit = Math.max(1, Math.min(100, limitNum)); // Clamp between 1 and 100
+        
+        console.log(`[Popular Posts] Fetching ${safeLimit} popular posts...`);
+        
         const [posts] = await pool.execute(
             `SELECT * FROM blog_posts 
              WHERE is_published = TRUE 
-             ORDER BY COALESCE(view_count, 0) DESC, published_date DESC 
-             LIMIT ?`,
-            [parseInt(limit, 10) || 5]
+             ORDER BY published_date DESC, created_at DESC 
+             LIMIT ${safeLimit}`
         );
 
-        res.json({ posts });
+        console.log(`[Popular Posts] Found ${posts.length} published posts`);
+        res.json({ posts: posts || [] });
     } catch (error) {
         console.error('Get popular posts error:', error);
+        console.error('Error details:', error.message, error.code);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR',
+            details: error.message
+        });
+    }
+});
+
+// Get Single Blog Post
+app.get('/api/blog/:id', async (req, res) => {
+    try {
+        const [posts] = await pool.execute(
+            'SELECT * FROM blog_posts WHERE id = ? AND is_published = TRUE',
+            [req.params.id]
+        );
+
+        if (posts.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Blog post not found',
+                code: 'NOT_FOUND'
+            });
+        }
+
+        // Note: view_count column doesn't exist in schema, so we skip view tracking for now
+        // TODO: Add view_count column to blog_posts table if view tracking is needed
+
+        res.json(posts[0]);
+    } catch (error) {
+        console.error('Get blog post error:', error);
         res.status(500).json({
             error: true,
             message: 'Server error',
@@ -1964,6 +1971,7 @@ app.get('/api/blog/popular', async (req, res) => {
         });
     }
 });
+
 
 // Get Related Posts
 app.get('/api/blog/:id/related', async (req, res) => {
@@ -4529,138 +4537,44 @@ app.post('/api/templates/:id/download', async (req, res) => {
         }
 
         const template = templates[0];
-
-        // Record download (if table exists)
-        try {
-            await pool.execute(
-                'INSERT INTO template_downloads (template_id, user_id, ip_address, user_agent) VALUES (?, ?, ?, ?)',
-                [templateId, userId, ipAddress, userAgent]
-            );
-
-            // Get updated download count
-            const [countResult] = await pool.execute(
-                'SELECT COUNT(*) as count FROM template_downloads WHERE template_id = ?',
-                [templateId]
-            );
-
-            // Serve the file as PDF
-            const filePath = path.join(__dirname, template.file_path);
-            
-            // Check if file exists
-            if (fs.existsSync(filePath)) {
-                // Check if puppeteer is available for PDF conversion
-                if (puppeteer) {
-                    try {
-                        // Read HTML file
-                        const htmlContent = fs.readFileSync(filePath, 'utf8');
-                        
-                        // Convert HTML to PDF using Puppeteer
-                        const browser = await puppeteer.launch({
-                            headless: true,
-                            args: ['--no-sandbox', '--disable-setuid-sandbox']
-                        });
-                        const page = await browser.newPage();
-                        
-                        // Set content and wait for it to load
-                        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-                        
-                        // Generate PDF
-                        const pdfBuffer = await page.pdf({
-                            format: 'A4',
-                            printBackground: true,
-                            margin: {
-                                top: '20mm',
-                                right: '15mm',
-                                bottom: '20mm',
-                                left: '15mm'
-                            }
-                        });
-                        
-                        await browser.close();
-                        
-                        // Set headers for PDF download
-                        const pdfFileName = path.basename(template.file_path, '.html') + '.pdf';
-                        res.setHeader('Content-Type', 'application/pdf');
-                        res.setHeader('Content-Disposition', `attachment; filename="${pdfFileName}"; filename*=UTF-8''${encodeURIComponent(pdfFileName)}`);
-                        res.setHeader('Content-Length', pdfBuffer.length);
-                        res.setHeader('Cache-Control', 'no-cache');
-                        
-                        // Send PDF buffer
-                        return res.end(pdfBuffer, 'binary');
-                    } catch (pdfError) {
-                        console.error('Error generating PDF:', pdfError);
-                        console.error('PDF Error details:', pdfError.message, pdfError.stack);
-                        // Fallback to HTML if PDF generation fails
-                        res.setHeader('Content-Type', 'text/html');
-                        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(template.file_path)}"`);
-                        return res.sendFile(filePath);
-                    }
-                } else {
-                    // Puppeteer not available, serve as HTML
-                    res.setHeader('Content-Type', 'text/html');
-                    res.setHeader('Content-Disposition', `attachment; filename="${path.basename(template.file_path)}"`);
-                    return res.sendFile(filePath);
-                }
-            } else {
-                // File doesn't exist, return JSON with download URL
-                res.json({
-                    message: 'Download recorded',
-                    download_count: countResult[0].count,
-                    file_path: template.file_path,
-                    download_url: `/${template.file_path}`,
-                    warning: 'Template file not found on server'
-                });
-            }
-        } catch (downloadError) {
-            // If template_downloads table doesn't exist, still serve the file
-            if (downloadError.code === 'ER_NO_SUCH_TABLE') {
-                console.warn('template_downloads table does not exist, serving file without tracking');
-                
-                // Try to serve the file anyway (as PDF if possible)
-                const filePath = path.join(__dirname, template.file_path);
-                if (fs.existsSync(filePath)) {
-                    if (puppeteer) {
-                        try {
-                            const htmlContent = fs.readFileSync(filePath, 'utf8');
-                            const browser = await puppeteer.launch({
-                                headless: true,
-                                args: ['--no-sandbox', '--disable-setuid-sandbox']
-                            });
-                            const page = await browser.newPage();
-                            await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-                            const pdfBuffer = await page.pdf({
-                                format: 'A4',
-                                printBackground: true,
-                                margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' }
-                            });
-                        await browser.close();
-                        const pdfFileName = path.basename(template.file_path, '.html') + '.pdf';
-                        res.setHeader('Content-Type', 'application/pdf');
-                        res.setHeader('Content-Disposition', `attachment; filename="${pdfFileName}"; filename*=UTF-8''${encodeURIComponent(pdfFileName)}`);
-                        res.setHeader('Content-Length', pdfBuffer.length);
-                        res.setHeader('Cache-Control', 'no-cache');
-                        return res.end(pdfBuffer, 'binary');
-                        } catch (pdfError) {
-                            console.error('PDF generation failed, serving HTML:', pdfError);
-                        }
-                    }
-                    // Fallback to HTML
-                    res.setHeader('Content-Type', 'text/html');
-                    res.setHeader('Content-Disposition', `attachment; filename="${path.basename(template.file_path)}"`);
-                    return res.sendFile(filePath);
-                } else {
-                    res.json({
-                        message: 'Download served (tracking unavailable)',
-                        download_count: 0,
-                        file_path: template.file_path,
-                        download_url: `/${template.file_path}`,
-                        warning: 'Download tracking table not found. Please run the migration script.'
-                    });
-                }
-            } else {
-                throw downloadError;
-            }
+        const filePath = path.join(__dirname, template.file_path);
+        
+        // Check if file exists
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({
+                error: true,
+                message: 'Template file not found',
+                code: 'NOT_FOUND',
+                template_id: templateId
+            });
         }
+
+        // OPTIMIZATION: Record download asynchronously (fire and forget - don't wait)
+        // This allows the file to be served immediately while download is tracked in background
+        pool.execute(
+            'INSERT INTO template_downloads (template_id, user_id, ip_address, user_agent) VALUES (?, ?, ?, ?)',
+            [templateId, userId, ipAddress, userAgent]
+        ).catch(err => {
+            // Log error but don't block download
+            if (err.code !== 'ER_NO_SUCH_TABLE') {
+                console.error('Error recording download (non-blocking):', err);
+            }
+        });
+
+        // Serve the file immediately (HTML format for fastest response)
+        // PDF conversion via Puppeteer removed for performance (was causing 3-5 second delays)
+        // Users can save as PDF from browser if needed (Ctrl+P -> Save as PDF)
+        res.setHeader('Content-Type', 'text/html; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="${path.basename(template.file_path)}"; filename*=UTF-8''${encodeURIComponent(path.basename(template.file_path))}`);
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        return res.sendFile(filePath);
+        
+        // NOTE: PDF conversion via Puppeteer was removed for performance reasons
+        // If PDF is needed in future, consider:
+        // 1. Pre-generating PDFs and storing them on disk
+        // 2. Using a background job/queue for PDF generation
+        // 3. Making PDF conversion optional via query parameter (?format=pdf)
     } catch (error) {
         console.error('Record template download error:', error);
         console.error('Error details:', error.message, error.code);
@@ -5047,6 +4961,7 @@ async function startServer() {
         console.log('\n📝 Blog:');
         console.log('  GET  /api/blog - Get blog posts');
         console.log('  GET  /api/blog/:id - Get single post');
+        console.log('  GET  /api/blog/popular - Get popular posts');
         console.log('\n📂 Directories:');
         console.log('  GET  /api/directories/business - Business directory');
         console.log('  GET  /api/directories/members - Members directory');

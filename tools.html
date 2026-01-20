@@ -15,6 +15,79 @@
             }
         })();
     </script>
+    <script>
+        // ============================================
+        // CRITICAL: Define these functions FIRST in HEAD so they're available for onclick handlers
+        // ============================================
+        
+        // Tool switching functionality - Define immediately on window
+        window.showTool = async function(toolId) {
+            console.log('showTool called with:', toolId);
+            if (!toolId) {
+                console.error('showTool called without toolId');
+                return;
+            }
+            
+            try {
+                // Check if tool is visible (from API)
+                let isVisible = true; // Default to visible
+                try {
+                    const visResponse = await fetch('/api/tools/visibility');
+                    if (visResponse.ok) {
+                        const visData = await visResponse.json();
+                        isVisible = visData.visibility[toolId] !== false; // Default to true if not set
+                    }
+                } catch (visError) {
+                    console.warn('Could not load tool visibility, defaulting to visible:', visError);
+                }
+                
+                if (!isVisible) {
+                    // Tool is hidden, don't show it
+                    console.log('Tool', toolId, 'is hidden');
+                    return;
+                }
+                
+                // Hide all tool views
+                const allViews = document.querySelectorAll('.tool-view');
+                allViews.forEach(view => view.classList.remove('active'));
+                
+                // Show selected tool
+                const selectedView = document.getElementById('tool-' + toolId);
+                if (selectedView) {
+                    selectedView.classList.add('active');
+                } else {
+                    console.error('Tool view not found:', 'tool-' + toolId);
+                    return;
+                }
+                
+                // Update menu active state
+                const menuItems = document.querySelectorAll('.tools-menu a');
+                menuItems.forEach(item => {
+                    item.classList.remove('active');
+                    if (item.getAttribute('data-tool') === toolId) {
+                        item.classList.add('active');
+                    }
+                });
+                
+                // Close mobile menu if open
+                const sidebar = document.getElementById('toolsSidebar');
+                if (sidebar && window.innerWidth <= 1024) {
+                    sidebar.classList.remove('show');
+                }
+            } catch (error) {
+                console.error('Error in showTool:', error);
+                alert('Error switching tool: ' + error.message);
+            }
+        };
+
+        // Mobile menu toggle - Define immediately on window
+        window.toggleSidebar = function() {
+            const sidebar = document.getElementById('toolsSidebar');
+            if (sidebar) {
+                sidebar.classList.toggle('show');
+            }
+        };
+    </script>
     <link rel="stylesheet" href="css/styles.css">
     <style>
         /* Page-specific styles */
@@ -1153,78 +1226,6 @@
 
 <script>
     // ============================================
-    // CRITICAL: Define these functions FIRST so they're available for onclick handlers
-    // ============================================
-    
-    // Tool switching functionality - Define immediately on window
-    window.showTool = function(toolId) {
-        console.log('showTool called with:', toolId);
-        if (!toolId) {
-            console.error('showTool called without toolId');
-            return;
-        }
-        
-        try {
-            // Check if tool is visible (from API)
-            let isVisible = true; // Default to visible
-            try {
-                const visResponse = await fetch('/api/tools/visibility');
-                if (visResponse.ok) {
-                    const visData = await visResponse.json();
-                    isVisible = visData.visibility[toolId] !== false; // Default to true if not set
-                }
-            } catch (visError) {
-                console.warn('Could not load tool visibility, defaulting to visible:', visError);
-            }
-            
-            if (!isVisible) {
-                // Tool is hidden, don't show it
-                console.log('Tool', toolId, 'is hidden');
-                return;
-            }
-            
-            // Hide all tool views
-            const allViews = document.querySelectorAll('.tool-view');
-            allViews.forEach(view => view.classList.remove('active'));
-            
-            // Show selected tool
-            const selectedView = document.getElementById('tool-' + toolId);
-            if (selectedView) {
-                selectedView.classList.add('active');
-            } else {
-                console.error('Tool view not found:', 'tool-' + toolId);
-                return;
-            }
-            
-            // Update menu active state
-            const menuItems = document.querySelectorAll('.tools-menu a');
-            menuItems.forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('data-tool') === toolId) {
-                    item.classList.add('active');
-                }
-            });
-            
-            // Close mobile menu if open
-            const sidebar = document.getElementById('toolsSidebar');
-            if (sidebar && window.innerWidth <= 1024) {
-                sidebar.classList.remove('show');
-            }
-        } catch (error) {
-            console.error('Error in showTool:', error);
-            alert('Error switching tool: ' + error.message);
-        }
-    };
-
-    // Mobile menu toggle - Define immediately on window
-    window.toggleSidebar = function() {
-        const sidebar = document.getElementById('toolsSidebar');
-        if (sidebar) {
-            sidebar.classList.toggle('show');
-        }
-    };
-
-    // ============================================
     // Currency Exchange Rates and other functions
     // ============================================
     
@@ -2010,6 +2011,18 @@
             loadToolVisibility();
         }
     });
+    
+    // Make all calculator functions globally accessible (they're already global, but explicit for clarity)
+    window.calculateSavingsTarget = calculateSavingsTarget;
+    window.calculateLoan = calculateLoan;
+    window.calculateMortgage = calculateMortgage;
+    window.calculatePersonalIncomeTax = calculatePersonalIncomeTax;
+    window.calculateCompanyIncomeTax = calculateCompanyIncomeTax;
+    window.calculateBreakEven = calculateBreakEven;
+    window.calculateCashFlow = calculateCashFlow;
+    window.calculateProfitMargin = calculateProfitMargin;
+    window.calculatePayroll = calculatePayroll;
+    window.calculateROI = calculateROI;
 </script>
 <script src="js/common.js"></script>
 

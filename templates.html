@@ -147,6 +147,72 @@
             margin-top: 0;
             margin-bottom: 10px;
             font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-align: center;
+            position: relative;
+        }
+
+        .template-title-wrapper {
+            display: inline-block;
+        }
+
+        .pdf-info-icon {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+            margin-left: 8px;
+        }
+
+        .pdf-info-icon .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 10px;
+            padding: 15px 20px;
+            background: var(--text);
+            color: var(--white);
+            border-radius: 10px;
+            font-size: 1.05rem;
+            white-space: normal;
+            width: 450px;
+            max-width: 90vw;
+            text-align: left;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 10000;
+            line-height: 1.7;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .pdf-info-icon .tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 8px solid var(--text);
+        }
+
+        @media (min-width: 1024px) {
+            .pdf-info-icon .tooltip {
+                max-width: 500px;
+            }
+        }
+
+        .pdf-info-icon:hover .tooltip,
+        .pdf-info-icon:focus .tooltip {
+            opacity: 1;
         }
 
         .template-card p {
@@ -312,7 +378,13 @@
             <h2>Business Planning & Strategy</h2>
             <div class="templates-grid" id="templates-grid-business-planning">
                 <div class="template-card" data-name="Business Plan Template">
-                    <h3>Business Plan Template</h3>
+                    <h3>
+                        <span class="template-title-wrapper">Business Plan Template</span>
+                        <span class="pdf-info-icon" tabindex="0" role="button" aria-label="PDF save instructions">
+                            <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                            <span class="tooltip">When you click on download, it will open in a different window. Click ctrl+P on windows laptops or cmd+P on Mac and select Save as, then select pdf.</span>
+                        </span>
+                    </h3>
                     <p>Complete business plan with executive summary, market analysis, and financial projections.</p>
                     <button class="template-download-btn" onclick="downloadTemplate('business-plan')">
                         📥 Download
@@ -330,7 +402,13 @@
                 </div>
 
                 <div class="template-card" data-name="Business Model Canvas">
-                    <h3>Business Model Canvas</h3>
+                    <h3>
+                        <span class="template-title-wrapper">Business Model Canvas</span>
+                        <span class="pdf-info-icon" tabindex="0" role="button" aria-label="PDF save instructions">
+                            <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                            <span class="tooltip">When you click on download, it will open in a different window. Click ctrl+P on windows laptops or cmd+P on Mac and select Save as, then select pdf.</span>
+                        </span>
+                    </h3>
                     <p>One-page visual framework to describe your business model.</p>
                     <button class="template-download-btn" onclick="downloadTemplate('business-model-canvas')">
                         📥 Download
@@ -339,7 +417,13 @@
                 </div>
 
                 <div class="template-card" data-name="Marketing Plan Template">
-                    <h3>Marketing Plan Template</h3>
+                    <h3>
+                        <span class="template-title-wrapper">Marketing Plan Template</span>
+                        <span class="pdf-info-icon" tabindex="0" role="button" aria-label="PDF save instructions">
+                            <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                            <span class="tooltip">When you click on download, it will open in a different window. Click ctrl+P on windows laptops or cmd+P on Mac and select Save as, then select pdf.</span>
+                        </span>
+                    </h3>
                     <p>Comprehensive marketing strategy with budget, channels, and KPIs.</p>
                     <button class="template-download-btn" onclick="downloadTemplate('marketing-plan')">
                         📥 Download
@@ -481,7 +565,7 @@
         <!-- HR & Employee Management -->
         <div class="category-view" id="category-hr-employee">
             <h2>HR & Employee Management</h2>
-            <div class="templates-grid">
+            <div class="templates-grid" id="templates-grid-hr-employee">
                 <div class="template-card" data-name="Job Description Template">
                     <h3>Job Description Template</h3>
                     <p>Standardized job description template for hiring.</p>
@@ -574,7 +658,7 @@
         <!-- Operations -->
         <div class="category-view" id="category-operations">
             <h2>Operations</h2>
-            <div class="templates-grid">
+            <div class="templates-grid" id="templates-grid-operations">
                 <div class="template-card" data-name="Inventory Checklist Template">
                     <h3>Inventory Checklist Template</h3>
                     <p>Stock management and inventory tracking checklist.</p>
@@ -707,10 +791,18 @@
         }
     }
 
-    // Download template function - uses API
+    // Download template function - optimized for fast response
     async function downloadTemplate(templateId) {
+        // Show loading state on button for better UX
+        const button = document.querySelector(`button[onclick*="downloadTemplate('${templateId}')"]`);
+        const originalText = button?.textContent;
+        if (button) {
+            button.disabled = true;
+            button.textContent = 'Downloading...';
+        }
+        
         try {
-            // Record download via API
+            // Record download via API (non-blocking)
             const response = await fetch(`/api/templates/${templateId}/download`, {
                 method: 'POST',
                 headers: {
@@ -719,11 +811,11 @@
                 }
             });
 
-            // Check response type - if it's PDF or HTML (file download), handle differently
+            // Check response type - if it's HTML (file download), handle it
             const contentType = response.headers.get('content-type') || '';
             
-            if (contentType.includes('application/pdf') || contentType.includes('text/html')) {
-                // File is being served directly, create blob and download
+            if (contentType.includes('text/html')) {
+                // File is being served directly, create blob and download immediately
                 const arrayBuffer = await response.arrayBuffer();
                 
                 // Verify data is valid
@@ -732,51 +824,52 @@
                 }
                 
                 // Create blob with proper MIME type
-                const blob = new Blob([arrayBuffer], { 
-                    type: contentType.includes('application/pdf') ? 'application/pdf' : 'text/html' 
-                });
+                const blob = new Blob([arrayBuffer], { type: 'text/html' });
                 
-                // Create blob URL
+                // Create blob URL and trigger download immediately
                 const blobUrl = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = blobUrl;
                 a.style.display = 'none';
-                
-                // Use PDF extension if content is PDF, otherwise HTML
-                const fileExtension = contentType.includes('application/pdf') ? 'pdf' : 'html';
-                a.download = `${templateId}.${fileExtension}`;
+                a.download = `${templateId}.html`;
                 
                 // Add to DOM, click, then remove
                 document.body.appendChild(a);
                 a.click();
                 
-                // Clean up after a delay to ensure download starts
+                // Clean up immediately
                 setTimeout(() => {
                     window.URL.revokeObjectURL(blobUrl);
                     if (document.body.contains(a)) {
                         document.body.removeChild(a);
                     }
-                }, 200);
+                }, 100);
                 
-                // Try to get download count separately after a short delay
-                setTimeout(async () => {
-                    try {
-                        const countResponse = await fetch(`/api/templates/${templateId}/count`, {
-                            headers: {
-                                'Authorization': getAuthToken() ? `Bearer ${getAuthToken()}` : ''
-                            }
-                        });
-                        if (countResponse.ok) {
-                            const countData = await countResponse.json();
-                            const countElement = document.getElementById('count-' + templateId);
-                            if (countElement) {
-                                countElement.textContent = `Downloads: ${countData.count || 0}`;
-                            }
-                        }
-                    } catch (countError) {
-                        console.error('Error fetching updated count:', countError);
+                // Update download count asynchronously (don't wait)
+                fetch(`/api/templates/${templateId}/count`, {
+                    headers: {
+                        'Authorization': getAuthToken() ? `Bearer ${getAuthToken()}` : ''
                     }
-                }, 500);
+                }).then(countResponse => {
+                    if (countResponse.ok) {
+                        return countResponse.json();
+                    }
+                }).then(countData => {
+                    if (countData) {
+                        const countElement = document.getElementById('count-' + templateId);
+                        if (countElement) {
+                            countElement.textContent = `Downloads: ${countData.count || 0}`;
+                        }
+                    }
+                }).catch(countError => {
+                    console.error('Error fetching updated count:', countError);
+                });
+                
+                // Restore button state
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = originalText || '📥 Download';
+                }
                 return;
             }
             
@@ -830,17 +923,20 @@
                 console.warn('Download tracking warning:', data.warning);
             }
         } catch (error) {
-            console.error('Error recording download:', error);
-            console.error('Download error details:', error.message, error.stack);
+            console.error('Error downloading template:', error);
             
-            // Show user-friendly error message
-            alert('Error downloading template. Please try again or contact support if the problem persists.');
+            // Restore button state
+            if (button) {
+                button.disabled = false;
+                button.textContent = originalText || '📥 Download';
+            }
             
             // Try to open the template file directly as fallback
             try {
                 window.open('templates/' + templateId + '.html', '_blank');
             } catch (openError) {
                 console.error('Error opening template file:', openError);
+                alert('Error downloading template. Please try again.');
             }
             
             // Try to update count from API
@@ -967,7 +1063,13 @@
                     const safeDescription = (template.description || 'No description available.').replace(/'/g, "&#39;").replace(/"/g, '&quot;');
                     
                     templateCard.innerHTML = `
-                        <h3>${safeName}</h3>
+                        <h3>
+                            <span class="template-title-wrapper">${safeName}</span>
+                            <span class="pdf-info-icon" tabindex="0" role="button" aria-label="PDF save instructions">
+                                <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                                <span class="tooltip">When you click on download, it will open in a different window. Click ctrl+P on windows laptops or cmd+P on Mac and select Save as, then select pdf.</span>
+                            </span>
+                        </h3>
                         <p>${safeDescription}</p>
                         <button class="template-download-btn" onclick="downloadTemplate('${templateId}')">
                             📥 Download
@@ -1025,8 +1127,32 @@
         }
     }
 
+    // Add PDF info icons to all static template titles that don't have them yet
+    function addPdfInfoIcons() {
+        const templateCards = document.querySelectorAll('.template-card');
+        templateCards.forEach(card => {
+            const h3 = card.querySelector('h3');
+            if (h3 && !h3.querySelector('.pdf-info-icon')) {
+                // Check if h3 already has the wrapper structure
+                if (!h3.querySelector('.template-title-wrapper')) {
+                    // Wrap existing text in span, preserving any existing HTML
+                    const titleHTML = h3.innerHTML.trim();
+                    h3.innerHTML = `
+                        <span class="template-title-wrapper">${titleHTML}</span>
+                        <span class="pdf-info-icon" tabindex="0" role="button" aria-label="PDF save instructions">
+                            <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                            <span class="tooltip">When you click on download, it will open in a different window. Click ctrl+P on windows laptops or cmd+P on Mac and select Save as, then select pdf.</span>
+                        </span>
+                    `;
+                }
+            }
+        });
+    }
+
     window.onload = function() {
         loadTemplates();
+        // Add info icons to static templates after a short delay
+        setTimeout(addPdfInfoIcons, 100);
     };
 </script>
 

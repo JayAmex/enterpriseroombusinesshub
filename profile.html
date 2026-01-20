@@ -790,7 +790,7 @@
         }
     }
     
-    function saveContactInfo() {
+    async function saveContactInfo() {
         const userEmail = sessionStorage.getItem('userEmail');
         if (!userEmail) {
             alert('Error: User email not found in session.');
@@ -1985,8 +1985,31 @@
         }
     }
     
-    // Make logout function globally accessible
+    // Make all functions globally accessible for onclick handlers
     window.logout = logout;
+    window.saveBusinessInfo = saveBusinessInfo;
+    window.saveContactInfo = saveContactInfo;
+    window.savePersonalInfo = savePersonalInfo;
+    window.togglePersonalEdit = togglePersonalEdit;
+    window.toggleContactEdit = toggleContactEdit;
+    window.toggleBusinessEdit = toggleBusinessEdit;
+    window.editBusinessFromProfile = editBusinessFromProfile;
+    window.deleteBusiness = deleteBusiness;
+    window.cancelBusinessEdit = cancelBusinessEdit;
+    window.handleAvatarUpload = handleAvatarUpload;
+    window.openPasswordResetModal = openPasswordResetModal;
+    window.closePasswordResetModal = closePasswordResetModal;
+    window.handlePasswordReset = handlePasswordReset;
+    window.openDeleteAccountModal = openDeleteAccountModal;
+    window.closeDeleteAccountModal = closeDeleteAccountModal;
+    window.sendEmailVerification = sendEmailVerification;
+    window.verifyEmail = verifyEmail;
+    window.sendPhoneVerification = sendPhoneVerification;
+    window.verifyPhone = verifyPhone;
+    window.viewSavedCalculations = viewSavedCalculations;
+    window.switchSavedTab = switchSavedTab;
+    window.openProfileCompletenessModal = openProfileCompletenessModal;
+    window.closeProfileCompletenessModal = closeProfileCompletenessModal;
 </script>
 </body>
 </html>
