@@ -32,6 +32,11 @@
     box-sizing: border-box;
 }
 
+html {
+    width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: var(--text);
@@ -41,6 +46,9 @@ body {
     padding-left: var(--safe-left);
     padding-right: var(--safe-right);
     padding-bottom: var(--safe-bottom);
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
     background: linear-gradient(to bottom, #e6f2ff, #f0f8ff);
     min-height: 100vh;
     display: flex;
@@ -96,10 +104,17 @@ nav ul.mobile-menu {
     display: none;
     flex-direction: column;
     width: 100%;
+    flex-basis: 100%;
+    order: 99;
     gap: 10px;
     margin-top: 15px;
     padding-top: 15px;
+    padding-left: 0;
+    padding-right: 0;
     border-top: 1px solid var(--border);
+    background: #f0f8ff;
+    max-height: 70vh;
+    overflow-y: auto;
 }
 
 nav ul.mobile-menu.active {
@@ -712,7 +727,7 @@ footer .footer-bottom p {
 
 @media (max-width: 768px) {
     nav {
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
     }
 
     nav .nav-toggle {
@@ -740,10 +755,14 @@ footer .footer-bottom p {
     }
 
     .container {
+        width: 100%;
+        max-width: 100%;
         padding: 20px max(20px, var(--safe-right)) 20px max(20px, var(--safe-left));
     }
 
     .section {
+        width: 100%;
+        max-width: 100%;
         padding: 40px max(20px, var(--safe-right)) 40px max(20px, var(--safe-left));
     }
 
