@@ -9,8 +9,8 @@
         // Check authentication before page loads
         (function() {
             if (sessionStorage.getItem('userAuthenticated') !== 'true') {
-                sessionStorage.setItem('redirectAfterLogin', 'register-business.html');
-                window.location.replace('login.html');
+                sessionStorage.setItem('redirectAfterLogin', '/register-business');
+                window.location.replace('/login');
                 return;
             }
         })();
@@ -120,15 +120,15 @@
                 <span>Enterprise Room Business Hub</span>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About</a></li>
-                <li><a href="eventspage.html">Events</a></li>
-                <li><a href="blog.html">Blog</a></li>
-                <li><a href="directories.html">Directories</a></li>
-                <li><a href="tools.html">Tools</a></li>
-                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/eventspage">Events</a></li>
+                <li><a href="/blog">Blog</a></li>
+                <li><a href="/directories">Directories</a></li>
+                <li><a href="/tools">Tools</a></li>
+                <li><a href="/faq">FAQ</a></li>
                 <li><a href="mailto:contact@enterpriserm.com">Contact</a></li>
-                <li><a href="profile.html" id="navProfileLink"><span>My Profile</span></a></li>
+                <li><a href="/profile" id="navProfileLink"><span>My Profile</span></a></li>
             </ul>
             <button class="mobile-nav-toggle" aria-label="Toggle navigation">
                 <span></span>
@@ -139,7 +139,7 @@
     </nav>
 
 <div class="breadcrumbs">
-    <a href="index.html">Home</a>
+    <a href="/">Home</a>
     <span>/</span>
     <span>Register Business</span>
 </div>
@@ -495,7 +495,7 @@
         const userEmail = sessionStorage.getItem('userEmail');
         if (!userEmail) {
             alert('Error: You must be logged in to register a business.');
-            window.location.href = 'login.html';
+            window.location.href = '/login';
             return;
         }
         
@@ -531,7 +531,7 @@
         const token = sessionStorage.getItem('userToken');
         if (!token) {
             alert('Error: You must be logged in to register a business.');
-            window.location.href = 'login.html';
+            window.location.href = '/login';
             return;
         }
         
@@ -570,7 +570,7 @@
             }
             
             alert("Business registered successfully! Your business has been added to our database.");
-            window.location.href = 'profile.html';
+            window.location.href = '/profile';
         } catch (error) {
             console.error('Error registering business:', error);
             alert('Error registering business: ' + error.message);
@@ -585,3 +585,4 @@
 
 </body>
 </html>
+

@@ -180,25 +180,25 @@
 <body>
 
 <nav>
-    <a href="index.html" class="logo">
+    <a href="/" class="logo">
         <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
         <span>Enterprise Room Business Hub</span>
     </a>
     <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="eventspage.html">Events</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="tools.html">Tools</a></li>
-        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
-        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
-        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/eventspage">Events</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/tools">Tools</a></li>
+        <li><a href="/pitch" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="/directories" class="btn-primary-link">Directories</a></li>
+        <li><a href="/profile" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
     </ul>
 </nav>
 
 <div class="breadcrumbs">
-    <a href="index.html">Home</a>
+    <a href="/">Home</a>
     <span>/</span>
-    <a href="blog.html">Blog</a>
+    <a href="/blog">Blog</a>
     <span>/</span>
     <span id="breadcrumb-title">Post</span>
 </div>
@@ -221,19 +221,19 @@
             <div>
                 <h4>Quick Links</h4>
                 <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="eventspage.html">Events</a></li>
-                    <li><a href="blog.html">Blog</a></li>
-                    <li><a href="directories.html">Directories</a></li>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/eventspage">Events</a></li>
+                    <li><a href="/blog">Blog</a></li>
+                    <li><a href="/directories">Directories</a></li>
                 </ul>
             </div>
             <div>
                 <h4>Resources</h4>
                 <ul>
-                    <li><a href="tools.html">Financial Tools</a></li>
-                    <li><a href="pitch.html">Pitch Competition</a></li>
-                    <li><a href="profile.html">My Profile</a></li>
-                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="/tools">Financial Tools</a></li>
+                    <li><a href="/pitch">Pitch Competition</a></li>
+                    <li><a href="/profile">My Profile</a></li>
+                    <li><a href="/about">About Us</a></li>
                 </ul>
             </div>
             <div>
@@ -278,7 +278,7 @@
                 <div class="error">
                     <h2>Post Not Found</h2>
                     <p>No blog post ID provided.</p>
-                    <a href="blog.html" class="back-button">← Back to Blog</a>
+                    <a href="/blog" class="back-button">← Back to Blog</a>
                 </div>
             `;
             return;
@@ -293,7 +293,7 @@
                         <div class="error">
                             <h2>Post Not Found</h2>
                             <p>The blog post you're looking for doesn't exist or has been removed.</p>
-                            <a href="blog.html" class="back-button">← Back to Blog</a>
+                            <a href="/blog" class="back-button">← Back to Blog</a>
                         </div>
                     `;
                 } else {
@@ -360,7 +360,7 @@
                         <span class="blog-post-category" style="background: ${categoryBg};">${post.category || 'Uncategorized'}</span>
                         <h1 class="blog-post-title">${post.title || 'Untitled'}</h1>
                         <div class="blog-post-meta">
-                            ${post.author ? `<span><strong>By:</strong> <a href="author.html?name=${encodeURIComponent(post.author)}" style="color: var(--accent); text-decoration: none;">${post.author}</a></span>` : ''}
+                            ${post.author ? `<span><strong>By:</strong> <a href="/author?name=${encodeURIComponent(post.author)}" style="color: var(--accent); text-decoration: none;">${post.author}</a></span>` : ''}
                             ${publishedDate ? `<span><strong>Published:</strong> ${publishedDate}</span>` : ''}
                             <span><strong>Reading time:</strong> ${calculateReadingTime(post.content || post.excerpt || '')} min</span>
                         </div>
@@ -412,7 +412,7 @@
                             <h3 style="font-size: 1.5rem; color: var(--primary); margin-bottom: 20px; border-left: 4px solid var(--accent); padding-left: 15px;">Related Posts</h3>
                             <div id="related-posts-grid" class="blog-grid" style="grid-template-columns: repeat(4, 1fr);"></div>
                         </div>
-                        <a href="blog.html" class="back-button">← Back to Blog</a>
+                        <a href="/blog" class="back-button">← Back to Blog</a>
                     </div>
                 </article>
             `;
@@ -428,7 +428,7 @@
                 <div class="error">
                     <h2>Error Loading Post</h2>
                     <p>Unable to load the blog post. Please try again later.</p>
-                    <a href="blog.html" class="back-button">← Back to Blog</a>
+                    <a href="/blog" class="back-button">← Back to Blog</a>
                 </div>
             `;
         }
@@ -482,7 +482,7 @@
         const safeExcerpt = excerpt.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         
         return `
-            <div onclick="window.location.href='blog-post.html?id=${post.id}'" style="cursor: pointer; background: var(--white); border-radius: 8px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)';" onmouseout="this.style.transform='';">
+            <div onclick="window.location.href='/blog-post?id=${post.id}'" style="cursor: pointer; background: var(--white); border-radius: 8px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)';" onmouseout="this.style.transform='';">
                 <h4 style="margin: 0 0 8px 0; color: var(--primary); font-size: 1rem;">${safeTitle}</h4>
                 <p style="margin: 0; font-size: 0.85rem; color: var(--text-light); line-height: 1.4;">${safeExcerpt}</p>
             </div>
@@ -593,4 +593,5 @@
 
 </body>
 </html>
+
 

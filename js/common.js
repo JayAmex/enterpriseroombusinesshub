@@ -78,14 +78,13 @@ function initMobileNav() {
 
 // Set active page in navigation
 function setActivePage() {
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+    const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
     const navLinks = document.querySelectorAll('nav a[href]');
-    
+
     navLinks.forEach(link => {
-        const linkPage = link.getAttribute('href');
-        if (linkPage === currentPage || 
-            (currentPage === '' && linkPage === 'index.html') ||
-            (currentPage === 'index.html' && linkPage === 'index.html')) {
+        const linkPath = new URL(link.getAttribute('href'), window.location.origin)
+            .pathname.replace(/\/$/, '') || '/';
+        if (linkPath === currentPath) {
             link.classList.add('active-page');
         }
     });
@@ -287,7 +286,7 @@ function updateNavAuthStatus() {
     
     // Update main navigation links - try multiple selectors to catch all cases
     const selectors = [
-        'nav a[href="profile.html"]',
+        'nav a[href="/profile"]',
         'nav .btn-profile',
         'nav a.btn-profile',
         'nav li a[href*="profile"]'
@@ -306,7 +305,7 @@ function updateNavAuthStatus() {
     profileLinks.forEach(link => {
         if (!isAuthenticated) {
             // User not logged in - show Login/Register
-            link.href = 'login.html';
+            link.href = '/login';
             link.classList.remove('btn-profile');
             link.classList.add('btn-primary-link');
             
@@ -326,7 +325,7 @@ function updateNavAuthStatus() {
             }
         } else {
             // User is logged in - show My Profile
-            link.href = 'profile.html';
+            link.href = '/profile';
             link.classList.add('btn-profile');
             link.classList.remove('btn-primary-link');
             
@@ -343,7 +342,7 @@ function updateNavAuthStatus() {
     
     // Also update mobile menu
     const mobileSelectors = [
-        '.mobile-menu a[href="profile.html"]',
+        '.mobile-menu a[href="/profile"]',
         '.mobile-menu .btn-profile',
         '.mobile-menu a.btn-profile'
     ];
@@ -360,12 +359,12 @@ function updateNavAuthStatus() {
     
     mobileProfileLinks.forEach(link => {
         if (!isAuthenticated) {
-            link.href = 'login.html';
+            link.href = '/login';
             link.textContent = 'Login/Register';
             link.classList.remove('btn-profile');
             link.classList.add('btn-primary-link');
         } else {
-            link.href = 'profile.html';
+            link.href = '/profile';
             link.textContent = 'My Profile';
             link.classList.add('btn-profile');
             link.classList.remove('btn-primary-link');
@@ -440,15 +439,15 @@ function handleGlobalSearch(e) {
     
     // Search pages
     const pages = [
-        { title: 'Home', url: 'index.html' },
-        { title: 'Events', url: 'eventspage.html' },
-        { title: 'Blog', url: 'blog.html' },
-        { title: 'Financial Calculators', url: 'tools.html' },
-        { title: 'Directories', url: 'directories.html' },
-        { title: 'Pitch Competition', url: 'pitch.html' },
-        { title: 'FAQ', url: 'faq.html' },
-        { title: 'Contact Us', url: 'contact.html' },
-        { title: 'About Us', url: 'about.html' }
+        { title: 'Home', url: '/' },
+        { title: 'Events', url: '/eventspage' },
+        { title: 'Blog', url: '/blog' },
+        { title: 'Financial Calculators', url: '/tools' },
+        { title: 'Directories', url: '/directories' },
+        { title: 'Pitch Competition', url: '/pitch' },
+        { title: 'FAQ', url: '/faq' },
+        { title: 'Contact Us', url: '/contact' },
+        { title: 'About Us', url: '/about' }
     ];
     
     pages.forEach(page => {

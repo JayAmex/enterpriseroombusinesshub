@@ -47,7 +47,7 @@ async function run() {
         console.log('  Full name:', fullName);
         console.log('  Role: super_admin');
         console.log('');
-        console.log('Log in at: https://www.enterpriserm.com/admin-login.html (or your site URL + /admin-login.html)');
+        console.log('Log in at: https://www.enterpriserm.com/admin-login (or your site URL + /admin-login)');
     } finally {
         await conn.end();
     }

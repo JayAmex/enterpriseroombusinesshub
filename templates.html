@@ -9,15 +9,15 @@
         // Check authentication before page loads
         (function() {
             if (sessionStorage.getItem('userAuthenticated') !== 'true') {
-                sessionStorage.setItem('redirectAfterLogin', 'templates.html');
-                window.location.replace('login.html');
+                sessionStorage.setItem('redirectAfterLogin', '/templates');
+                window.location.replace('/login');
                 return;
             }
         })();
     </script>
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        /* Page-specific styles - Matching tools.html layout */
+        /* Page-specific styles - Matching /tools layout */
         .templates-page-container {
             display: flex;
             gap: 30px;
@@ -325,7 +325,7 @@
 <body>
 
 <nav>
-    <a href="index.html" class="logo">
+    <a href="/" class="logo">
         <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
         <span>Enterprise Room Business Hub</span>
     </a>
@@ -336,20 +336,20 @@
             <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border: 1px solid var(--border); border-radius: 8px; margin-top: 5px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
         </div>
         <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="eventspage.html">Events</a></li>
-            <li><a href="blog.html">Blog</a></li>
-            <li><a href="tools.html">Tools</a></li>
-            <li><a href="templates.html" class="active-page">Templates</a></li>
-            <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
-            <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
-            <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+            <li><a href="/">Home</a></li>
+            <li><a href="/eventspage">Events</a></li>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/tools">Tools</a></li>
+            <li><a href="/templates" class="active-page">Templates</a></li>
+            <li><a href="/pitch" class="btn-primary-link">Pitch Competition</a></li>
+            <li><a href="/directories" class="btn-primary-link">Directories</a></li>
+            <li><a href="/profile" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
         </ul>
     </div>
 </nav>
 
 <div class="breadcrumbs">
-    <a href="index.html">Home</a>
+    <a href="/">Home</a>
     <span>/</span>
     <span>Document Templates</span>
 </div>
@@ -957,7 +957,7 @@
         }
     }
 
-    // Show category function - matching tools.html style
+    // Show category function - matching /tools style
     function showCategory(categoryId) {
         try {
             // Hide all category views
@@ -1202,3 +1202,4 @@
 
 </body>
 </html>
+

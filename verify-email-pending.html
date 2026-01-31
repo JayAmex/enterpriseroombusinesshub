@@ -41,23 +41,23 @@
 <body>
 
 <nav>
-    <a href="index.html" class="logo">
+    <a href="/" class="logo">
         <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
         <span>Enterprise Room Business Hub</span>
     </a>
     <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="eventspage.html">Events</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="tools.html">Tools</a></li>
-        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
-        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
-        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/eventspage">Events</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/tools">Tools</a></li>
+        <li><a href="/pitch" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="/directories" class="btn-primary-link">Directories</a></li>
+        <li><a href="/profile" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
     </ul>
 </nav>
 
 <div class="breadcrumbs">
-    <a href="index.html">Home</a>
+    <a href="/">Home</a>
     <span>/</span>
     <span>Verify Email</span>
 </div>
@@ -71,9 +71,9 @@
         <p>Didn’t receive it? Check spam, or request a new link below.</p>
         <button type="button" class="btn-resend" id="btnResend">Send new verification link</button>
         <p style="margin-top: 24px; font-weight: 600;">Already verified?</p>
-        <a href="login.html" class="btn-ok" id="btnOk">OK — Go to sign in</a>
+        <a href="/login" class="btn-ok" id="btnOk">OK — Go to sign in</a>
         <div class="footer-links" style="margin-top: 20px;">
-            <a href="login.html">Back to login</a>
+            <a href="/login">Back to login</a>
         </div>
     </div>
 </div>
@@ -123,7 +123,7 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data.verified) {
-                        window.location.href = 'login.html';
+                        window.location.href = '/login';
                     }
                 })
                 .catch(function() {});
@@ -133,3 +133,4 @@
 </script>
 </body>
 </html>
+

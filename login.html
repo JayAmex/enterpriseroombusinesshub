@@ -73,23 +73,23 @@
 <body>
 
 <nav>
-    <a href="index.html" class="logo">
+    <a href="/" class="logo">
         <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
         <span>Enterprise Room Business Hub</span>
     </a>
     <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="eventspage.html">Events</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="tools.html">Tools</a></li>
-        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
-        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
-        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/eventspage">Events</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/tools">Tools</a></li>
+        <li><a href="/pitch" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="/directories" class="btn-primary-link">Directories</a></li>
+        <li><a href="/profile" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
     </ul>
 </nav>
 
 <div class="breadcrumbs">
-    <a href="index.html">Home</a>
+    <a href="/">Home</a>
     <span>/</span>
     <span>Login</span>
 </div>
@@ -113,7 +113,7 @@
         <!-- Test accounts should be created in the database, not hardcoded -->
 
         <div class="footer-links">
-            <a href="forgot-password.html">Forgot Password?</a> | New User? <a href="register.html">Create Account</a>
+            <a href="/forgot-password">Forgot Password?</a> | New User? <a href="/register">Create Account</a>
         </div>
     </div>
 </div>
@@ -161,7 +161,7 @@
                 // Get the page they were trying to access, or default to profile
                 const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 
                                    sessionStorage.getItem('redirectAfterLogin') || 
-                                   'profile.html';
+                                   '/profile';
                 sessionStorage.removeItem('redirectAfterLogin');
                 
                 // Update navigation on all pages (if function exists)
@@ -174,7 +174,7 @@
             } else if (data.code === 'EMAIL_NOT_VERIFIED') {
                 const msg = data.message || 'Please verify your email before signing in.';
                 alert(msg + '\n\nYou can request a new verification link on the next page.');
-                window.location.href = 'verify-email-pending.html?email=' + encodeURIComponent(document.getElementById('loginEmail').value || '');
+                window.location.href = '/verify-email-pending?email=' + encodeURIComponent(document.getElementById('loginEmail').value || '');
             } else {
                 const errorMessage = data.message || 'Invalid email or password. Please try again.';
                 alert(errorMessage);
@@ -192,9 +192,10 @@
     
     // Check if already logged in
     if (sessionStorage.getItem('userAuthenticated') === 'true') {
-        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || 'profile.html';
+        const redirectUrl = new URLSearchParams(window.location.search).get('redirect') || '/profile';
         window.location.href = redirectUrl;
     }
 </script>
 </body>
 </html>
+

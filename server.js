@@ -498,7 +498,7 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         // In production, you would send an email here with the reset link
         // For now, we'll return the token in the response (for development/testing)
         // In production, remove the token from the response and send it via email
-        const resetLink = `${req.protocol}://${req.get('host')}/reset-password.html?token=${resetToken}`;
+        const resetLink = `${req.protocol}://${req.get('host')}/reset-password?token=${resetToken}`;
 
         res.json({
             message: 'If an account with that email exists, a password reset link has been sent.',
@@ -634,7 +634,7 @@ app.post('/api/auth/register', async (req, res) => {
         );
         insertedUserId = result.insertId;
 
-        const verificationLink = `${SITE_URL}/verify-email.html?token=${verificationToken}`;
+        const verificationLink = `${SITE_URL}/verify-email?token=${verificationToken}`;
         await sendVerificationEmail(emailNorm, name, verificationLink);
         await logEmailSent({ type: 'verification', to_email: emailNorm, user_id: result.insertId, from_address: MAIL_FROM });
 
@@ -661,7 +661,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 });
 
-// Verify email (user clicks link: /verify-email.html?token=...)
+// Verify email (user clicks link: /verify-email?token=...)
 app.get('/api/auth/verify-email', async (req, res) => {
     try {
         const token = (req.query.token || '').trim();
@@ -755,7 +755,7 @@ app.post('/api/auth/resend-verification', async (req, res) => {
             [verificationToken, expiresAt, user.id]
         );
 
-        const verificationLink = `${SITE_URL}/verify-email.html?token=${verificationToken}`;
+        const verificationLink = `${SITE_URL}/verify-email?token=${verificationToken}`;
         await sendVerificationEmail(emailNorm, user.name, verificationLink);
         await logEmailSent({ type: 'verification_resend', to_email: emailNorm, user_id: user.id, from_address: MAIL_FROM });
 
@@ -2387,7 +2387,7 @@ app.get('/api/blog/rss', async (req, res) => {
 <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
     <channel>
         <title>Enterprise Room Business Hub - Blog</title>
-        <link>${siteUrl}/blog.html</link>
+        <link>${siteUrl}/blog</link>
         <description>Insights, research, and success stories from our ecosystem</description>
         <language>en-us</language>
         <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
@@ -2398,7 +2398,7 @@ app.get('/api/blog/rss', async (req, res) => {
             const pubDate = post.published_date 
                 ? new Date(post.published_date).toUTCString() 
                 : new Date(post.updated_at).toUTCString();
-            const postUrl = `${baseUrl}/blog-post.html?id=${post.id}`;
+            const postUrl = `${baseUrl}/blog-post?id=${post.id}`;
             const description = post.excerpt || (post.content ? post.content.substring(0, 200) + '...' : '');
             const cleanDescription = description
                 .replace(/&/g, '&amp;')

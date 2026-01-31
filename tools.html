@@ -10,7 +10,7 @@
         (function() {
             if (sessionStorage.getItem('userAuthenticated') !== 'true') {
                 sessionStorage.setItem('redirectAfterLogin', '/tools');
-                window.location.replace('login.html');
+                window.location.replace('/login');
                 return;
             }
         })();
@@ -494,24 +494,24 @@
 <body>
 
 <nav>
-    <a href="index.html" class="logo">
+    <a href="/" class="logo">
         <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
         <span>Enterprise Room Business Hub</span>
     </a>
     <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="eventspage.html">Events</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="tools.html">Tools</a></li>
-        <li><a href="templates.html">Templates</a></li>
-        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
-        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
-        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/eventspage">Events</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/tools">Tools</a></li>
+        <li><a href="/templates">Templates</a></li>
+        <li><a href="/pitch" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="/directories" class="btn-primary-link">Directories</a></li>
+        <li><a href="/profile" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
     </ul>
 </nav>
 
 <div class="breadcrumbs">
-    <a href="index.html">Home</a>
+    <a href="/">Home</a>
     <span>/</span>
     <span>Financial Calculators</span>
 </div>
@@ -2081,3 +2081,4 @@
 
 </body>
 </html>
+

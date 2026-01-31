@@ -350,7 +350,7 @@
 <body>
 
 <nav>
-    <a href="index.html" class="logo">
+    <a href="/" class="logo">
         <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
         <span>Enterprise Room Business Hub</span>
     </a>
@@ -361,20 +361,20 @@
             <div id="searchResults" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: var(--white); border: 1px solid var(--border); border-radius: 8px; margin-top: 5px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);"></div>
         </div>
         <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="eventspage.html">Events</a></li>
-            <li><a href="blog.html">Blog</a></li>
-            <li><a href="tools.html">Tools</a></li>
-            <li><a href="templates.html">Templates</a></li>
-            <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
-            <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
-            <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+            <li><a href="/">Home</a></li>
+            <li><a href="/eventspage">Events</a></li>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/tools">Tools</a></li>
+            <li><a href="/templates">Templates</a></li>
+            <li><a href="/pitch" class="btn-primary-link">Pitch Competition</a></li>
+            <li><a href="/directories" class="btn-primary-link">Directories</a></li>
+            <li><a href="/profile" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
         </ul>
     </div>
 </nav>
 
 <div class="breadcrumbs">
-    <a href="index.html">Home</a>
+    <a href="/">Home</a>
     <span>/</span>
     <span>Events</span>
 </div>
@@ -431,19 +431,19 @@
             <div>
                 <h4>Quick Links</h4>
                 <ul>
-                    <li><a href="index.html">Home</a></li>
-                    <li><a href="eventspage.html">Events</a></li>
-                    <li><a href="blog.html">Blog</a></li>
-                    <li><a href="directories.html">Directories</a></li>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/eventspage">Events</a></li>
+                    <li><a href="/blog">Blog</a></li>
+                    <li><a href="/directories">Directories</a></li>
                 </ul>
             </div>
             <div>
                 <h4>Resources</h4>
                 <ul>
-                    <li><a href="tools.html">Financial Tools</a></li>
-                    <li><a href="pitch.html">Pitch Competition</a></li>
-                    <li><a href="profile.html">My Profile</a></li>
-                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="/tools">Financial Tools</a></li>
+                    <li><a href="/pitch">Pitch Competition</a></li>
+                    <li><a href="/profile">My Profile</a></li>
+                    <li><a href="/about">About Us</a></li>
                 </ul>
             </div>
             <div>
@@ -1126,13 +1126,13 @@
             sessionStorage.removeItem('userAuthenticated');
             sessionStorage.removeItem('userEmail');
             sessionStorage.removeItem('userName');
-            window.location.href = 'login.html?redirect=eventspage.html';
+            window.location.href = '/login?redirect=/eventspage';
             return;
         }
         
         if (!userToken) {
             alert('Please login to RSVP for events.');
-            window.location.href = 'login.html?redirect=eventspage.html';
+            window.location.href = '/login?redirect=/eventspage';
             return;
         }
         
@@ -1225,7 +1225,7 @@
             console.error('RSVP error:', error);
             if (error.message.includes('401') || error.message.includes('token')) {
                 alert('Your session has expired. Please login again.');
-                window.location.href = 'login.html?redirect=eventspage.html';
+                window.location.href = '/login?redirect=/eventspage';
             } else {
                 alert('An error occurred. Please try again.');
             }
@@ -1459,3 +1459,4 @@
 
 </body>
 </html>
+

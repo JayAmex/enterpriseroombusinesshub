@@ -9,8 +9,8 @@
         // Check authentication before page loads
         (function() {
             if (sessionStorage.getItem('userAuthenticated') !== 'true') {
-                sessionStorage.setItem('redirectAfterLogin', 'profile.html');
-                window.location.replace('login.html');
+                sessionStorage.setItem('redirectAfterLogin', '/profile');
+                window.location.replace('/login');
                 return;
             }
         })();
@@ -258,24 +258,24 @@
 <body>
 
 <nav>
-    <a href="index.html" class="logo">
+    <a href="/" class="logo">
         <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
         <span>Enterprise Room Business Hub</span>
     </a>
     <ul>
-        <li><a href="index.html">Home</a></li>
-        <li><a href="eventspage.html">Events</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="tools.html">Tools</a></li>
-        <li><a href="templates.html">Templates</a></li>
-        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
-        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
-        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+        <li><a href="/">Home</a></li>
+        <li><a href="/eventspage">Events</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/tools">Tools</a></li>
+        <li><a href="/templates">Templates</a></li>
+        <li><a href="/pitch" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="/directories" class="btn-primary-link">Directories</a></li>
+        <li><a href="/profile" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
     </ul>
 </nav>
 
 <div class="breadcrumbs">
-    <a href="index.html">Home</a>
+    <a href="/">Home</a>
     <span>/</span>
     <span>My Profile</span>
 </div>
@@ -348,7 +348,7 @@
                 </div>
             </div>
             <div style="margin-top: auto; padding-top: 15px;">
-                <a href="register-business.html" id="registerBusinessBtn" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem; text-decoration: none; display: inline-block;">Register Business</a>
+                <a href="/register-business" id="registerBusinessBtn" class="btn btn-primary" style="padding: 8px 15px; font-size: 0.9rem; text-decoration: none; display: inline-block;">Register Business</a>
             </div>
         </div>
         
@@ -442,9 +442,9 @@
         <div class="card">
             <h3>Quick Actions</h3>
             <ul>
-                <li><a href="directories.html">View Business Directory</a></li>
-                <li><a href="tools.html">Access Financial Tools</a></li>
-                <li><a href="my-events.html">View My Registered Events</a></li>
+                <li><a href="/directories">View Business Directory</a></li>
+                <li><a href="/tools">Access Financial Tools</a></li>
+                <li><a href="/my-events">View My Registered Events</a></li>
                 <li><a href="#" onclick="viewSavedCalculations(); return false;">View Saved Calculations</a></li>
             </ul>
             <hr>
@@ -1208,7 +1208,7 @@
                     sessionStorage.removeItem('userAuthenticated');
                     sessionStorage.removeItem('userName');
                     sessionStorage.removeItem('userEmail');
-                    window.location.href = 'login.html';
+                    window.location.href = '/login';
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -1402,7 +1402,7 @@
                         <p style="margin: 5px 0; color: var(--text-light); font-size: 0.9rem;"><strong>Status:</strong> ${event.status || 'N/A'}</p>
                         ${event.description ? `<p style="margin: 8px 0 0 0; color: var(--text); font-size: 0.85rem; line-height: 1.4;">${event.description.length > 100 ? event.description.substring(0, 100) + '...' : event.description}</p>` : ''}
                         <div style="margin-top: 10px;">
-                            <a href="eventspage.html?event=${event.id || ''}" style="color: var(--accent); text-decoration: none; font-size: 0.85rem;">View Event →</a>
+                            <a href="/eventspage?event=${event.id || ''}" style="color: var(--accent); text-decoration: none; font-size: 0.85rem;">View Event →</a>
                             <span style="margin: 0 8px; color: var(--border);">|</span>
                             <a href="#" onclick="removeSavedEvent(${event.id || (startIndex + index)}); return false;" style="color: var(--live); text-decoration: none; font-size: 0.85rem;">Remove</a>
                         </div>
@@ -1468,7 +1468,7 @@
                             <p style="margin: 5px 0; color: var(--text-light); font-size: 0.9rem;"><strong>Published:</strong> ${publishedDate}</p>
                             ${excerpt ? `<p style="margin: 8px 0 0 0; color: var(--text); font-size: 0.85rem; line-height: 1.4;">${safeExcerpt}</p>` : ''}
                             <div style="margin-top: 10px;">
-                                <a href="blog-post.html?id=${post.id}" style="color: var(--accent); text-decoration: none; font-size: 0.85rem;">Read Post →</a>
+                                <a href="/blog-post?id=${post.id}" style="color: var(--accent); text-decoration: none; font-size: 0.85rem;">Read Post →</a>
                                 <span style="margin: 0 8px; color: var(--border);">|</span>
                                 <a href="#" onclick="removeSavedPost(${post.id}); return false;" style="color: var(--live); text-decoration: none; font-size: 0.85rem;">Remove</a>
                             </div>
@@ -1942,7 +1942,7 @@
                 alert('Your account and all data have been permanently deleted.');
                 
                 // Redirect to homepage
-                window.location.href = 'index.html';
+                window.location.href = '/';
             } else {
                 errorDiv.textContent = data.message || 'Failed to delete account';
                 errorDiv.style.display = 'block';
@@ -1972,11 +1972,11 @@
             }
             
             // Redirect to homepage
-            window.location.href = 'index.html';
+            window.location.href = '/';
         } catch (error) {
             console.error('Error during logout:', error);
             // Force redirect even if there's an error
-            window.location.href = 'index.html';
+            window.location.href = '/';
         }
     }
     
@@ -2008,3 +2008,4 @@
 </script>
 </body>
 </html>
+
