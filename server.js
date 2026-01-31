@@ -3216,25 +3216,25 @@ app.get('/api/stats', async (req, res) => {
         const [activeUsersResult] = await pool.execute(
             'SELECT COUNT(*) as count FROM users WHERE is_active = TRUE'
         );
-        const activeMembers = activeUsersResult[0]?.count || 0;
+        const activeMembers = Number(activeUsersResult[0]?.count ?? 0);
         
         // Get businesses count
         const [businessesResult] = await pool.execute(
             'SELECT COUNT(*) as count FROM businesses'
         );
-        const businessesListed = businessesResult[0]?.count || 0;
+        const businessesListed = Number(businessesResult[0]?.count ?? 0);
         
-        // Get events count
+        // Get events count (same source as admin dashboard)
         const [eventsResult] = await pool.execute(
             'SELECT COUNT(*) as count FROM events'
         );
-        const eventsHosted = eventsResult[0]?.count || 0;
+        const eventsHosted = Number(eventsResult[0]?.count ?? 0);
         
         // Calculate total funding committed from pitch entries
         const [fundingResult] = await pool.execute(
             'SELECT COALESCE(SUM(funding_amount), 0) as total_funding FROM pitch_entries'
         );
-        const totalFunding = fundingResult[0]?.total_funding || 0;
+        const totalFunding = Number(fundingResult[0]?.total_funding ?? 0);
         
         res.json({
             activeMembers: activeMembers,

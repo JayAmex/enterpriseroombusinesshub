@@ -241,10 +241,11 @@
                 fundingEl.textContent = formatCurrency(funding) + '+';
             }
             
-            // Update Events Hosted
+            // Update Events Hosted (same count as admin dashboard)
             const eventsEl = document.getElementById('stat-events');
             if (eventsEl) {
-                eventsEl.textContent = formatNumber(stats.eventsHosted) + '+';
+                const eventsCount = stats.eventsHosted ?? stats.events_hosted ?? 0;
+                eventsEl.textContent = formatNumber(eventsCount) + '+';
             }
         } catch (error) {
             console.error('Error loading homepage stats:', error);

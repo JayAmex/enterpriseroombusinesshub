@@ -765,6 +765,20 @@
                     <label>Annual Gross Salary (₦)</label>
                     <input type="text" id="annualSalary" value="0.00" onblur="formatAmountInput(this); updatePensionContributionFromSalary();" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter your annual salary">
                 </div>
+                <div class="input-group">
+                    <label>Employment sector</label>
+                    <div class="radio-group" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                        <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+                            <input type="radio" name="pitEmploymentSector" id="pitSectorPrivate" value="private" checked onchange="setPitEmploymentSector('private'); updatePensionContributionFromSalary();">
+                            <span>Private sector</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+                            <input type="radio" name="pitEmploymentSector" id="pitSectorPublic" value="public" onchange="setPitEmploymentSector('public'); updatePensionContributionFromSalary();">
+                            <span>Public sector</span>
+                        </label>
+                    </div>
+                    <small style="color: var(--text-light); display: block; margin-top: 0.25rem;">NHF (2.5%) applies only for public sector; private sector may contribute voluntarily.</small>
+                </div>
                 <div class="input-grid">
                     <div class="input-group">
                         <label style="display: flex; align-items: center; gap: 5px;">
@@ -800,6 +814,18 @@
                     </div>
                     <div class="input-group">
                         <label style="display: flex; align-items: center; gap: 5px;">
+                            <span>National Housing Fund – NHF (₦)</span>
+                            <span class="info-icon">
+                                <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                                <span class="tooltip">National Housing Fund (NHF) is 2.5% of gross salary. Automatically calculated. By law, NHF is mandatory for public sector employees and the self-employed; private sector employees may contribute voluntarily (since 2023).</span>
+                            </span>
+                        </label>
+                        <input type="text" id="nhfContribution" value="0.00" readonly placeholder="Auto-calculated (2.5% of gross)">
+                    </div>
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label style="display: flex; align-items: center; gap: 5px;">
                             <span>Interest on Loans (₦)</span>
                             <span class="info-icon">
                                 <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
@@ -808,10 +834,10 @@
                         </label>
                         <input type="text" id="interestOnLoans" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter interest on loans">
                     </div>
-                </div>
-                <div class="input-group">
-                    <label>NHIS Contribution (₦)</label>
-                    <input type="text" id="nhisContribution" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter NHIS contribution">
+                    <div class="input-group">
+                        <label>NHIS Contribution (₦)</label>
+                        <input type="text" id="nhisContribution" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter NHIS contribution">
+                    </div>
                 </div>
                 <button class="btn-calc" onclick="calculatePersonalIncomeTax()">Calculate Tax</button>
                 
@@ -1426,6 +1452,7 @@
                 set('annualRent', amountDefault);
                 set('lifeInsurance', amountDefault);
                 set('pensionContribution', amountDefault);
+                set('nhfContribution', amountDefault);
                 set('interestOnLoans', amountDefault);
                 set('nhisContribution', amountDefault);
                 if (typeof updatePensionContributionFromSalary === 'function') updatePensionContributionFromSalary();
@@ -1618,6 +1645,7 @@
     }
 
     function calculatePersonalIncomeTax() {
+        if (typeof updatePensionContributionFromSalary === 'function') updatePensionContributionFromSalary();
         const grossSalary = parseAmountInput(document.getElementById('annualSalary').value);
         const annualRent = parseAmountInput(document.getElementById('annualRent').value);
         const lifeInsurance = parseAmountInput(document.getElementById('lifeInsurance').value);
@@ -1630,7 +1658,8 @@
         }
 
         const pensionContribution = grossSalary * 0.08;
-        const nhfContribution = grossSalary * 0.025;
+        const sector = getPitEmploymentSector();
+        const nhfContribution = sector === 'public' ? grossSalary * 0.025 : 0; // NHF mandatory for public sector only
         const lifeInsuranceDeduction = Math.min(lifeInsurance, 100000);
         const rentRelief = Math.min(annualRent * 0.20, 500000);
         const nhisDeduction = nhisContribution;
@@ -1689,13 +1718,36 @@
         document.getElementById('taxResultBox').classList.add('show');
     }
 
+    function getPitEmploymentSector() {
+        const radio = document.querySelector('input[name="pitEmploymentSector"]:checked');
+        return radio ? radio.value : 'private';
+    }
+
+    function setPitEmploymentSector(value) {
+        const key = 'pit_employment_sector';
+        try { localStorage.setItem(key, value); } catch (e) {}
+        const el = document.getElementById(value === 'public' ? 'pitSectorPublic' : 'pitSectorPrivate');
+        if (el) el.checked = true;
+    }
+
+    function initPitEmploymentSector() {
+        try {
+            const saved = localStorage.getItem('pit_employment_sector') || 'private';
+            setPitEmploymentSector(saved);
+        } catch (e) {}
+    }
+
     function updatePensionContributionFromSalary() {
         const salaryInput = document.getElementById('annualSalary');
         const pensionInput = document.getElementById('pensionContribution');
+        const nhfInput = document.getElementById('nhfContribution');
         if (!salaryInput || !pensionInput) return;
         const grossSalary = parseAmountInput(salaryInput.value);
         const pension = grossSalary > 0 ? grossSalary * 0.08 : 0;
+        const sector = getPitEmploymentSector();
+        const nhf = (sector === 'public' && grossSalary > 0) ? grossSalary * 0.025 : 0;
         pensionInput.value = formatNaira(pension).replace('₦', '');
+        if (nhfInput) nhfInput.value = formatNaira(nhf).replace('₦', '');
     }
 
     function calculateCompanyIncomeTax() {
@@ -2065,6 +2117,7 @@
         loadExchangeRates();
         loadCalculatorDefaults();
         resetAllToolForms();
+        if (typeof initPitEmploymentSector === 'function') initPitEmploymentSector();
         
         // Load and apply tool visibility settings
         loadToolVisibility();
@@ -2101,6 +2154,7 @@
         formatAmountInput(document.getElementById('annualRent'));
         formatAmountInput(document.getElementById('lifeInsurance'));
         formatAmountInput(document.getElementById('pensionContribution'));
+        formatAmountInput(document.getElementById('nhfContribution'));
         formatAmountInput(document.getElementById('interestOnLoans'));
         formatAmountInput(document.getElementById('nhisContribution'));
         formatAmountInput(document.getElementById('payrollGrossSalary'));
@@ -2161,6 +2215,8 @@
     window.calculateMortgage = calculateMortgage;
     window.calculatePersonalIncomeTax = calculatePersonalIncomeTax;
     window.updatePensionContributionFromSalary = updatePensionContributionFromSalary;
+    window.setPitEmploymentSector = setPitEmploymentSector;
+    window.initPitEmploymentSector = initPitEmploymentSector;
     window.calculateCompanyIncomeTax = calculateCompanyIncomeTax;
     window.calculateBreakEven = calculateBreakEven;
     window.calculateCashFlow = calculateCashFlow;
