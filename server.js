@@ -29,6 +29,7 @@ const PORT = process.env.PORT || 3000;
 // Base URL for verification links (e.g. https://yoursite.com or http://localhost:3000)
 const SITE_URL = process.env.SITE_URL || `http://localhost:${PORT}`;
 const MAIL_FROM = process.env.MAIL_FROM || 'register@enterpriserm.com';
+const MAIL_FROM_NAME = process.env.MAIL_FROM_NAME || 'EnterpriseRM';
 
 // Optional SMTP for sending verification emails (register@)
 let mailTransporter = null;
