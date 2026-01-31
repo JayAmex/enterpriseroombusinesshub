@@ -134,6 +134,10 @@ if (process.env.DB_SSL === 'true') {
 // Create connection pool
 const pool = mysql.createPool(dbConfig);
 
+ensureAdminActivityLogTable().catch((err) => {
+    console.error('Failed to ensure admin_activity_log table:', err.message);
+});
+
 /** Log sent email to email_sent_log for records (verification, welcome, verification_resend). */
 async function logEmailSent(options) {
     const { type, to_email, user_id = null, from_address = null } = options;
@@ -315,6 +319,115 @@ function authenticateAdmin(req, res, next) {
         req.admin = admin;
         next();
     });
+}
+
+app.use('/api/admin', (req, res, next) => {
+    const method = req.method.toUpperCase();
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) return next();
+
+    res.on('finish', () => {
+        if (!req.admin) return;
+        const targetId = req.params?.id || req.params?.email || req.params?.username || null;
+        const path = (req.originalUrl || '').split('?')[0];
+        const details = buildAdminLogDetails(req);
+        recordAdminAction({
+            admin_id: req.admin.id,
+            action: `${method} ${path}`,
+            method,
+            path,
+            target_id: targetId ? String(targetId) : null,
+            status: res.statusCode,
+            ip_address: req.ip || null,
+            user_agent: req.headers['user-agent'] || null,
+            details
+        });
+    });
+
+    next();
+});
+
+function requireSuperAdmin(req, res, next) {
+    if (!req.admin || req.admin.role !== 'super_admin') {
+        return res.status(403).json({
+            error: true,
+            message: 'Super admin access required',
+            code: 'PERMISSION_DENIED'
+        });
+    }
+    next();
+}
+
+function sanitizeLogPayload(payload) {
+    if (payload === null || payload === undefined) return payload;
+    if (Array.isArray(payload)) return payload.map(sanitizeLogPayload);
+    if (typeof payload === 'object') {
+        const out = {};
+        for (const [key, value] of Object.entries(payload)) {
+            if (/password|token|secret/i.test(key)) {
+                out[key] = '[redacted]';
+            } else {
+                out[key] = sanitizeLogPayload(value);
+            }
+        }
+        return out;
+    }
+    return payload;
+}
+
+function buildAdminLogDetails(req) {
+    const details = {
+        params: req.params || {},
+        query: req.query || {},
+        body: sanitizeLogPayload(req.body || {})
+    };
+    let serialized = JSON.stringify(details);
+    if (serialized.length > 2000) {
+        serialized = serialized.slice(0, 2000) + '...';
+    }
+    return serialized;
+}
+
+async function ensureAdminActivityLogTable() {
+    await pool.execute(
+        `CREATE TABLE IF NOT EXISTS admin_activity_log (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            admin_id INT NOT NULL,
+            action VARCHAR(255) NOT NULL,
+            method VARCHAR(10) NOT NULL,
+            path VARCHAR(255) NOT NULL,
+            target_id VARCHAR(64) NULL,
+            status INT NOT NULL,
+            ip_address VARCHAR(64) NULL,
+            user_agent VARCHAR(255) NULL,
+            details TEXT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_admin_activity_admin_id (admin_id),
+            INDEX idx_admin_activity_created_at (created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
+    );
+}
+
+async function recordAdminAction(entry) {
+    try {
+        await pool.execute(
+            `INSERT INTO admin_activity_log
+             (admin_id, action, method, path, target_id, status, ip_address, user_agent, details)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                entry.admin_id,
+                entry.action,
+                entry.method,
+                entry.path,
+                entry.target_id,
+                entry.status,
+                entry.ip_address,
+                entry.user_agent,
+                entry.details
+            ]
+        );
+    } catch (e) {
+        console.error('admin_activity_log insert failed:', e.message);
+    }
 }
 
 // =====================================================
@@ -3808,6 +3921,292 @@ app.delete('/api/admin/users/:id', authenticateAdmin, async (req, res) => {
         });
     } catch (error) {
         console.error('Delete user error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// =====================================================
+// ADMIN USERS & AUDIT LOG (Super Admin Only)
+// =====================================================
+
+app.get('/api/admin/admin-users', authenticateAdmin, requireSuperAdmin, async (req, res) => {
+    try {
+        const [admins] = await pool.execute(
+            'SELECT id, username, email, full_name, role, is_active, last_login, created_at FROM admin_users ORDER BY created_at DESC'
+        );
+        res.json({ admins });
+    } catch (error) {
+        console.error('Get admin users error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+app.post('/api/admin/admin-users', authenticateAdmin, requireSuperAdmin, async (req, res) => {
+    try {
+        const { username, password, email, full_name, role, is_active } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({
+                error: true,
+                message: 'Username and password are required',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        const normalizedRole = role === 'super_admin' ? 'super_admin' : 'admin';
+        const adminEmail = email || `${username}@enterpriserm.com`;
+
+        const [existing] = await pool.execute(
+            'SELECT id FROM admin_users WHERE username = ? OR email = ?',
+            [username, adminEmail]
+        );
+        if (existing.length > 0) {
+            return res.status(409).json({
+                error: true,
+                message: 'Admin username or email already exists',
+                code: 'DUPLICATE_ENTRY'
+            });
+        }
+
+        const passwordHash = await bcrypt.hash(password, 10);
+        const [result] = await pool.execute(
+            'INSERT INTO admin_users (username, password_hash, email, full_name, role, is_active) VALUES (?, ?, ?, ?, ?, ?)',
+            [username, passwordHash, adminEmail, full_name || username, normalizedRole, is_active === false ? 0 : 1]
+        );
+
+        const [admins] = await pool.execute(
+            'SELECT id, username, email, full_name, role, is_active, last_login, created_at FROM admin_users WHERE id = ?',
+            [result.insertId]
+        );
+
+        res.status(201).json({ admin: admins[0] });
+    } catch (error) {
+        console.error('Create admin user error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+app.put('/api/admin/admin-users/:id', authenticateAdmin, requireSuperAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { username, email, full_name, role, is_active, password } = req.body;
+
+        const [existingAdmins] = await pool.execute(
+            'SELECT id, role FROM admin_users WHERE id = ?',
+            [id]
+        );
+        if (existingAdmins.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Admin not found',
+                code: 'NOT_FOUND'
+            });
+        }
+
+        if (String(req.admin.id) === String(id)) {
+            if (is_active === false) {
+                return res.status(400).json({
+                    error: true,
+                    message: 'You cannot deactivate your own account',
+                    code: 'VALIDATION_ERROR'
+                });
+            }
+            if (role && role !== 'super_admin') {
+                return res.status(400).json({
+                    error: true,
+                    message: 'You cannot remove your own super admin role',
+                    code: 'VALIDATION_ERROR'
+                });
+            }
+        }
+
+        if (role && role !== 'super_admin') {
+            const [countResult] = await pool.execute(
+                'SELECT COUNT(*) as total FROM admin_users WHERE role = "super_admin"'
+            );
+            if (countResult[0].total <= 1 && existingAdmins[0].role === 'super_admin') {
+                return res.status(400).json({
+                    error: true,
+                    message: 'At least one super admin is required',
+                    code: 'VALIDATION_ERROR'
+                });
+            }
+        }
+
+        if (username || email) {
+            const [dupe] = await pool.execute(
+                'SELECT id FROM admin_users WHERE (username = ? OR email = ?) AND id != ?',
+                [username || '', email || '', id]
+            );
+            if (dupe.length > 0) {
+                return res.status(409).json({
+                    error: true,
+                    message: 'Admin username or email already exists',
+                    code: 'DUPLICATE_ENTRY'
+                });
+            }
+        }
+
+        const updates = [];
+        const values = [];
+
+        if (username !== undefined) { updates.push('username = ?'); values.push(username); }
+        if (email !== undefined) { updates.push('email = ?'); values.push(email); }
+        if (full_name !== undefined) { updates.push('full_name = ?'); values.push(full_name); }
+        if (role !== undefined) { updates.push('role = ?'); values.push(role === 'super_admin' ? 'super_admin' : 'admin'); }
+        if (is_active !== undefined) { updates.push('is_active = ?'); values.push(is_active ? 1 : 0); }
+        if (password) {
+            const passwordHash = await bcrypt.hash(password, 10);
+            updates.push('password_hash = ?');
+            values.push(passwordHash);
+        }
+
+        if (updates.length === 0) {
+            return res.status(400).json({
+                error: true,
+                message: 'No fields to update',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        values.push(id);
+        await pool.execute(
+            `UPDATE admin_users SET ${updates.join(', ')} WHERE id = ?`,
+            values
+        );
+
+        const [admins] = await pool.execute(
+            'SELECT id, username, email, full_name, role, is_active, last_login, created_at FROM admin_users WHERE id = ?',
+            [id]
+        );
+
+        res.json({ admin: admins[0] });
+    } catch (error) {
+        console.error('Update admin user error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+app.delete('/api/admin/admin-users/:id', authenticateAdmin, requireSuperAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (String(req.admin.id) === String(id)) {
+            return res.status(400).json({
+                error: true,
+                message: 'You cannot delete your own account',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        const [admins] = await pool.execute(
+            'SELECT id, role FROM admin_users WHERE id = ?',
+            [id]
+        );
+        if (admins.length === 0) {
+            return res.status(404).json({
+                error: true,
+                message: 'Admin not found',
+                code: 'NOT_FOUND'
+            });
+        }
+
+        if (admins[0].role === 'super_admin') {
+            const [countResult] = await pool.execute(
+                'SELECT COUNT(*) as total FROM admin_users WHERE role = "super_admin"'
+            );
+            if (countResult[0].total <= 1) {
+                return res.status(400).json({
+                    error: true,
+                    message: 'At least one super admin is required',
+                    code: 'VALIDATION_ERROR'
+                });
+            }
+        }
+
+        await pool.execute('DELETE FROM admin_users WHERE id = ?', [id]);
+        res.json({ message: 'Admin deleted successfully' });
+    } catch (error) {
+        console.error('Delete admin user error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+app.get('/api/admin/admin-activity', authenticateAdmin, requireSuperAdmin, async (req, res) => {
+    try {
+        const pageNum = parseInt(req.query.page, 10) || 1;
+        const limitNum = parseInt(req.query.limit, 10) || 50;
+        const offset = (pageNum - 1) * limitNum;
+
+        const where = [];
+        const params = [];
+        if (req.query.admin_id) {
+            where.push('a.admin_id = ?');
+            params.push(req.query.admin_id);
+        }
+        if (req.query.action) {
+            where.push('a.action LIKE ?');
+            params.push(`%${req.query.action}%`);
+        }
+        if (req.query.method) {
+            where.push('a.method = ?');
+            params.push(req.query.method.toUpperCase());
+        }
+        if (req.query.path) {
+            where.push('a.path LIKE ?');
+            params.push(`%${req.query.path}%`);
+        }
+        if (req.query.status) {
+            where.push('a.status = ?');
+            params.push(parseInt(req.query.status, 10));
+        }
+        const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+        const [logs] = await pool.execute(
+            `SELECT a.id, a.admin_id, u.username, u.email, a.action, a.method, a.path, a.target_id,
+                    a.status, a.ip_address, a.user_agent, a.details, a.created_at
+             FROM admin_activity_log a
+             LEFT JOIN admin_users u ON a.admin_id = u.id
+             ${whereSql}
+             ORDER BY a.created_at DESC
+             LIMIT ${limitNum} OFFSET ${offset}`,
+            params
+        );
+
+        const [countResult] = await pool.execute(
+            `SELECT COUNT(*) as total FROM admin_activity_log a ${whereSql}`,
+            params
+        );
+        const total = countResult[0].total;
+
+        res.json({
+            logs,
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total,
+                pages: Math.ceil(total / limitNum)
+            }
+        });
+    } catch (error) {
+        console.error('Get admin activity error:', error);
         res.status(500).json({
             error: true,
             message: 'Server error',

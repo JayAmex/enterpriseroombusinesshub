@@ -186,6 +186,7 @@
                 sessionStorage.setItem('adminAuthenticated', 'true');
                 sessionStorage.setItem('adminUsername', data.admin.username);
                 sessionStorage.setItem('adminId', data.admin.id);
+                sessionStorage.setItem('adminRole', data.admin.role || 'admin');
                 
                 // Redirect to admin dashboard
                 window.location.href = '/admin';

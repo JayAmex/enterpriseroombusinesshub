@@ -556,6 +556,23 @@ SELECT
     (SELECT COUNT(*) FROM template_downloads) as total_template_downloads,
     (SELECT COUNT(DISTINCT template_id) FROM template_downloads) as unique_templates_downloaded;
 
+-- Table: Admin Activity Log
+CREATE TABLE IF NOT EXISTS admin_activity_log (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    admin_id INT NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    path VARCHAR(255) NOT NULL,
+    target_id VARCHAR(64) NULL,
+    status INT NOT NULL,
+    ip_address VARCHAR(64) NULL,
+    user_agent VARCHAR(255) NULL,
+    details TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_admin_activity_admin_id ON admin_activity_log(admin_id);
+CREATE INDEX idx_admin_activity_created_at ON admin_activity_log(created_at);
+
 -- =====================================================
 -- STORED PROCEDURES (Optional - for complex operations)
 -- =====================================================
@@ -627,7 +644,7 @@ CREATE INDEX idx_blog_category_published ON blog_posts(category, is_published);
 -- 3. JSON fields (additional_docs, inputs) store structured data
 -- 4. Consider adding soft delete columns (deleted_at) for audit trails
 -- 5. Add proper backup and migration strategies
--- 6. Consider adding audit log table for tracking changes
+-- 6. Admin activity is tracked in admin_activity_log
 -- 7. For production, add proper constraints and validation
 -- 8. Consider partitioning large tables (events, blog_posts) by date
 -- =====================================================
