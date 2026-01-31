@@ -207,6 +207,20 @@
                 <textarea id="businessAddress" rows="3" placeholder="Enter complete business address" required></textarea>
             </div>
             <div class="input-group">
+                <label>Business Email <span style="color: var(--text-light); font-weight: normal;">(optional)</span></label>
+                <input type="email" id="businessEmail" placeholder="e.g. hello@mybusiness.com">
+                <small style="color: var(--text-light); font-size: 0.85rem; margin-top: 5px; display: block;">Used for directory listing. If left blank, your profile email may be used.</small>
+            </div>
+            <div class="input-group">
+                <label>Business Phone <span style="color: var(--text-light); font-weight: normal;">(optional)</span></label>
+                <input type="tel" id="businessPhone" placeholder="e.g. 08012345678">
+                <small style="color: var(--text-light); font-size: 0.85rem; margin-top: 5px; display: block;">Used for directory listing. If left blank, your profile phone may be used.</small>
+            </div>
+            <div class="input-group">
+                <label>Business Website <span style="color: var(--text-light); font-weight: normal;">(optional)</span></label>
+                <input type="url" id="businessWebsite" placeholder="e.g. https://mybusiness.com">
+            </div>
+            <div class="input-group">
                 <label>Business Sector</label>
                 <select id="businessSector" required>
                     <option value="">Select Business Sector</option>
@@ -465,6 +479,9 @@
         const ownerRelationship = document.getElementById('ownerRelationship').value;
         const businessName = document.getElementById('businessName').value;
         const businessAddress = document.getElementById('businessAddress').value;
+        const businessEmail = document.getElementById('businessEmail').value.trim();
+        const businessPhone = document.getElementById('businessPhone').value.trim();
+        const businessWebsite = document.getElementById('businessWebsite').value.trim();
         const businessSector = document.getElementById('businessSector').value;
         const yearOfFormation = document.getElementById('yearOfFormation').value;
         const numberOfEmployees = document.getElementById('numberOfEmployees').value;
@@ -479,6 +496,9 @@
             <h4 style="margin-top: 20px; color: var(--primary);">Business Information</h4>
             <p><strong>Business Name:</strong> ${businessName || 'Not specified'}</p>
             <p><strong>Address:</strong> ${businessAddress || 'Not specified'}</p>
+            ${businessEmail ? `<p><strong>Email:</strong> ${businessEmail}</p>` : ''}
+            ${businessPhone ? `<p><strong>Phone:</strong> ${businessPhone}</p>` : ''}
+            ${businessWebsite ? `<p><strong>Website:</strong> ${businessWebsite}</p>` : ''}
             <p><strong>Sector:</strong> ${businessSector || 'Not specified'}</p>
             <p><strong>Year of Formation:</strong> ${yearOfFormation || 'Not specified'}</p>
             <p><strong>Number of Employees:</strong> ${numberOfEmployees || 'Not specified'}</p>
@@ -503,6 +523,9 @@
         const businessData = {
             businessName: document.getElementById('businessName').value.trim(),
             businessAddress: document.getElementById('businessAddress').value.trim(),
+            businessEmail: document.getElementById('businessEmail').value.trim(),
+            businessPhone: document.getElementById('businessPhone').value.trim(),
+            businessWebsite: document.getElementById('businessWebsite').value.trim(),
             businessSector: document.getElementById('businessSector').value.trim(),
             yearOfFormation: document.getElementById('yearOfFormation').value.trim(),
             numberOfEmployees: parseInt(document.getElementById('numberOfEmployees').value) || 0,
@@ -539,6 +562,9 @@
         const apiData = {
             business_name: businessData.businessName,
             business_address: businessData.businessAddress,
+            email: businessData.businessEmail || null,
+            phone: businessData.businessPhone || null,
+            website: businessData.businessWebsite || null,
             business_sector: businessData.businessSector,
             year_of_formation: parseInt(businessData.yearOfFormation) || null,
             number_of_employees: businessData.numberOfEmployees,

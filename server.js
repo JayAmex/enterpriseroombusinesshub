@@ -1342,6 +1342,9 @@ app.post('/api/businesses', authenticateToken, async (req, res) => {
         const {
             business_name,
             business_address,
+            email: body_email,
+            phone: body_phone,
+            website: body_website,
             business_sector,
             year_of_formation,
             number_of_employees,
@@ -1380,48 +1383,30 @@ app.post('/api/businesses', authenticateToken, async (req, res) => {
         // Determine status based on CAC certificate
         const status = cac_certificate_url ? 'Verified Business' : 'Pending Review';
 
-        // Insert into businesses table (for user's business records)
+        // Get user contact for directory display (used when business email/phone not provided)
+        const [userData] = await pool.execute('SELECT email, phone FROM users WHERE id = ?', [req.user.id]);
+        const userEmail = userData[0]?.email || null;
+        const userPhone = userData[0]?.phone || null;
+        const email = (body_email && String(body_email).trim()) || userEmail;
+        const phone = (body_phone && String(body_phone).trim()) || userPhone;
+        const website = (body_website && String(body_website).trim()) || null;
+
+        // Insert into businesses table (single source of truth; also appears in Business Directory)
         const [result] = await pool.execute(
             `INSERT INTO businesses (
-                user_id, business_name, business_address, business_sector, year_of_formation,
-                number_of_employees, cac_registered, cac_certificate_url, has_business_bank_account,
-                bank_name, account_number, account_name, owner_name, owner_relationship,
-                newsletter_optin, status, registered_date
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+                user_id, business_name, business_address, email, phone, website,
+                business_sector, year_of_formation, number_of_employees, cac_registered,
+                cac_certificate_url, has_business_bank_account, bank_name, account_number,
+                account_name, owner_name, owner_relationship, newsletter_optin, status, registered_date
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
             [
-                req.user.id, business_name, business_address, business_sector || null,
-                year_of_formation || null, number_of_employees || null, cac_registered,
-                cac_certificate_url || null, has_business_bank_account, bank_name || null,
-                account_number || null, account_name || null, owner_name, owner_relationship,
-                newsletter_optin || false, status
+                req.user.id, business_name, business_address, email, phone, website,
+                business_sector || null, year_of_formation || null, number_of_employees || null,
+                cac_registered, cac_certificate_url || null, has_business_bank_account,
+                bank_name || null, account_number || null, account_name || null,
+                owner_name, owner_relationship, newsletter_optin || false, status
             ]
         );
-
-        // Also insert into directory_businesses so it appears in the Business Directory
-        // Get user's email for the directory entry
-        const [userData] = await pool.execute('SELECT email FROM users WHERE id = ?', [req.user.id]);
-        const userEmail = userData[0]?.email || null;
-
-        // Check for duplicate in directory_businesses
-        const [existingDir] = await pool.execute(
-            'SELECT id FROM directory_businesses WHERE LOWER(TRIM(business_name)) = LOWER(TRIM(?))',
-            [business_name]
-        );
-
-        if (existingDir.length === 0) {
-            // Insert into directory_businesses
-            await pool.execute(
-                `INSERT INTO directory_businesses (business_name, address, email, phone, website, added_by)
-                 VALUES (?, ?, ?, ?, ?, NULL)`,
-                [
-                    business_name,
-                    business_address,
-                    userEmail,
-                    null, // Phone not provided in registration form
-                    null  // Website not provided in registration form
-                ]
-            );
-        }
 
         const [business] = await pool.execute('SELECT * FROM businesses WHERE id = ?', [result.insertId]);
 
@@ -1603,26 +1588,11 @@ app.put('/api/businesses/:id', authenticateToken, async (req, res) => {
         // Add business ID to values for WHERE clause
         values.push(businessId);
 
-        // Update business
+        // Update business (directory reads from businesses; no separate directory_businesses sync)
         await pool.execute(
             `UPDATE businesses SET ${updates.join(', ')} WHERE id = ?`,
             values
         );
-
-        // Also update directory_businesses if business_name or address changed
-        if (business_name !== undefined || business_address !== undefined) {
-            const [userData] = await pool.execute('SELECT email FROM users WHERE id = ?', [req.user.id]);
-            const userEmail = userData[0]?.email || null;
-            const finalBusinessName = business_name || existing[0].business_name;
-            const finalAddress = business_address || existing[0].business_address;
-
-            await pool.execute(
-                `UPDATE directory_businesses 
-                 SET business_name = ?, address = ?, email = ?
-                 WHERE LOWER(TRIM(business_name)) = LOWER(TRIM(?))`,
-                [finalBusinessName, finalAddress, userEmail, existing[0].business_name]
-            );
-        }
 
         // Get updated business
         const [updated] = await pool.execute('SELECT * FROM businesses WHERE id = ?', [businessId]);
@@ -1668,16 +1638,8 @@ app.delete('/api/businesses/:id', authenticateToken, async (req, res) => {
             });
         }
 
-        const businessName = existing[0].business_name;
-
-        // Delete from businesses table
+        // Delete from businesses table (directory is sourced from businesses)
         await pool.execute('DELETE FROM businesses WHERE id = ?', [businessId]);
-
-        // Also remove from directory_businesses if it exists
-        await pool.execute(
-            'DELETE FROM directory_businesses WHERE LOWER(TRIM(business_name)) = LOWER(TRIM(?))',
-            [businessName]
-        );
 
         res.json({
             message: 'Business deleted successfully',
@@ -2784,7 +2746,7 @@ app.delete('/api/admin/blog/:id', authenticateAdmin, async (req, res) => {
 // DIRECTORIES ENDPOINTS
 // =====================================================
 
-// Get Business Directory
+// Get Business Directory (from businesses table - single source of truth)
 app.get('/api/directories/business', async (req, res) => {
     try {
         const { page = 1, limit = 30, search } = req.query;
@@ -2792,31 +2754,31 @@ app.get('/api/directories/business', async (req, res) => {
         const limitNum = parseInt(limit, 10) || 30;
         const offset = (pageNum - 1) * limitNum;
 
-        // Query from directory_businesses table (public directory)
-        let query = `
-            SELECT * FROM directory_businesses
-            WHERE 1=1
-        `;
+        let where = " b.status IN ('Approved', 'Verified Business') ";
         const params = [];
-
         if (search) {
-            query += ' AND (business_name LIKE ? OR address LIKE ? OR email LIKE ?)';
+            where += ' AND (b.business_name LIKE ? OR b.business_address LIKE ? OR COALESCE(b.email, u.email) LIKE ?)';
             const searchTerm = `%${search}%`;
             params.push(searchTerm, searchTerm, searchTerm);
         }
 
-        query += ` ORDER BY added_date DESC, id DESC LIMIT ${limitNum} OFFSET ${offset}`;
-
+        const query = `
+            SELECT b.id, b.business_name, b.business_address AS address,
+                   COALESCE(b.email, u.email) AS email, COALESCE(b.phone, u.phone) AS phone, b.website
+            FROM businesses b
+            LEFT JOIN users u ON b.user_id = u.id
+            WHERE ${where}
+            ORDER BY b.created_at DESC, b.id DESC
+            LIMIT ${limitNum} OFFSET ${offset}
+        `;
         const [businesses] = await pool.execute(query, params);
 
-        // Get total count
-        let countQuery = `SELECT COUNT(*) as total FROM directory_businesses WHERE 1=1`;
-        const countParams = [];
-        if (search) {
-            countQuery += ' AND (business_name LIKE ? OR address LIKE ? OR email LIKE ?)';
-            const searchTerm = `%${search}%`;
-            countParams.push(searchTerm, searchTerm, searchTerm);
-        }
+        let countQuery = `
+            SELECT COUNT(*) AS total FROM businesses b
+            LEFT JOIN users u ON b.user_id = u.id
+            WHERE b.status IN ('Approved', 'Verified Business') ${search ? ' AND (b.business_name LIKE ? OR b.business_address LIKE ? OR COALESCE(b.email, u.email) LIKE ?)' : ''}
+        `;
+        const countParams = search ? [`%${search}%`, `%${search}%`, `%${search}%`] : [];
         const [countResult] = await pool.execute(countQuery, countParams);
         const total = countResult[0].total;
 
@@ -3218,7 +3180,7 @@ app.get('/api/stats', async (req, res) => {
         );
         const activeMembers = Number(activeUsersResult[0]?.count ?? 0);
         
-        // Get businesses count
+        // Get businesses listed count (businesses table = single source of truth for directory)
         const [businessesResult] = await pool.execute(
             'SELECT COUNT(*) as count FROM businesses'
         );
@@ -3529,7 +3491,8 @@ app.get('/api/admin/dashboard/stats', authenticateAdmin, async (req, res) => {
             const [blogCount] = await pool.execute('SELECT COUNT(*) as count FROM blog_posts WHERE is_published = TRUE');
             const [dirMembersCount] = await pool.execute('SELECT COUNT(*) as count FROM directory_members');
             const [dirPartnersCount] = await pool.execute('SELECT COUNT(*) as count FROM directory_partners');
-            const [dirBusinessesCount] = await pool.execute('SELECT COUNT(*) as count FROM directory_businesses');
+            // Business directory count = businesses table (single source of truth)
+            const [dirBusinessesCount] = await pool.execute('SELECT COUNT(*) as count FROM businesses');
             
             result = {
                 registered_users_count: usersCount[0]?.count || 0,
@@ -4617,10 +4580,48 @@ app.get('/api/admin/directories/:type', authenticateAdmin, async (req, res) => {
         const limitNum = parseInt(limit, 10) || 30;
         const offset = (pageNum - 1) * limitNum;
 
+        // Business directory: from businesses table (single source of truth)
+        if (type === 'business') {
+            let where = ' 1=1 ';
+            const params = [];
+            if (search) {
+                where += ' AND (b.business_name LIKE ? OR b.business_address LIKE ? OR COALESCE(b.email, u.email) LIKE ?)';
+                const searchTerm = `%${search}%`;
+                params.push(searchTerm, searchTerm, searchTerm);
+            }
+            const businessQuery = `
+                SELECT b.id, b.business_name, b.business_address AS address,
+                       COALESCE(b.email, u.email) AS email, COALESCE(b.phone, u.phone) AS phone, b.website,
+                       b.created_at AS added_date
+                FROM businesses b
+                LEFT JOIN users u ON b.user_id = u.id
+                WHERE ${where}
+                ORDER BY b.created_at DESC, b.id DESC
+                LIMIT ${limitNum} OFFSET ${offset}
+            `;
+            const [entries] = await pool.execute(businessQuery, params);
+            const countParams = search ? [`%${search}%`, `%${search}%`, `%${search}%`] : [];
+            const [countResult] = await pool.execute(
+                `SELECT COUNT(*) AS total FROM businesses b LEFT JOIN users u ON b.user_id = u.id WHERE ${where}`,
+                countParams
+            );
+            const total = countResult[0].total;
+            return res.json({
+                entries,
+                pagination: {
+                    page: pageNum,
+                    limit: limitNum,
+                    total,
+                    pages: Math.ceil(total / limitNum),
+                    has_next: offset + entries.length < total,
+                    has_prev: pageNum > 1
+                }
+            });
+        }
+
         let tableName;
         if (type === 'members') tableName = 'directory_members';
         else if (type === 'partners') tableName = 'directory_partners';
-        else if (type === 'business') tableName = 'directory_businesses';
         else {
             return res.status(400).json({
                 error: true,
@@ -4642,10 +4643,6 @@ app.get('/api/admin/directories/:type', authenticateAdmin, async (req, res) => {
                 query += ' AND (partner_name LIKE ? OR email LIKE ? OR address LIKE ?)';
                 const searchTerm = `%${search}%`;
                 params.push(searchTerm, searchTerm, searchTerm);
-            } else if (type === 'business') {
-                query += ' AND (business_name LIKE ? OR email LIKE ? OR address LIKE ?)';
-                const searchTerm = `%${search}%`;
-                params.push(searchTerm, searchTerm, searchTerm);
             }
         }
         
@@ -4664,10 +4661,6 @@ app.get('/api/admin/directories/:type', authenticateAdmin, async (req, res) => {
                 countParams.push(searchTerm, searchTerm, searchTerm);
             } else if (type === 'partners') {
                 countQuery += ' AND (partner_name LIKE ? OR email LIKE ? OR address LIKE ?)';
-                const searchTerm = `%${search}%`;
-                countParams.push(searchTerm, searchTerm, searchTerm);
-            } else if (type === 'business') {
-                countQuery += ' AND (business_name LIKE ? OR email LIKE ? OR address LIKE ?)';
                 const searchTerm = `%${search}%`;
                 countParams.push(searchTerm, searchTerm, searchTerm);
             }
@@ -4781,13 +4774,13 @@ app.put('/api/admin/directories/:type/:id', authenticateAdmin, async (req, res) 
                 updateValues.push(data.website);
             }
         } else if (type === 'business') {
-            tableName = 'directory_businesses';
+            // Update businesses table (single source of truth)
             if (data.business_name !== undefined) {
                 updateFields.push('business_name = ?');
                 updateValues.push(data.business_name);
             }
             if (data.address !== undefined) {
-                updateFields.push('address = ?');
+                updateFields.push('business_address = ?');
                 updateValues.push(data.address);
             }
             if (data.email !== undefined) {
@@ -4802,6 +4795,15 @@ app.put('/api/admin/directories/:type/:id', authenticateAdmin, async (req, res) 
                 updateFields.push('website = ?');
                 updateValues.push(data.website);
             }
+            if (updateFields.length > 0) {
+                updateValues.push(id);
+                await pool.execute(
+                    `UPDATE businesses SET ${updateFields.join(', ')}, updated_at = NOW() WHERE id = ?`,
+                    updateValues
+                );
+                return res.json({ success: true, message: 'Entry updated successfully' });
+            }
+            return res.status(400).json({ error: true, message: 'No fields to update', code: 'VALIDATION_ERROR' });
         } else {
             return res.status(400).json({
                 error: true,
@@ -4841,11 +4843,8 @@ app.delete('/api/admin/directories/:type/:id', authenticateAdmin, async (req, re
     try {
         const { type, id } = req.params;
 
-        let tableName;
-        if (type === 'members') tableName = 'directory_members';
-        else if (type === 'partners') tableName = 'directory_partners';
-        else if (type === 'business') tableName = 'directory_businesses';
-        else {
+        const tableName = type === 'business' ? 'businesses' : (type === 'members' ? 'directory_members' : type === 'partners' ? 'directory_partners' : null);
+        if (!tableName) {
             return res.status(400).json({
                 error: true,
                 message: 'Invalid directory type',
@@ -4926,16 +4925,10 @@ app.post('/api/admin/directories/:type', authenticateAdmin, async (req, res) => 
                 }
             }
         } else if (type === 'business') {
-            tableName = 'directory_businesses';
-            fields = ['business_name', 'address', 'email', 'phone', 'website', 'added_by'];
-            values = [
-                data.business_name, data.address, data.email || null, data.phone || null,
-                data.website || null, req.admin.id
-            ];
-            // Check for duplicate: same business name
+            // Insert into businesses table (single source of truth; admin-added => user_id NULL)
             if (data.business_name) {
                 const [existing] = await pool.execute(
-                    'SELECT id FROM directory_businesses WHERE LOWER(TRIM(business_name)) = LOWER(TRIM(?))',
+                    'SELECT id FROM businesses WHERE LOWER(TRIM(business_name)) = LOWER(TRIM(?))',
                     [data.business_name]
                 );
                 if (existing.length > 0) {
@@ -4946,6 +4939,27 @@ app.post('/api/admin/directories/:type', authenticateAdmin, async (req, res) => 
                     });
                 }
             }
+            await pool.execute(
+                `INSERT INTO businesses (
+                    user_id, business_name, business_address, email, phone, website,
+                    owner_name, owner_relationship, cac_registered, has_business_bank_account,
+                    status, registered_date
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+                [
+                    null, data.business_name, data.address || '', data.email || null, data.phone || null, data.website || null,
+                    data.business_name || 'N/A', 'N/A', 'no', 'no', 'Approved'
+                ]
+            );
+            const [insertResult] = await pool.execute('SELECT LAST_INSERT_ID() as id');
+            const [entry] = await pool.execute(
+                `SELECT id, business_name, business_address AS address, email, phone, website, created_at AS added_date
+                 FROM businesses WHERE id = ?`,
+                [insertResult[0].id]
+            );
+            return res.status(201).json({
+                message: 'Directory entry created',
+                entry: entry[0]
+            });
         } else {
             return res.status(400).json({
                 error: true,

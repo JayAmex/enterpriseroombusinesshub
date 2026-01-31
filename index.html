@@ -228,10 +228,11 @@
                 membersEl.textContent = formatNumber(stats.activeMembers) + '+';
             }
             
-            // Update Businesses Listed
+            // Update Businesses Listed (same count as admin Business Directory)
             const businessesEl = document.getElementById('stat-businesses');
             if (businessesEl) {
-                businessesEl.textContent = formatNumber(stats.businessesListed) + '+';
+                const businessesCount = stats.businessesListed ?? stats.businesses_listed ?? 0;
+                businessesEl.textContent = formatNumber(businessesCount) + '+';
             }
             
             // Update Funding Committed

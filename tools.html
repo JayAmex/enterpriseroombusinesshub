@@ -776,8 +776,12 @@
                             <input type="radio" name="pitEmploymentSector" id="pitSectorPublic" value="public" onchange="setPitEmploymentSector('public'); updatePensionContributionFromSalary();">
                             <span>Public sector</span>
                         </label>
+                        <label style="display: flex; align-items: center; gap: 0.35rem; cursor: pointer;">
+                            <input type="radio" name="pitEmploymentSector" id="pitSectorSelfEmployed" value="self_employed" onchange="setPitEmploymentSector('self_employed'); updatePensionContributionFromSalary();">
+                            <span>Self Employed</span>
+                        </label>
                     </div>
-                    <small style="color: var(--text-light); display: block; margin-top: 0.25rem;">NHF (2.5%) applies only for public sector; private sector may contribute voluntarily.</small>
+                    <small style="color: var(--text-light); display: block; margin-top: 0.25rem;">NHF (2.5%) applies only for public sector employees; private sector and self-employed may contribute voluntarily.</small>
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
@@ -817,7 +821,7 @@
                             <span>National Housing Fund – NHF (₦)</span>
                             <span class="info-icon">
                                 <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
-                                <span class="tooltip">National Housing Fund (NHF) is 2.5% of gross salary. Automatically calculated. By law, NHF is mandatory for public sector employees and the self-employed; private sector employees may contribute voluntarily (since 2023).</span>
+                                <span class="tooltip">National Housing Fund (NHF) is 2.5% of gross salary. Automatically calculated. By law, NHF is mandatory for public sector employees only; private sector and self-employed may contribute voluntarily (since 2023).</span>
                             </span>
                         </label>
                         <input type="text" id="nhfContribution" value="0.00" readonly placeholder="Auto-calculated (2.5% of gross)">
@@ -1649,6 +1653,7 @@
         const grossSalary = parseAmountInput(document.getElementById('annualSalary').value);
         const annualRent = parseAmountInput(document.getElementById('annualRent').value);
         const lifeInsurance = parseAmountInput(document.getElementById('lifeInsurance').value);
+        const pensionContribution = parseAmountInput(document.getElementById('pensionContribution').value);
         const interestOnLoans = parseAmountInput(document.getElementById('interestOnLoans').value);
         const nhisContribution = parseAmountInput(document.getElementById('nhisContribution').value);
 
@@ -1657,7 +1662,6 @@
             return;
         }
 
-        const pensionContribution = grossSalary * 0.08;
         const sector = getPitEmploymentSector();
         const nhfContribution = sector === 'public' ? grossSalary * 0.025 : 0; // NHF mandatory for public sector only
         const lifeInsuranceDeduction = Math.min(lifeInsurance, 100000);
@@ -1726,7 +1730,8 @@
     function setPitEmploymentSector(value) {
         const key = 'pit_employment_sector';
         try { localStorage.setItem(key, value); } catch (e) {}
-        const el = document.getElementById(value === 'public' ? 'pitSectorPublic' : 'pitSectorPrivate');
+        const id = value === 'public' ? 'pitSectorPublic' : value === 'self_employed' ? 'pitSectorSelfEmployed' : 'pitSectorPrivate';
+        const el = document.getElementById(id);
         if (el) el.checked = true;
     }
 
@@ -1739,15 +1744,12 @@
 
     function updatePensionContributionFromSalary() {
         const salaryInput = document.getElementById('annualSalary');
-        const pensionInput = document.getElementById('pensionContribution');
         const nhfInput = document.getElementById('nhfContribution');
-        if (!salaryInput || !pensionInput) return;
+        if (!salaryInput || !nhfInput) return;
         const grossSalary = parseAmountInput(salaryInput.value);
-        const pension = grossSalary > 0 ? grossSalary * 0.08 : 0;
         const sector = getPitEmploymentSector();
-        const nhf = (sector === 'public' && grossSalary > 0) ? grossSalary * 0.025 : 0;
-        pensionInput.value = formatNaira(pension).replace('₦', '');
-        if (nhfInput) nhfInput.value = formatNaira(nhf).replace('₦', '');
+        const nhf = sector === 'public' && grossSalary > 0 ? grossSalary * 0.025 : 0;
+        nhfInput.value = formatNaira(nhf).replace('₦', '');
     }
 
     function calculateCompanyIncomeTax() {

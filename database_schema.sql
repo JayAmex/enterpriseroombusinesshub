@@ -47,13 +47,17 @@ CREATE TABLE admin_users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
--- 3. BUSINESSES TABLE (User-Registered Businesses)
+-- 3. BUSINESSES TABLE (All Businesses - Directory Source of Truth)
 -- =====================================================
+-- Every business is in this table. user_id NOT NULL = user-registered; user_id NULL = admin-added.
 CREATE TABLE businesses (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
+    user_id INT NULL,
     business_name VARCHAR(255) NOT NULL,
     business_address TEXT NOT NULL,
+    email VARCHAR(255) NULL,
+    phone VARCHAR(50) NULL,
+    website VARCHAR(500) NULL,
     business_sector VARCHAR(100),
     year_of_formation YEAR,
     number_of_employees INT,
