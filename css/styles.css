@@ -730,6 +730,20 @@ footer .footer-bottom p {
         flex-wrap: wrap;
     }
 
+    nav .logo {
+        white-space: normal;
+        font-size: 1rem;
+        line-height: 1.2;
+        max-width: calc(100% - 60px);
+        min-width: 0;
+    }
+
+    nav .logo img,
+    nav a.logo img {
+        height: 44px !important;
+        max-width: 120px !important;
+    }
+
     nav .nav-toggle {
         display: flex;
     }
@@ -776,6 +790,10 @@ footer .footer-bottom p {
 }
 
 @media (max-width: 480px) {
+    nav .logo {
+        font-size: 0.9rem;
+    }
+
     .hero {
         padding: 60px max(20px, var(--safe-right)) 60px max(20px, var(--safe-left));
     }
