@@ -744,6 +744,11 @@ footer .footer-bottom p {
         max-width: 120px !important;
     }
 
+    nav > div {
+        margin-top: 12px;
+        width: 100%;
+    }
+
     nav .nav-toggle {
         display: flex;
     }
