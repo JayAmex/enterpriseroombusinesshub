@@ -227,6 +227,9 @@ app.get('/contact', (req, res) => { res.redirect(302, '/'); });
 app.use((req, res, next) => {
     if (req.method !== 'GET') return next();
     const p = req.path.replace(/^\//, '').replace(/\/$/, '');
+    if (p === 'templates') {
+        return res.sendFile(path.join(__dirname, 'templates.html'));
+    }
     if (!p || p.startsWith('api') || p.startsWith('uploads') || p.startsWith('templates') || p.startsWith('assets') || p.startsWith('css') || p.startsWith('js') || p.includes('.')) return next();
     const file = path.join(__dirname, p + '.html');
     fs.access(file, fs.constants.F_OK, (err) => {
