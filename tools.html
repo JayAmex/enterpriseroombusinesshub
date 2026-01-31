@@ -74,6 +74,10 @@
                 if (sidebar && window.innerWidth <= 1024) {
                     sidebar.classList.remove('show');
                 }
+                // Reset this tool form to defaults when switching to it
+                if (typeof window.resetToolForm === 'function') {
+                    window.resetToolForm(toolId);
+                }
             } catch (error) {
                 console.error('Error in showTool:', error);
                 alert('Error switching tool: ' + error.message);
@@ -621,16 +625,16 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Loan Amount (₦)</label>
-                    <input type="text" id="loanAmount" value="5,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')">
+                    <input type="text" id="loanAmount" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
                         <label>Interest Rate (Annual %)</label>
-                        <input type="number" id="loanRate" value="22" step="0.1">
+                        <input type="number" id="loanRate" value="0" step="0.1" placeholder="">
                     </div>
                     <div class="input-group">
                         <label>Term (Months)</label>
-                        <input type="number" id="loanTerm" value="24">
+                        <input type="number" id="loanTerm" value="0" placeholder="">
                     </div>
                 </div>
                 <button class="btn-calc" onclick="calculateLoan()">Calculate Repayment</button>
@@ -683,7 +687,7 @@
                 <div class="input-grid">
                     <div class="input-group">
                         <label>Deposit (₦)</label>
-                        <input type="text" id="downPayment" value="9,000,000.00" onblur="formatAmountInput(this); updateLoanAmount();" onfocus="this.value = this.value.replace(/,/g, '')">
+                        <input type="text" id="downPayment" value="0.00" onblur="formatAmountInput(this); updateLoanAmount();" onfocus="this.value = this.value.replace(/,/g, '')">
                     </div>
                     <div class="input-group">
                         <label>Loan Amount (₦)</label>
@@ -693,11 +697,11 @@
                 <div class="input-grid">
                     <div class="input-group">
                         <label>Interest Rate (%)</label>
-                        <input type="number" id="mortgageRate" value="16">
+                        <input type="number" id="mortgageRate" value="0" placeholder="">
                     </div>
                     <div class="input-group">
                         <label>Term (Years)</label>
-                        <input type="number" id="mortgageTerm" value="15">
+                        <input type="number" id="mortgageTerm" value="0" placeholder="">
                     </div>
                 </div>
                 <button class="btn-calc" onclick="calculateMortgage()">Calculate Mortgage</button>
@@ -759,7 +763,7 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Annual Gross Salary (₦)</label>
-                    <input type="text" id="annualSalary" value="5,000,000.00" onblur="formatAmountInput(this); updatePensionContributionFromSalary();" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter your annual salary">
+                    <input type="text" id="annualSalary" value="0.00" onblur="formatAmountInput(this); updatePensionContributionFromSalary();" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter your annual salary">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
@@ -860,12 +864,12 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Annual Gross Turnover/Revenue (₦)</label>
-                    <input type="text" id="citTurnover" value="50,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter annual turnover">
+                    <input type="text" id="citTurnover" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter annual turnover">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
                         <label>Total Fixed Assets (₦)</label>
-                        <input type="text" id="citAssets" value="100,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter total fixed assets">
+                        <input type="text" id="citAssets" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter total fixed assets">
                     </div>
                     <div class="input-group">
                         <label>Company Type</label>
@@ -930,16 +934,16 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Fixed Costs (₦)</label>
-                    <input type="text" id="beFixedCosts" value="500,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Rent, salaries, insurance, etc.">
+                    <input type="text" id="beFixedCosts" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Rent, salaries, insurance, etc.">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
                         <label>Variable Cost per Unit (₦)</label>
-                        <input type="text" id="beVariableCost" value="500.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Cost per item/service">
+                        <input type="text" id="beVariableCost" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Cost per item/service">
                     </div>
                     <div class="input-group">
                         <label>Selling Price per Unit (₦)</label>
-                        <input type="text" id="beSellingPrice" value="1,500.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Price per item/service">
+                        <input type="text" id="beSellingPrice" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Price per item/service">
                     </div>
                 </div>
                 <button class="btn-calc" onclick="calculateBreakEven()">Calculate Break-Even</button>
@@ -989,7 +993,7 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Starting Cash Balance (₦)</label>
-                    <input type="text" id="cfStartingBalance" value="1,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Current cash on hand">
+                    <input type="text" id="cfStartingBalance" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Current cash on hand">
                 </div>
                 <div class="input-group">
                     <label>Monthly Cash Inflows (₦)</label>
@@ -997,11 +1001,11 @@
                 </div>
                 <div class="input-group">
                     <label>Monthly Cash Outflows (₦)</label>
-                    <input type="text" id="cfOutflows" value="2,200,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Expenses, payables, etc.">
+                    <input type="text" id="cfOutflows" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Expenses, payables, etc.">
                 </div>
                 <div class="input-group">
                     <label>Forecast Period (Months)</label>
-                    <input type="number" id="cfMonths" value="12" min="1" max="60" placeholder="Number of months to forecast">
+                    <input type="number" id="cfMonths" value="0" min="0" max="60" placeholder="Number of months to forecast">
                 </div>
                 <button class="btn-calc" onclick="calculateCashFlow()">Generate Forecast</button>
                 
@@ -1060,15 +1064,15 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Revenue/Sales (₦)</label>
-                    <input type="text" id="pmRevenue" value="10,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Total sales/revenue">
+                    <input type="text" id="pmRevenue" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Total sales/revenue">
                 </div>
                 <div class="input-group">
                     <label>Cost of Goods Sold (COGS) (₦)</label>
-                    <input type="text" id="pmCogs" value="6,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Direct costs of production">
+                    <input type="text" id="pmCogs" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Direct costs of production">
                 </div>
                 <div class="input-group">
                     <label>Operating Expenses (₦)</label>
-                    <input type="text" id="pmOperatingExpenses" value="2,500,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Rent, salaries, utilities, etc.">
+                    <input type="text" id="pmOperatingExpenses" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Rent, salaries, utilities, etc.">
                 </div>
                 <div class="input-group">
                     <label>Other Expenses (₦) <small style="color: var(--text-light);">(Optional - Taxes, Interest, etc.)</small></label>
@@ -1129,7 +1133,7 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Monthly Gross Salary (₦)</label>
-                    <input type="text" id="payrollGrossSalary" value="500,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Monthly gross salary">
+                    <input type="text" id="payrollGrossSalary" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Monthly gross salary">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
@@ -1212,15 +1216,15 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Initial Investment (₦)</label>
-                    <input type="text" id="roiInitialInvestment" value="5,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Amount invested">
+                    <input type="text" id="roiInitialInvestment" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Amount invested">
                 </div>
                 <div class="input-group">
                     <label>Final Value / Return (₦)</label>
-                    <input type="text" id="roiFinalValue" value="7,500,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Total return or final value">
+                    <input type="text" id="roiFinalValue" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Total return or final value">
                 </div>
                 <div class="input-group">
                     <label>Investment Period (Years)</label>
-                    <input type="number" id="roiYears" value="2" step="0.1" min="0.1" placeholder="Number of years">
+                    <input type="number" id="roiYears" value="0" step="0.1" min="0" placeholder="Number of years">
                 </div>
                 <button class="btn-calc" onclick="calculateROI()">Calculate ROI</button>
                 
@@ -1386,6 +1390,90 @@
         });
     }
 
+    // Reset a single tool form to default values (0.00 for amounts, 0 or blank for non-amounts)
+    function resetToolForm(toolId) {
+        const amountDefault = '0.00';
+        const numDefault = '0';
+        const set = (id, value) => {
+            const el = document.getElementById(id);
+            if (el) el.value = value;
+        };
+        const setSelectFirst = (id) => {
+            const el = document.getElementById(id);
+            if (el && el.options && el.options.length) el.selectedIndex = 0;
+        };
+        switch (toolId) {
+            case 'savings':
+                setSelectFirst('targetType');
+                set('targetAmount', amountDefault);
+                set('dueDate', '');
+                break;
+            case 'loan':
+                set('loanAmount', amountDefault);
+                set('loanRate', numDefault);
+                set('loanTerm', numDefault);
+                break;
+            case 'mortgage':
+                set('propPrice', amountDefault);
+                set('downPayment', amountDefault);
+                set('loanAmountMortgage', amountDefault);
+                set('mortgageRate', numDefault);
+                set('mortgageTerm', numDefault);
+                if (typeof updateLoanAmount === 'function') updateLoanAmount();
+                break;
+            case 'pit':
+                set('annualSalary', amountDefault);
+                set('annualRent', amountDefault);
+                set('lifeInsurance', amountDefault);
+                set('pensionContribution', amountDefault);
+                set('interestOnLoans', amountDefault);
+                set('nhisContribution', amountDefault);
+                if (typeof updatePensionContributionFromSalary === 'function') updatePensionContributionFromSalary();
+                break;
+            case 'cit':
+                set('citTurnover', amountDefault);
+                set('citAssets', amountDefault);
+                setSelectFirst('citCompanyType');
+                set('citExpenses', amountDefault);
+                break;
+            case 'breakeven':
+                set('beFixedCosts', amountDefault);
+                set('beVariableCost', amountDefault);
+                set('beSellingPrice', amountDefault);
+                break;
+            case 'cashflow':
+                set('cfStartingBalance', amountDefault);
+                set('cfInflows', amountDefault);
+                set('cfOutflows', amountDefault);
+                set('cfMonths', numDefault);
+                break;
+            case 'profitmargin':
+                set('pmRevenue', amountDefault);
+                set('pmCogs', amountDefault);
+                set('pmOperatingExpenses', amountDefault);
+                set('pmOtherExpenses', amountDefault);
+                break;
+            case 'payroll':
+                set('payrollGrossSalary', amountDefault);
+                set('payrollRent', amountDefault);
+                set('payrollInsurance', amountDefault);
+                set('payrollNHIS', amountDefault);
+                break;
+            case 'roi':
+                set('roiInitialInvestment', amountDefault);
+                set('roiFinalValue', amountDefault);
+                set('roiYears', numDefault);
+                break;
+        }
+    }
+
+    // Reset all tool forms to default values (call on page load)
+    function resetAllToolForms() {
+        ['savings', 'loan', 'mortgage', 'pit', 'cit', 'breakeven', 'cashflow', 'profitmargin', 'payroll', 'roi'].forEach(resetToolForm);
+    }
+    window.resetToolForm = resetToolForm;
+    window.resetAllToolForms = resetAllToolForms;
+
     // Helper function to format numbers as Naira
     function formatNaira(amount) {
         return '₦' + parseFloat(amount).toLocaleString('en-NG', {
@@ -1445,11 +1533,14 @@
         const price = parseAmountInput(document.getElementById('propPrice').value);
         const down = parseAmountInput(document.getElementById('downPayment').value);
         const P = price - down;
-        const r = (parseFloat(document.getElementById('mortgageRate').value) / 100) / 12;
-        const n = parseFloat(document.getElementById('mortgageTerm').value) * 12;
-        const annualRate = parseFloat(document.getElementById('mortgageRate').value);
-        const termYears = parseFloat(document.getElementById('mortgageTerm').value);
-
+        const r = (parseFloat(document.getElementById('mortgageRate').value) || 0) / 100 / 12;
+        const n = (parseFloat(document.getElementById('mortgageTerm').value) || 0) * 12;
+        const annualRate = parseFloat(document.getElementById('mortgageRate').value) || 0;
+        const termYears = parseFloat(document.getElementById('mortgageTerm').value) || 0;
+        if (n <= 0) {
+            alert('Please enter a valid mortgage term (years).');
+            return;
+        }
         let monthly;
         if (r === 0) {
             monthly = P / n;
@@ -1929,7 +2020,7 @@
         try {
             const initialInvestment = parseAmountInput(document.getElementById('roiInitialInvestment').value);
             const finalValue = parseAmountInput(document.getElementById('roiFinalValue').value);
-            const years = parseFloat(document.getElementById('roiYears').value) || 1;
+            const years = parseFloat(document.getElementById('roiYears').value) || 0;
 
             if (initialInvestment <= 0) {
                 alert('Please enter a valid initial investment amount.');
@@ -1973,6 +2064,7 @@
     window.onload = function() {
         loadExchangeRates();
         loadCalculatorDefaults();
+        resetAllToolForms();
         
         // Load and apply tool visibility settings
         loadToolVisibility();
