@@ -2,78 +2,75 @@
  * Business Hub Platform - Common JavaScript Functions
  */
 
-// Mobile Navigation Toggle
+// Mobile Navigation Toggle – supports both injected and pre-existing .nav-toggle + .mobile-menu
 function initMobileNav() {
     const nav = document.querySelector('nav');
     if (!nav) return;
-    
-    const navList = nav.querySelector('ul');
+
+    const mobileMenu = nav.querySelector('ul.mobile-menu');
+    const menuToggle = nav.querySelector('.nav-toggle');
+    const navList = nav.querySelector('ul:not(.mobile-menu)');
     if (!navList) return;
-    
-    // Check if mobile nav has already been initialized
+
+    function attachMobileNavBehavior(toggle, menu, list) {
+        if (window.innerWidth <= 768) {
+            list.style.display = 'none';
+        }
+        toggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const isExpanded = menu.classList.toggle('active');
+            toggle.setAttribute('aria-expanded', isExpanded);
+            toggle.setAttribute('aria-label', isExpanded ? 'Close menu' : 'Open menu');
+            toggle.innerHTML = isExpanded ? '✕' : '☰';
+        });
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768 && !nav.contains(e.target) && menu.classList.contains('active')) {
+                menu.classList.remove('active');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-label', 'Open menu');
+                toggle.innerHTML = '☰';
+            }
+        });
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                menu.classList.remove('active');
+                list.style.display = 'flex';
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-label', 'Open menu');
+                toggle.innerHTML = '☰';
+            } else {
+                list.style.display = 'none';
+            }
+        });
+    }
+
+    // Pre-existing hamburger + mobile menu in HTML
+    if (menuToggle && mobileMenu) {
+        menuToggle.setAttribute('aria-label', 'Open menu');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        attachMobileNavBehavior(menuToggle, mobileMenu, navList);
+        return;
+    }
+
+    // Inject hamburger and cloned menu
     if (nav.querySelector('.nav-toggle')) return;
-    
-    // Find the parent container of the nav list (could be nav directly or a div inside nav)
+
     const navListParent = navList.parentElement;
-    
-    // Create mobile menu toggle button
-    const menuToggle = document.createElement('button');
-    menuToggle.className = 'nav-toggle';
-    menuToggle.innerHTML = '☰';
-    menuToggle.setAttribute('aria-label', 'Toggle navigation menu');
-    menuToggle.setAttribute('aria-expanded', 'false');
-    
-    // Clone nav list for mobile menu
-    const mobileMenu = navList.cloneNode(true);
-    mobileMenu.classList.add('mobile-menu');
-    
-    // Insert toggle button before the nav list (or its parent container)
-    // If navList is a direct child of nav, insert before navList
-    // Otherwise, insert before the parent container
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'nav-toggle';
+    toggle.innerHTML = '☰';
+    toggle.setAttribute('aria-label', 'Open menu');
+    toggle.setAttribute('aria-expanded', 'false');
+    const clonedMenu = navList.cloneNode(true);
+    clonedMenu.classList.add('mobile-menu');
     if (navList.parentElement === nav) {
-        nav.insertBefore(menuToggle, navList);
+        nav.insertBefore(toggle, navList);
     } else {
-        // Insert before the parent container
-        nav.insertBefore(menuToggle, navListParent);
+        nav.insertBefore(toggle, navListParent);
     }
-    
-    // Append mobile menu to nav
-    nav.appendChild(mobileMenu);
-    
-    // Hide original menu on mobile
-    if (window.innerWidth <= 768) {
-        navList.style.display = 'none';
-    }
-    
-    // Toggle mobile menu
-    menuToggle.addEventListener('click', function() {
-        const isExpanded = mobileMenu.classList.toggle('active');
-        menuToggle.setAttribute('aria-expanded', isExpanded);
-        menuToggle.innerHTML = isExpanded ? '✕' : '☰';
-    });
-    
-    // Close mobile menu when clicking outside
-    document.addEventListener('click', function(e) {
-        if (window.innerWidth <= 768 && 
-            !nav.contains(e.target) && 
-            mobileMenu.classList.contains('active')) {
-            mobileMenu.classList.remove('active');
-            menuToggle.setAttribute('aria-expanded', 'false');
-            menuToggle.innerHTML = '☰';
-        }
-    });
-    
-    // Handle window resize
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 768) {
-            mobileMenu.classList.remove('active');
-            navList.style.display = 'flex';
-            menuToggle.setAttribute('aria-expanded', 'false');
-            menuToggle.innerHTML = '☰';
-        } else {
-            navList.style.display = 'none';
-        }
-    });
+    nav.appendChild(clonedMenu);
+    attachMobileNavBehavior(toggle, clonedMenu, navList);
 }
 
 // Set active page in navigation

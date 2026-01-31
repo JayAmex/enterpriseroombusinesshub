@@ -16,6 +16,12 @@
     --border: #b3d9ff;          /* Light Sky Blue Border */
     --white: #ffffff;
     --shadow: rgba(0, 0, 0, 0.1);
+    /* Safe area insets for notch/Dynamic Island; fallback 0 for older browsers */
+    --safe-top: env(safe-area-inset-top, 0);
+    --safe-right: env(safe-area-inset-right, 0);
+    --safe-bottom: env(safe-area-inset-bottom, 0);
+    --safe-left: env(safe-area-inset-left, 0);
+    --touch-min: 44px;          /* Minimum touch target (WCAG 2.5.5) */
 }
 
 /* ============================================
@@ -32,6 +38,9 @@ body {
     line-height: 1.6;
     margin: 0;
     padding: 0;
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+    padding-bottom: var(--safe-bottom);
     background: linear-gradient(to bottom, #e6f2ff, #f0f8ff);
     min-height: 100vh;
     display: flex;
@@ -45,6 +54,9 @@ body {
 nav {
     background: #f0f8ff;
     padding: 1rem 5%;
+    padding-top: max(1rem, var(--safe-top));
+    padding-left: max(5%, var(--safe-left));
+    padding-right: max(5%, var(--safe-right));
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -63,7 +75,11 @@ nav .nav-toggle {
     font-size: 1.8rem;
     cursor: pointer;
     color: var(--primary);
-    padding: 5px 10px;
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
+    padding: 10px;
+    align-items: center;
+    justify-content: center;
 }
 
 nav ul {
@@ -150,6 +166,10 @@ nav a {
     font-weight: 500;
     transition: color 0.3s;
     white-space: nowrap;
+    padding: 0.5em 0.25em;
+    min-height: var(--touch-min);
+    display: inline-flex;
+    align-items: center;
 }
 
 nav a:hover {
@@ -245,7 +265,11 @@ h3 {
    ============================================ */
 
 .btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--touch-min);
+    min-width: var(--touch-min);
     padding: 12px 30px;
     text-decoration: none;
     border-radius: 5px;
@@ -364,14 +388,14 @@ label {
    ============================================ */
 
 .container {
-    padding: 40px 5%;
+    padding: 40px max(5%, var(--safe-right)) 40px max(5%, var(--safe-left));
     max-width: 1200px;
     margin: 0 auto;
     flex: 1;
 }
 
 .section {
-    padding: 80px 10%;
+    padding: 80px max(10%, var(--safe-right)) 80px max(10%, var(--safe-left));
 }
 
 .grid {
@@ -422,6 +446,9 @@ footer {
     background: #1a202c;
     color: var(--white);
     padding: 40px 5%;
+    padding-left: max(5%, var(--safe-left));
+    padding-right: max(5%, var(--safe-right));
+    padding-bottom: max(40px, var(--safe-bottom));
     margin-top: auto;
 }
 
@@ -576,10 +603,12 @@ footer .footer-bottom p {
 /* Back to Top Button */
 .back-to-top {
     position: fixed;
-    bottom: 30px;
-    right: 30px;
+    bottom: max(30px, var(--safe-bottom));
+    right: max(30px, var(--safe-right));
     width: 50px;
     height: 50px;
+    min-width: var(--touch-min);
+    min-height: var(--touch-min);
     background: var(--accent);
     color: var(--white);
     border: none;
@@ -666,13 +695,28 @@ footer .footer-bottom p {
     vertical-align: middle;
 }
 
+/* Tablet: 769px–1024px – fluid grids, 2-col where useful */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .section {
+        padding: 60px max(5%, var(--safe-right)) 60px max(5%, var(--safe-left));
+    }
+
+    .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     nav {
         flex-wrap: nowrap;
     }
 
     nav .nav-toggle {
-        display: block;
+        display: flex;
     }
 
     nav ul:not(.mobile-menu) {
@@ -696,11 +740,11 @@ footer .footer-bottom p {
     }
 
     .container {
-        padding: 20px;
+        padding: 20px max(20px, var(--safe-right)) 20px max(20px, var(--safe-left));
     }
 
     .section {
-        padding: 40px 20px;
+        padding: 40px max(20px, var(--safe-right)) 40px max(20px, var(--safe-left));
     }
 
     h1 {
@@ -714,7 +758,7 @@ footer .footer-bottom p {
 
 @media (max-width: 480px) {
     .hero {
-        padding: 60px 20px;
+        padding: 60px max(20px, var(--safe-right)) 60px max(20px, var(--safe-left));
     }
 
     .hero h1 {

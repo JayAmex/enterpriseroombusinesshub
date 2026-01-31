@@ -23,7 +23,6 @@ async function checkUser() {
             [testEmail]
         );
 
-        const testEmail = process.env.TEST_USER_EMAIL || 'test@enterprisehub.com';
         const testPassword = process.env.TEST_USER_PASSWORD || 'test123';
         
         if (users.length === 0) {
@@ -47,7 +46,6 @@ async function checkUser() {
             console.log(`   Name: ${user.name}`);
             
             // Test password
-            const testPassword = process.env.TEST_USER_PASSWORD || 'test123';
             const passwordMatch = await bcrypt.compare(testPassword, user.password_hash);
             if (passwordMatch) {
                 console.log(`   ✅ Password "${testPassword}" is correct!`);
