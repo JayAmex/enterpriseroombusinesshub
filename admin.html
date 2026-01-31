@@ -425,7 +425,7 @@
             <h3>Manage Members</h3>
             <p style="color: var(--text-light); margin-bottom: 20px;">View and manage members in the Members Directory.</p>
             
-            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: nowrap; align-items: center;">
                 <input type="text" id="memberSearch" placeholder="Search members by name..." style="flex: 1; min-width: 200px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 5px;" onkeyup="filterMembers()">
                 <select id="memberSort" onchange="sortMembers()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 5px;">
                     <option value="name">Sort by Name</option>
@@ -438,8 +438,10 @@
                     <option value="50">50 per page</option>
                     <option value="100">100 per page</option>
                 </select>
-                <button onclick="refreshMembers()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
-                <button onclick="openNewMemberForm()" class="btn-add">+ Add New Member</button>
+                <div style="display: flex; gap: 10px; align-items: center; white-space: nowrap;">
+                    <button onclick="refreshMembers()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
+                    <button onclick="openNewMemberForm()" class="btn-add">+ Add New Member</button>
+                </div>
             </div>
             
             <div style="overflow-x: auto;">
