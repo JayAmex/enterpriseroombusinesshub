@@ -4504,14 +4504,17 @@
     }
     
     // Update overview stats from API
-            const statMembers = document.getElementById('statMembers');
-            
-            // Map API response to stat elements
-            const statEvents = document.getElementById('statEvents');
-            const statBlogPosts = document.getElementById('statBlogPosts');
-            const statDirectoryEntries = document.getElementById('statDirectoryEntries');
-            const statRegisteredUsers = document.getElementById('statRegisteredUsers');
-            const statMembers = document.getElementById('statMembers');
+    async function updateOverviewStats() {
+        const adminToken = sessionStorage.getItem('adminToken');
+
+        // Map API response to stat elements
+        const statEvents = document.getElementById('statEvents');
+        const statBlogPosts = document.getElementById('statBlogPosts');
+        const statDirectoryEntries = document.getElementById('statDirectoryEntries');
+        const statRegisteredUsers = document.getElementById('statRegisteredUsers');
+        const statMembers = document.getElementById('statMembers');
+
+        if (!adminToken) {
             if (statEvents) statEvents.textContent = '0';
             if (statBlogPosts) statBlogPosts.textContent = '0';
             if (statDirectoryEntries) statDirectoryEntries.textContent = '0';
@@ -4548,59 +4551,37 @@
             }
 
             const stats = await response.json();
-            
+
             // Validate that stats object exists and has the expected fields
             if (!stats || typeof stats !== 'object') {
                 throw new Error('Invalid stats response format');
             }
-            
-            // Update stat values immediately
-            const statEvents = document.getElementById('statEvents');
-            const statBlogPosts = document.getElementById('statBlogPosts');
-            const statDirectoryEntries = document.getElementById('statDirectoryEntries');
-            const statRegisteredUsers = document.getElementById('statRegisteredUsers');
-            const statMembers = document.getElementById('statMembers');
-            
-            console.log('DOM elements check:', {
-                statEvents: !!statEvents,
-                statBlogPosts: !!statBlogPosts,
-                statDirectoryEntries: !!statDirectoryEntries,
-                statRegisteredUsers: !!statRegisteredUsers,
-                statMembers: !!statMembers
-            });
-            
+
             // Map API response to stat elements
             if (statEvents) {
-                // Ensure we convert to number and handle null/undefined
-                const value = stats.total_events !== undefined && stats.total_events !== null 
-                    ? parseInt(stats.total_events, 10) || 0 
+                const value = stats.total_events !== undefined && stats.total_events !== null
+                    ? parseInt(stats.total_events, 10) || 0
                     : 0;
                 statEvents.textContent = value;
             }
-            
             if (statBlogPosts) {
-                const value = parseInt(stats.total_blog_posts) || 0;
+                const value = parseInt(stats.total_blog_posts, 10) || 0;
                 statBlogPosts.textContent = value;
             }
-            
             if (statDirectoryEntries) {
-                const value = parseInt(stats.total_directory_entries) || 0;
+                const value = parseInt(stats.total_directory_entries, 10) || 0;
                 statDirectoryEntries.textContent = value;
             }
-            
             if (statRegisteredUsers) {
-                const value = parseInt(stats.total_registered_users) || 0;
+                const value = parseInt(stats.total_registered_users, 10) || 0;
                 statRegisteredUsers.textContent = value;
             }
-            
             if (statMembers) {
-                const value = parseInt(stats.total_members) || 0;
+                const value = parseInt(stats.total_members, 10) || 0;
                 statMembers.textContent = value;
             }
         } catch (error) {
             console.error('Error updating overview stats:', error);
-            // Show error indicator
-            const statEvents = document.getElementById('statEvents');
             if (statEvents) statEvents.textContent = 'Error';
         }
     }
