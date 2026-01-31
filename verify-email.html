@@ -106,6 +106,10 @@
                 statusEl.style.display = 'none';
                 if (result.ok && result.data.message) {
                     successEl.style.display = 'block';
+                    // Remove token from URL so it's not visible in address bar or history
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState(null, '', window.location.pathname);
+                    }
                 } else {
                     errorEl.style.display = 'block';
                     if (errorMsgEl) errorMsgEl.textContent = result.data.message || 'Verification failed.';

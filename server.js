@@ -77,7 +77,12 @@ async function sendVerificationEmail(toEmail, userName, verificationLink) {
 }
 
 async function sendWelcomeEmail(toEmail, userName) {
-    if (!noReplyTransporter) return;
+    if (!noReplyTransporter) {
+        if (process.env.NODE_ENV === 'production') {
+            console.error('Welcome email skipped: NOREPLY_SMTP_USER or SMTP_HOST not set in environment.');
+        }
+        return;
+    }
     const name = userName || 'there';
     const text = `Hello ${name},\n\nWelcome to Enterprise Room Business Hub. Your email is verified and your account is ready to use.\n\nWhat you can do next:\n\n• Explore events and RSVP to upcoming sessions\n• Read our blog and stay updated\n• Use our tools and resources\n• Browse and join our directories (businesses and members)\n• Enter pitch competitions and grow your business\n• Manage your profile and keep your details up to date\n\nIf you have any questions, visit our Contact page or reach out through the platform.\n\nWe're glad to have you.\n\n— The Enterprise Room Business Hub Team`;
     const html = `<p>Hello ${name},</p><p>Welcome to Enterprise Room Business Hub. Your email is verified and your account is ready to use.</p><p><strong>What you can do next:</strong></p><ul><li>Explore events and RSVP to upcoming sessions</li><li>Read our blog and stay updated</li><li>Use our tools and resources</li><li>Browse and join our directories (businesses and members)</li><li>Enter pitch competitions and grow your business</li><li>Manage your profile and keep your details up to date</li></ul><p>If you have any questions, visit our Contact page or reach out through the platform.</p><p>We're glad to have you.</p><p>— The Enterprise Room Business Hub Team</p>`;
@@ -659,9 +664,13 @@ app.get('/api/auth/verify-email', async (req, res) => {
             [user.id]
         );
 
-        sendWelcomeEmail(user.email, user.name)
-            .then(() => logEmailSent({ type: 'welcome', to_email: user.email, user_id: user.id, from_address: NOREPLY_FROM }))
-            .catch(err => console.error('Welcome email failed:', err));
+        // Await so serverless (Vercel) doesn't exit before the email is sent
+        try {
+            await sendWelcomeEmail(user.email, user.name);
+            await logEmailSent({ type: 'welcome', to_email: user.email, user_id: user.id, from_address: NOREPLY_FROM });
+        } catch (err) {
+            console.error('Welcome email failed:', err);
+        }
 
         res.json({
             message: 'Email verified. You can now sign in.',
