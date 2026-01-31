@@ -484,6 +484,29 @@ footer .footer-bottom p {
     color: var(--text-muted);
 }
 
+/* Footer social icons – prominent, readable on dark background */
+.footer-social {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+.footer-social a {
+    display: inline-flex;
+    color: #a0aec0;
+    transition: color 0.2s, transform 0.2s;
+}
+.footer-social a:hover {
+    color: #fff;
+    transform: scale(1.15);
+}
+.footer-social svg {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
     footer .footer-grid {
         grid-template-columns: repeat(2, 1fr) !important;

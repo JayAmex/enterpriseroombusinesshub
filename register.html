@@ -76,6 +76,33 @@
             color: var(--text-light);
             margin-top: 5px;
         }
+
+        .agreement-group {
+            margin: 1rem 0 1.25rem;
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.5rem 0.75rem;
+            align-items: start;
+            max-width: 100%;
+        }
+        .agreement-group input[type="checkbox"] {
+            margin-top: 0.25rem;
+        }
+        .agreement-group label {
+            font-size: 0.95rem;
+            color: var(--text-light);
+            line-height: 1.5;
+            cursor: pointer;
+            text-align: left;
+            white-space: nowrap;
+        }
+        .agreement-group a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .agreement-group a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -129,6 +156,10 @@
                 <label>Phone Number (Optional)</label>
                 <input type="tel" id="registerPhone" placeholder="+44 20 1234 5678">
             </div>
+            <div class="agreement-group">
+                <input type="checkbox" id="agreeTerms" name="agreeTerms" required aria-required="true">
+                <label for="agreeTerms">I agree to the <a href="/terms-of-use" target="_blank" rel="noopener">Terms and Conditions</a> and to the <a href="/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>.</label>
+            </div>
             <button type="submit" class="btn-register">Create Account</button>
         </form>
 
@@ -168,6 +199,12 @@
             alert('Password must be at least 6 characters long.');
             return;
         }
+
+        const agreeTerms = document.getElementById('agreeTerms');
+        if (!agreeTerms || !agreeTerms.checked) {
+            alert('Please agree to the Terms and Conditions and Privacy Policy to create an account.');
+            return;
+        }
         
         try {
             const response = await fetch('/api/auth/register', {
@@ -177,7 +214,8 @@
                     name: name,
                     email: email,
                     password: password,
-                    phone: phone || null
+                    phone: phone || null,
+                    agreeTerms: true
                 })
             });
             

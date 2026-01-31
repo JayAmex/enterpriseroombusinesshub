@@ -12,7 +12,7 @@
         const adminAuthenticated = sessionStorage.getItem('adminAuthenticated');
         
         if (!adminToken || adminAuthenticated !== 'true') {
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
         }
     </script>
     <style>
@@ -1144,8 +1144,38 @@
     </main>
 </div>
 
+<!-- Bootstrap: ensure sidebar navigation and logout always work even if main script fails (e.g. in production) -->
 <script>
-    // Make showSection globally available
+(function() {
+    window.showSection = function(sectionId, clickedElement) {
+        document.querySelectorAll('.admin-section').forEach(function(s) { s.classList.remove('active'); });
+        document.querySelectorAll('.admin-menu a').forEach(function(a) { a.classList.remove('active'); });
+        var section = document.getElementById(sectionId);
+        if (!section) return;
+        section.classList.add('active');
+        if (clickedElement) clickedElement.classList.add('active');
+        else document.querySelectorAll('.admin-menu a').forEach(function(a) {
+            if (a.getAttribute('onclick') && a.getAttribute('onclick').indexOf("'" + sectionId + "'") !== -1) a.classList.add('active');
+        });
+        if (sectionId === 'overview' && typeof updateOverviewStats === 'function') setTimeout(updateOverviewStats, 100);
+        if (sectionId === 'users' && typeof loadUsers === 'function') loadUsers();
+        if (sectionId === 'members' && typeof loadMembers === 'function') loadMembers();
+        if (sectionId === 'events' && typeof loadEvents === 'function') loadEvents();
+        if (sectionId === 'blog' && typeof loadBlogPosts === 'function') loadBlogPosts();
+        if (sectionId === 'directories' && typeof loadDirectories === 'function') loadDirectories();
+        if (sectionId === 'newsletter' && typeof loadNewsletterSubscribers === 'function') loadNewsletterSubscribers(1);
+        if (sectionId === 'templates' && typeof loadTemplateStats === 'function') loadTemplateStats();
+        if (sectionId === 'tools' && typeof loadToolVisibility === 'function') loadToolVisibility();
+    };
+    window.logout = function() {
+        sessionStorage.removeItem('adminToken');
+        sessionStorage.removeItem('adminAuthenticated');
+        window.location.href = '/admin-login';
+    };
+})();
+</script>
+<script>
+    // Make showSection globally available (full version; bootstrap above ensures nav works if this block fails)
     window.showSection = function(sectionId, clickedElement) {
         // Hide all sections
         document.querySelectorAll('.admin-section').forEach(section => {
@@ -1301,7 +1331,7 @@
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -1570,7 +1600,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
 
@@ -1586,7 +1616,7 @@
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -1697,7 +1727,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
 
@@ -1712,7 +1742,7 @@
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 const errorData = await response.json();
@@ -1784,7 +1814,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
 
@@ -1808,7 +1838,7 @@
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 const errorData = await response.json();
@@ -1830,7 +1860,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
 
@@ -1850,7 +1880,7 @@
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 const errorData = await response.json();
@@ -1884,7 +1914,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
 
@@ -1900,7 +1930,7 @@
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 const errorData = await response.json();
@@ -1935,7 +1965,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
 
@@ -2038,7 +2068,7 @@
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 
@@ -2903,7 +2933,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
         
@@ -3064,7 +3094,7 @@
             
             if (!response.ok) {
                 if (response.status === 401) {
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 throw new Error('Failed to load businesses');
@@ -3161,7 +3191,7 @@
             
             if (!response.ok) {
                 if (response.status === 401) {
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 throw new Error('Failed to load members');
@@ -3302,7 +3332,7 @@
             
             if (!response.ok) {
                 if (response.status === 401) {
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 throw new Error('Failed to load partners');
@@ -3386,7 +3416,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
         
@@ -4157,7 +4187,7 @@
             sessionStorage.removeItem('adminToken');
             sessionStorage.removeItem('adminUsername');
             sessionStorage.removeItem('adminId');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
         }
     }
 
@@ -4249,7 +4279,7 @@
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -4398,7 +4428,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
 
@@ -4441,7 +4471,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
 
@@ -4501,7 +4531,7 @@
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 let errorText;
@@ -4631,7 +4661,7 @@
                     // Token expired or invalid
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -4814,7 +4844,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
 
@@ -4866,7 +4896,7 @@
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
             alert('Authentication required. Please log in again.');
-            window.location.href = 'admin-login.html';
+            window.location.href = '/admin-login';
             return;
         }
 
@@ -4948,7 +4978,7 @@
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -5360,7 +5390,7 @@ Registered Date: ${business.registered_date || 'Not specified'}
                 if (response.status === 401) {
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
-                    window.location.href = 'admin-login.html';
+                    window.location.href = '/admin-login';
                     return;
                 }
                 throw new Error(`HTTP error! status: ${response.status}`);

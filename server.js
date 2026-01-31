@@ -220,6 +220,21 @@ const avatarUpload = multer({
     }
 });
 
+// Contact page disabled: redirect to home (contact via email/socials in footer)
+app.get('/contact', (req, res) => { res.redirect(302, '/'); });
+
+// Clean URLs: serve /tools as tools.html, /blog as blog.html, etc. (no .html in address bar)
+app.use((req, res, next) => {
+    if (req.method !== 'GET') return next();
+    const p = req.path.replace(/^\//, '').replace(/\/$/, '');
+    if (!p || p.startsWith('api') || p.startsWith('uploads') || p.startsWith('templates') || p.startsWith('assets') || p.startsWith('css') || p.startsWith('js') || p.includes('.')) return next();
+    const file = path.join(__dirname, p + '.html');
+    fs.access(file, fs.constants.F_OK, (err) => {
+        if (err) return next();
+        res.sendFile(file);
+    });
+});
+
 // Serve static files (HTML, CSS, JS, images)
 app.use(express.static(__dirname));
 // Serve uploaded files (same path as uploadsBase)
@@ -570,14 +585,23 @@ app.post('/api/auth/reset-password', async (req, res) => {
 
 // User Register (email not verified until they click the link)
 app.post('/api/auth/register', async (req, res) => {
+    let insertedUserId = null;
     try {
-        const { name, email, password, phone } = req.body;
+        const { name, email, password, phone, agreeTerms } = req.body;
 
         if (!name || !email || !password) {
             return res.status(400).json({
                 error: true,
                 message: 'Name, email, and password are required',
                 code: 'VALIDATION_ERROR'
+            });
+        }
+
+        if (!agreeTerms) {
+            return res.status(400).json({
+                error: true,
+                message: 'You must agree to the Terms and Conditions and Privacy Policy to register',
+                code: 'CONSENT_REQUIRED'
             });
         }
 
@@ -601,12 +625,14 @@ app.post('/api/auth/register', async (req, res) => {
         const verificationToken = crypto.randomBytes(32).toString('hex');
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-        // Create user (email_verified = 0 until they click the link)
+        // Create user (email_verified = 0 until they click the link); record consent timestamp
+        const consentAt = new Date();
         const [result] = await pool.execute(
-            `INSERT INTO users (uuid, name, email, password_hash, phone, email_verified, verification_token, verification_token_expires_at)
-             VALUES (?, ?, ?, ?, ?, 0, ?, ?)`,
-            [uuid, name, emailNorm, passwordHash, phone || null, verificationToken, expiresAt]
+            `INSERT INTO users (uuid, name, email, password_hash, phone, email_verified, verification_token, verification_token_expires_at, terms_accepted_at, privacy_accepted_at)
+             VALUES (?, ?, ?, ?, ?, 0, ?, ?, ?, ?)`,
+            [uuid, name, emailNorm, passwordHash, phone || null, verificationToken, expiresAt, consentAt, consentAt]
         );
+        insertedUserId = result.insertId;
 
         const verificationLink = `${SITE_URL}/verify-email.html?token=${verificationToken}`;
         await sendVerificationEmail(emailNorm, name, verificationLink);
@@ -619,6 +645,14 @@ app.post('/api/auth/register', async (req, res) => {
         });
     } catch (error) {
         console.error('Registration error:', error);
+        // If we inserted a user but a later step failed, remove the user so they can retry
+        if (insertedUserId) {
+            try {
+                await pool.execute('DELETE FROM users WHERE id = ?', [insertedUserId]);
+            } catch (deleteErr) {
+                console.error('Failed to rollback user after registration error:', deleteErr);
+            }
+        }
         res.status(500).json({
             error: true,
             message: 'Server error during registration',

@@ -153,7 +153,7 @@
 <script>
     // Check if already logged in
     if (sessionStorage.getItem('adminAuthenticated') === 'true') {
-        window.location.href = 'admin.html';
+        window.location.href = '/admin';
     }
 
     document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
@@ -188,7 +188,7 @@
                 sessionStorage.setItem('adminId', data.admin.id);
                 
                 // Redirect to admin dashboard
-                window.location.href = 'admin.html';
+                window.location.href = '/admin';
             } else {
                 // Show error message
                 errorMessage.textContent = data.message || 'Invalid credentials';
@@ -374,7 +374,7 @@
 <script>
     // Check if already logged in
     if (sessionStorage.getItem('adminAuthenticated') === 'true') {
-        window.location.href = 'admin.html';
+        window.location.href = '/admin';
     }
 
     document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
@@ -409,7 +409,7 @@
                 sessionStorage.setItem('adminId', data.admin.id);
                 
                 // Redirect to admin dashboard
-                window.location.href = 'admin.html';
+                window.location.href = '/admin';
             } else {
                 // Show error message
                 errorMessage.textContent = data.message || 'Invalid credentials';
