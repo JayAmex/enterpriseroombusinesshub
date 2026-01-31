@@ -756,7 +756,7 @@
                             <span>Annual Rent (₦)</span>
                             <span class="info-icon">
                                 <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
-                                <span class="tooltip">The amount you can claim for rent relief is up to but not more than ₦500,000.00</span>
+                                <span class="tooltip">Your rent tax relief is 20% of your annual rent amount, so insert your annual rent amount.</span>
                             </span>
                         </label>
                         <input type="text" id="annualRent" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter annual rent">
@@ -770,6 +770,28 @@
                             </span>
                         </label>
                         <input type="text" id="lifeInsurance" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter insurance premiums">
+                    </div>
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <span>Pension Contribution (₦)</span>
+                            <span class="info-icon">
+                                <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                                <span class="tooltip">Pension contribution is the total amount you contributed into your PFA/SRA, it excludes the amount contributed by your employer.</span>
+                            </span>
+                        </label>
+                        <input type="text" id="pensionContribution" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter pension contribution">
+                    </div>
+                    <div class="input-group">
+                        <label style="display: flex; align-items: center; gap: 5px;">
+                            <span>Interest on Loans (₦)</span>
+                            <span class="info-icon">
+                                <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
+                                <span class="tooltip">Interest on Loans is the total interest paid if you took a mortgage to buy or build the house you are living in. Only the interest on the loan is deductible and not the principal. This does not include commercial properties. Tax authorities may request evidence of this.</span>
+                            </span>
+                        </label>
+                        <input type="text" id="interestOnLoans" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter interest on loans">
                     </div>
                 </div>
                 <div class="input-group">
@@ -1497,6 +1519,8 @@
         const grossSalary = parseAmountInput(document.getElementById('annualSalary').value);
         const annualRent = parseAmountInput(document.getElementById('annualRent').value);
         const lifeInsurance = parseAmountInput(document.getElementById('lifeInsurance').value);
+        const pensionContribution = parseAmountInput(document.getElementById('pensionContribution').value);
+        const interestOnLoans = parseAmountInput(document.getElementById('interestOnLoans').value);
         const nhisContribution = parseAmountInput(document.getElementById('nhisContribution').value);
 
         if (grossSalary <= 0) {
@@ -1504,13 +1528,12 @@
             return;
         }
 
-        const pensionContribution = grossSalary * 0.08;
         const nhfContribution = grossSalary * 0.025;
         const lifeInsuranceDeduction = Math.min(lifeInsurance, 100000);
-        const rentRelief = Math.min(annualRent * 0.20, 500000);
+        const rentRelief = annualRent * 0.20;
         const nhisDeduction = nhisContribution;
         
-        const totalDeductions = pensionContribution + nhfContribution + lifeInsuranceDeduction + rentRelief + nhisDeduction;
+        const totalDeductions = pensionContribution + nhfContribution + lifeInsuranceDeduction + rentRelief + nhisDeduction + interestOnLoans;
         const taxableIncome = Math.max(0, grossSalary - totalDeductions);
         
         let totalTax = 0;
