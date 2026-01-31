@@ -59,6 +59,7 @@ if (process.env.SMTP_HOST && process.env.NOREPLY_SMTP_USER) {
 }
 
 const NOREPLY_FROM = process.env.NOREPLY_MAIL_FROM || 'no_reply@enterpriserm.com';
+const NOREPLY_FROM_NAME = process.env.NOREPLY_MAIL_FROM_NAME || 'EnterpriseRM';
 
 async function sendVerificationEmail(toEmail, userName, verificationLink) {
     if (!mailTransporter) {
@@ -68,7 +69,7 @@ async function sendVerificationEmail(toEmail, userName, verificationLink) {
         return;
     }
     await mailTransporter.sendMail({
-        from: MAIL_FROM,
+        from: `"${MAIL_FROM_NAME}" <${MAIL_FROM}>`,
         to: toEmail,
         subject: 'Verify your email - Enterprise Room Business Hub',
         text: `Hello ${userName || 'there'},\n\nPlease verify your email by clicking this link:\n\n${verificationLink}\n\nThis link expires in 1 hour. If you did not register, you can ignore this email.\n\n— Enterprise Room Business Hub`,
@@ -87,7 +88,7 @@ async function sendWelcomeEmail(toEmail, userName) {
     const text = `Hello ${name},\n\nWelcome to Enterprise Room Business Hub. Your email is verified and your account is ready to use.\n\nWhat you can do next:\n\n• Explore events and RSVP to upcoming sessions\n• Read our blog and stay updated\n• Use our tools and resources\n• Browse and join our directories (businesses and members)\n• Enter pitch competitions and grow your business\n• Manage your profile and keep your details up to date\n\nIf you have any questions, visit our Contact page or reach out through the platform.\n\nWe're glad to have you.\n\n— The Enterprise Room Business Hub Team`;
     const html = `<p>Hello ${name},</p><p>Welcome to Enterprise Room Business Hub. Your email is verified and your account is ready to use.</p><p><strong>What you can do next:</strong></p><ul><li>Explore events and RSVP to upcoming sessions</li><li>Read our blog and stay updated</li><li>Use our tools and resources</li><li>Browse and join our directories (businesses and members)</li><li>Enter pitch competitions and grow your business</li><li>Manage your profile and keep your details up to date</li></ul><p>If you have any questions, visit our Contact page or reach out through the platform.</p><p>We're glad to have you.</p><p>— The Enterprise Room Business Hub Team</p>`;
     await noReplyTransporter.sendMail({
-        from: NOREPLY_FROM,
+        from: `"${NOREPLY_FROM_NAME}" <${NOREPLY_FROM}>`,
         to: toEmail,
         subject: 'Welcome to Enterprise Room Business Hub',
         text,
