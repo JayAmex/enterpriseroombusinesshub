@@ -1215,7 +1215,6 @@
             }
 
             const userData = await response.json();
-            console.log('User profile data loaded:', userData);
 
             // Update name in header
             const nameDisplay = document.getElementById('userNameDisplay');
@@ -1957,7 +1956,6 @@
     
     // Logout function
     function logout() {
-        console.log('Logout function called');
         
         try {
             // Clear all authentication-related session storage
@@ -1968,15 +1966,12 @@
             sessionStorage.removeItem('userId');
             sessionStorage.removeItem('redirectAfterLogin');
             
-            console.log('Session storage cleared');
-            
             // Update navigation (if function exists)
             if (typeof updateNavAuthStatus === 'function') {
                 updateNavAuthStatus();
             }
             
             // Redirect to homepage
-            console.log('Redirecting to homepage...');
             window.location.href = 'index.html';
         } catch (error) {
             console.error('Error during logout:', error);

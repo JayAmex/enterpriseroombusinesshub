@@ -1203,7 +1203,6 @@
         
         // Always refresh overview stats when showing overview section
         if (sectionId === 'overview') {
-            console.log('Overview section shown, refreshing stats...');
             if (typeof updateOverviewStats === 'function') {
                 setTimeout(() => {
                     updateOverviewStats();
@@ -1214,7 +1213,6 @@
         // Load data for specific sections
         try {
             if (sectionId === 'users') {
-                console.log('Users section activated, calling loadUsers()');
                 if (typeof loadUsers === 'function') {
                     loadUsers();
                 } else {
@@ -1233,7 +1231,6 @@
                     loadBlogPosts();
                 }
             } else if (sectionId === 'directories') {
-                console.log('Directories section activated, calling loadDirectories()');
                 if (typeof loadDirectories === 'function') {
                     loadDirectories();
                 } else {
@@ -1266,8 +1263,6 @@
         const eventsList = document.getElementById('eventsList');
         const noEventsMessage = document.getElementById('noEventsMessage');
         const paginationDiv = document.getElementById('eventsPagination');
-        
-        console.log('=== loadEvents called ===', 'page:', page);
         
         if (!eventsList) {
             console.error('eventsList element not found!');
@@ -1315,9 +1310,6 @@
             const data = await response.json();
             const events = data.events || [];
             const pagination = data.pagination || {};
-            
-            console.log('Events from API:', events);
-            console.log('Pagination info:', pagination);
             
             // Get search term and filter (client-side for current page)
             const searchTerm = document.getElementById('eventSearch')?.value.toLowerCase() || '';
@@ -1494,7 +1486,6 @@
                 paginationDiv.innerHTML = '';
             }
             
-            console.log('Events rendered successfully. Total displayed:', filteredEvents.length);
         } catch (error) {
             console.error('Error loading events:', error);
             eventsList.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px; color: var(--live);">Error loading events. Please try again.</td></tr>';
@@ -2000,8 +1991,6 @@
                     const parsed = JSON.parse(socialLinksInput);
                     socialLinks = JSON.stringify(parsed);
                 } catch (e) {
-                    // If not valid JSON, set to null (will show default labels)
-                    console.warn('Social links not in valid JSON format, using default labels');
                     socialLinks = null;
                 }
             }
@@ -3551,7 +3540,6 @@
     async function loadToolVisibility() {
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
-            console.warn('No admin token - cannot load tool visibility');
             return;
         }
         
@@ -3707,7 +3695,6 @@
                 : document.querySelector(`#customToolsVisibilityList [onchange*="${toolId}"]`)?.closest('div')?.querySelector('strong')?.textContent;
             
             const message = `Tool "${toolName || toolId}" is now ${status}. Users will see this change immediately.`;
-            console.log(message);
             
             // Show brief notification
             const notification = document.createElement('div');
@@ -3729,7 +3716,6 @@
     async function loadTools() {
         const adminToken = sessionStorage.getItem('adminToken');
         if (!adminToken) {
-            console.warn('No admin token - cannot load tools');
             return;
         }
         
@@ -4223,8 +4209,6 @@
         const noUsersMessage = document.getElementById('noUsersMessage');
         const paginationDiv = document.getElementById('usersPagination');
         
-        console.log('=== loadUsers called ===', 'page:', page);
-        
         if (!usersList) {
             console.error('usersList element not found!');
             return;
@@ -4274,9 +4258,6 @@
             const data = await response.json();
             const users = data.users || [];
             const pagination = data.pagination || {};
-            
-            console.log('Users from API:', users);
-            console.log('Pagination info:', pagination);
             
             // Get search term for filtering (client-side for current page)
             const searchTerm = document.getElementById('userSearch')?.value.toLowerCase() || '';
@@ -4381,7 +4362,6 @@
                 paginationDiv.innerHTML = '';
             }
             
-            console.log('Users rendered successfully. Total displayed:', filteredUsers.length);
         } catch (error) {
             console.error('Error loading users:', error);
             usersList.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--live);">Error loading users. Please try again.</td></tr>';
@@ -4494,12 +4474,9 @@
     }
     
     // Update overview stats from API
-    async function updateOverviewStats() {
-        console.log('=== updateOverviewStats called ===');
-        const adminToken = sessionStorage.getItem('adminToken');
-        if (!adminToken) {
-            console.warn('No admin token - cannot fetch stats');
-            // Show 0s if no token
+            const statMembers = document.getElementById('statMembers');
+            
+            // Map API response to stat elements
             const statEvents = document.getElementById('statEvents');
             const statBlogPosts = document.getElementById('statBlogPosts');
             const statDirectoryEntries = document.getElementById('statDirectoryEntries');
@@ -4514,19 +4491,14 @@
         }
 
         try {
-            console.log('Fetching stats from API...');
             const response = await fetch('/api/admin/dashboard/stats', {
                 headers: {
                     'Authorization': `Bearer ${adminToken}`
                 }
             });
 
-            console.log('API response status:', response.status);
-
             if (!response.ok) {
                 if (response.status === 401) {
-                    // Token expired
-                    console.log('Token expired, redirecting to login...');
                     sessionStorage.removeItem('adminToken');
                     sessionStorage.removeItem('adminAuthenticated');
                     window.location.href = 'admin-login.html';
@@ -4546,15 +4518,11 @@
             }
 
             const stats = await response.json();
-            console.log('Stats received from API:', stats);
-            console.log('Full API response:', JSON.stringify(stats, null, 2));
             
             // Validate that stats object exists and has the expected fields
             if (!stats || typeof stats !== 'object') {
                 throw new Error('Invalid stats response format');
             }
-            
-            console.log('Event stats value:', stats.total_events, 'Type:', typeof stats.total_events);
             
             // Update stat values immediately
             const statEvents = document.getElementById('statEvents');
@@ -4578,47 +4546,29 @@
                     ? parseInt(stats.total_events, 10) || 0 
                     : 0;
                 statEvents.textContent = value;
-                console.log(`✅ Updated statEvents to: ${value} (from ${stats.total_events})`);
-            } else {
-                console.warn('❌ statEvents element not found!');
             }
             
             if (statBlogPosts) {
                 const value = parseInt(stats.total_blog_posts) || 0;
                 statBlogPosts.textContent = value;
-                console.log(`✅ Updated statBlogPosts to: ${value}`);
-            } else {
-                console.warn('❌ statBlogPosts element not found!');
             }
             
             if (statDirectoryEntries) {
                 const value = parseInt(stats.total_directory_entries) || 0;
                 statDirectoryEntries.textContent = value;
-                console.log(`✅ Updated statDirectoryEntries to: ${value}`);
-            } else {
-                console.warn('❌ statDirectoryEntries element not found!');
             }
             
             if (statRegisteredUsers) {
                 const value = parseInt(stats.total_registered_users) || 0;
                 statRegisteredUsers.textContent = value;
-                console.log(`✅ Updated statRegisteredUsers to: ${value}`);
-            } else {
-                console.warn('❌ statRegisteredUsers element not found!');
             }
             
             if (statMembers) {
                 const value = parseInt(stats.total_members) || 0;
                 statMembers.textContent = value;
-                console.log(`✅ Updated statMembers to: ${value}`);
-            } else {
-                console.warn('❌ statMembers element not found!');
             }
-            
-            console.log('✅ Overview stats updated from API');
         } catch (error) {
-            console.error('❌ Error updating overview stats:', error);
-            console.error('Error details:', error.message, error.stack);
+            console.error('Error updating overview stats:', error);
             // Show error indicator
             const statEvents = document.getElementById('statEvents');
             if (statEvents) statEvents.textContent = 'Error';
@@ -4633,8 +4583,6 @@
         const membersList = document.getElementById('membersList');
         const noMembersMessage = document.getElementById('noMembersMessage');
         const paginationDiv = document.getElementById('membersPagination');
-        
-        console.log('=== loadMembers called ===', 'page:', page);
         
         if (!membersList) {
             console.error('membersList element not found!');
@@ -4693,8 +4641,6 @@
             const members = data.entries || [];
             const pagination = data.pagination || {};
             
-            console.log('Members from API:', members);
-            console.log('Pagination info:', pagination);
             
             // Sort members (client-side sorting for current page)
             const sortBy = document.getElementById('memberSort')?.value || 'name';
@@ -4719,7 +4665,6 @@
                     noMembersMessage.style.display = 'none';
                 }
                 if (paginationDiv) paginationDiv.innerHTML = '';
-                console.log('No members to display');
                 return;
             }
             
@@ -4751,7 +4696,6 @@
                 return `<a href="${url}" target="_blank" rel="noopener noreferrer" title="${platform.charAt(0).toUpperCase() + platform.slice(1)}" style="display: inline-block; width: 24px; height: 24px; background: ${icon.color}; border-radius: 4px; text-align: center; line-height: 24px; text-decoration: none; transition: opacity 0.2s;"><svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="vertical-align: middle;">${icon.svg}</svg></a>`;
             }
             
-            console.log('Rendering members:', members.length);
             membersList.innerHTML = members.map((member) => {
                 const avatar = member.avatar_url || 'https://via.placeholder.com/50x50/cccccc/cccccc';
                 const socialLinks = [];
@@ -4828,8 +4772,6 @@
             } else if (paginationDiv) {
                 paginationDiv.innerHTML = '';
             }
-            
-            console.log('Members rendered successfully. Total displayed:', members.length);
         } catch (error) {
             console.error('Error loading members:', error);
             membersList.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--live);">Error loading members. Please try again.</td></tr>';
@@ -4959,7 +4901,6 @@
         const noBusinessesMessage = document.getElementById('noBusinessesMessage');
         const paginationDiv = document.getElementById('businessesPagination');
         
-        console.log('=== loadBusinesses called ===', 'page:', page);
         
         if (!businessesList) {
             console.error('businessesList element not found!');
@@ -5017,9 +4958,6 @@
             const businesses = data.businesses || [];
             const pagination = data.pagination || {};
             
-            console.log('Businesses from API:', businesses);
-            console.log('Pagination info:', pagination);
-            
             // Get search term for filtering (client-side for current page)
             const searchTerm = document.getElementById('businessSearch')?.value.toLowerCase() || '';
             let filteredBusinesses = businesses;
@@ -5039,7 +4977,7 @@
                     const dateB = b.registered_date ? new Date(b.registered_date).getTime() : 0;
                     return dateB - dateA;
                 } else if (sortBy === 'oldest') {
-                    const dateA = a.registered_date ? new Date(a.registered_date).getTime() : 0;
+                    const dateA = a.registered_d ? new Date(a.registered_date).getTime() : 0;
                     const dateB = b.registered_date ? new Date(b.registered_date).getTime() : 0;
                     return dateA - dateB;
                 } else if (sortBy === 'name') {
@@ -5124,7 +5062,6 @@
                 paginationDiv.innerHTML = '';
             }
             
-            console.log('Businesses rendered successfully. Total displayed:', filteredBusinesses.length);
         } catch (error) {
             console.error('Error loading businesses:', error);
             businessesList.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px; color: var(--live);">Error loading businesses. Please try again.</td></tr>';
@@ -5354,44 +5291,25 @@ Registered Date: ${business.registered_date || 'Not specified'}
     
     // Debug function to check API data (updated to use API instead of localStorage)
     window.debugAdminData = async function() {
-        console.log('=== ADMIN DASHBOARD DEBUG ===');
         const adminToken = sessionStorage.getItem('adminToken');
         
         if (!adminToken) {
-            console.error('No admin token found. Please log in.');
             return { error: 'Not authenticated' };
         }
         
         try {
-            // Fetch users from API
             const usersResponse = await fetch('/api/admin/users?page=1&limit=1000', {
                 headers: { 'Authorization': `Bearer ${adminToken}` }
             });
             const usersData = await usersResponse.json();
             const users = usersData.users || [];
             
-            // Fetch businesses from API
             const businessesResponse = await fetch('/api/admin/businesses?page=1&limit=1000', {
                 headers: { 'Authorization': `Bearer ${adminToken}` }
             });
             const businessesData = await businessesResponse.json();
             const businesses = businessesData.businesses || [];
             
-            console.log('Registered Users:', users);
-            console.log('Number of users:', users.length);
-            console.log('User emails:', users.map(u => u.email));
-            
-            // Log each user's details
-            users.forEach(user => {
-                console.log(`User: ${user.email}`, user);
-            });
-            
-            console.log('Registered Businesses:', businesses);
-            console.log('Total businesses:', businesses.length);
-            console.log('Business owners:', [...new Set(businesses.map(b => b.owner_email || b.user_email))]);
-            
-            // Force reload users
-            console.log('Forcing reload of users...');
             loadUsers();
             
             return {
@@ -5401,15 +5319,12 @@ Registered Date: ${business.registered_date || 'Not specified'}
                 businessCount: businesses.length
             };
         } catch (error) {
-            console.error('Error fetching debug data:', error);
             return { error: error.message };
         }
     };
     
     // Initialize overview stats on page load
     window.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded, calling updateOverviewStats...');
-        // Wait a bit for all elements to be ready
         setTimeout(() => {
             updateOverviewStats();
         }, 100);

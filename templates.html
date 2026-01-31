@@ -879,7 +879,6 @@
                 data = await response.json();
             } catch (jsonError) {
                 // If JSON parsing fails, try to open file directly
-                console.warn('Could not parse response as JSON, opening file directly');
                 window.open('templates/' + templateId + '.html', '_blank');
                 return;
             }
@@ -894,7 +893,6 @@
             
             if (!response.ok) {
                 // If API fails, still try to open the file
-                console.warn('API call failed, but opening template file anyway');
                 window.open('templates/' + templateId + '.html', '_blank');
                 
                 if (data.message) {
@@ -1041,16 +1039,10 @@
             // Group templates by category and render
             templates.forEach(template => {
                 const categoryInfo = categoryMap[template.category];
-                if (!categoryInfo) {
-                    console.warn(`Unknown category: ${template.category} for template ${template.template_id}`);
-                    return;
-                }
+                if (!categoryInfo) return;
                 
                 const grid = document.getElementById(categoryInfo.gridId);
-                if (!grid) {
-                    console.warn(`Grid not found: ${categoryInfo.gridId}`);
-                    return;
-                }
+                if (!grid) return;
                 
                 // Only show active templates (API already filters, but double-check)
                 if (template.is_active !== false) {

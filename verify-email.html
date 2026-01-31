@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Email | Enterprise Room Business Hub</title>
+    <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .verify-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .verify-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+        .verify-card h2 { margin-bottom: 12px; }
+        .verify-card p { color: var(--text-light); margin-bottom: 16px; font-size: 0.95rem; }
+        .success { color: var(--primary); font-weight: 600; }
+        .error { color: var(--live); font-weight: 600; }
+        .btn-login {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 16px;
+        }
+        .btn-login:hover { background: var(--accent); color: var(--white); }
+        .footer-links { margin-top: 20px; font-size: 0.85rem; }
+        .footer-links a { color: var(--accent); text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="index.html" class="logo">
+        <img src="assets/logo.jpg" alt="Enterprise Room Business Hub Logo" style="height: 60px; max-width: 200px; width: auto; object-fit: contain;">
+        <span>Enterprise Room Business Hub</span>
+    </a>
+    <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="eventspage.html">Events</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="tools.html">Tools</a></li>
+        <li><a href="pitch.html" class="btn-primary-link">Pitch Competition</a></li>
+        <li><a href="directories.html" class="btn-primary-link">Directories</a></li>
+        <li><a href="profile.html" class="btn-profile"><span class="nav-avatar-text">My Profile</span></a></li>
+    </ul>
+</nav>
+
+<div class="breadcrumbs">
+    <a href="index.html">Home</a>
+    <span>/</span>
+    <span>Verify Email</span>
+</div>
+
+<div class="verify-wrapper">
+    <div class="verify-card">
+        <div id="verifyStatus">
+            <p>Verifying your email…</p>
+        </div>
+        <div id="verifySuccess" style="display: none;">
+            <h2>Email verified</h2>
+            <p class="success">You can now sign in.</p>
+            <a href="login.html" class="btn-login">Sign in</a>
+        </div>
+        <div id="verifyError" style="display: none;">
+            <h2>Link invalid or expired</h2>
+            <p class="error" id="errorMessage">—</p>
+            <p><a href="verify-email-pending.html">Request a new verification link</a> or <a href="login.html">sign in</a> if you’re already verified.</p>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2026 Enterprise Room Business Hub. All Rights Reserved.</p>
+</footer>
+
+<script src="js/common.js"></script>
+<script>
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const statusEl = document.getElementById('verifyStatus');
+        const successEl = document.getElementById('verifySuccess');
+        const errorEl = document.getElementById('verifyError');
+        const errorMsgEl = document.getElementById('errorMessage');
+
+        if (!token) {
+            statusEl.style.display = 'none';
+            errorEl.style.display = 'block';
+            if (errorMsgEl) errorMsgEl.textContent = 'No verification token in the link.';
+            return;
+        }
+
+        fetch('/api/auth/verify-email?token=' + encodeURIComponent(token))
+            .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+            .then(function(result) {
+                statusEl.style.display = 'none';
+                if (result.ok && result.data.message) {
+                    successEl.style.display = 'block';
+                } else {
+                    errorEl.style.display = 'block';
+                    if (errorMsgEl) errorMsgEl.textContent = result.data.message || 'Verification failed.';
+                }
+            })
+            .catch(function() {
+                statusEl.style.display = 'none';
+                errorEl.style.display = 'block';
+                if (errorMsgEl) errorMsgEl.textContent = 'Something went wrong. Please try again.';
+            });
+    })();
+</script>
+</body>
+</html>

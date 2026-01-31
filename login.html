@@ -171,8 +171,11 @@
                 
                 // Redirect to intended page or profile
                 window.location.href = redirectUrl;
+            } else if (data.code === 'EMAIL_NOT_VERIFIED') {
+                const msg = data.message || 'Please verify your email before signing in.';
+                alert(msg + '\n\nYou can request a new verification link on the next page.');
+                window.location.href = 'verify-email-pending.html?email=' + encodeURIComponent(document.getElementById('loginEmail').value || '');
             } else {
-                // API login failed - show error message
                 const errorMessage = data.message || 'Invalid email or password. Please try again.';
                 alert(errorMessage);
             }

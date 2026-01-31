@@ -537,10 +537,8 @@
         }
         
         try {
-            console.log('[Popular Posts] Fetching from /api/blog/popular...');
             const response = await fetch('/api/blog/popular?limit=5');
             
-            console.log('[Popular Posts] Response status:', response.status, response.statusText);
             
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -549,10 +547,8 @@
             }
             
             const data = await response.json();
-            console.log('[Popular Posts] Received data:', data);
             
             if (!data || !data.posts) {
-                console.warn('Invalid response format from /api/blog/popular:', data);
                 popularGrid.innerHTML = '<p style="text-align: center; color: var(--text-light);">No popular posts yet.</p>';
                 return;
             }

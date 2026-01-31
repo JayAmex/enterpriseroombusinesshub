@@ -150,7 +150,7 @@
     }
 
     // Registration handler
-    function handleRegister(e) {
+    async function handleRegister(e) {
         e.preventDefault();
         
         const name = document.getElementById('registerName').value.trim();
@@ -159,7 +159,6 @@
         const confirmPassword = document.getElementById('registerConfirmPassword').value;
         const phone = document.getElementById('registerPhone').value.trim();
         
-        // Validation
         if (password !== confirmPassword) {
             alert('Passwords do not match. Please try again.');
             return;
@@ -170,13 +169,10 @@
             return;
         }
         
-        // Register user via API
         try {
             const response = await fetch('/api/auth/register', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     name: name,
                     email: email,
@@ -187,31 +183,22 @@
             
             const data = await response.json();
             
-            if (response.ok && data.token) {
-                // Store JWT token and user info
-                sessionStorage.setItem('userToken', data.token);
-                sessionStorage.setItem('userAuthenticated', 'true');
-                sessionStorage.setItem('userEmail', data.user.email);
-                sessionStorage.setItem('userName', data.user.name || name);
-                sessionStorage.setItem('userId', data.user.id);
-                
-                // Update navigation on all pages (if function exists)
-                if (typeof updateNavAuthStatus === 'function') {
-                    updateNavAuthStatus();
-                }
-                
-                // Show success message and redirect
-                alert('Account created successfully! You are now logged in.');
-                window.location.href = 'profile.html';
+            if (response.ok && data.verifyRequired) {
+                window.location.href = 'verify-email-pending.html?email=' + encodeURIComponent(data.email || email);
+                return;
+            }
+            
+            if (response.ok) {
+                window.location.href = 'verify-email-pending.html?email=' + encodeURIComponent(email);
+                return;
+            }
+            
+            const errorMessage = data.message || 'Registration failed. Please try again.';
+            if (data.code === 'DUPLICATE_ENTRY' || errorMessage.toLowerCase().includes('already registered')) {
+                alert('An account with this email already exists. Please login instead.');
+                window.location.href = 'login.html';
             } else {
-                // Handle registration errors
-                const errorMessage = data.message || 'Registration failed. Please try again.';
-                if (errorMessage.includes('already exists') || errorMessage.includes('duplicate')) {
-                    alert('An account with this email already exists. Please login instead.');
-                    window.location.href = 'login.html';
-                } else {
-                    alert(errorMessage);
-                }
+                alert(errorMessage);
             }
         } catch (error) {
             console.error('Registration error:', error);

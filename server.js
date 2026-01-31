@@ -10,6 +10,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 // PDF generation (optional - only load if puppeteer is available)
 let puppeteer = null;
@@ -24,6 +25,70 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Base URL for verification links (e.g. https://yoursite.com or http://localhost:3000)
+const SITE_URL = process.env.SITE_URL || `http://localhost:${PORT}`;
+const MAIL_FROM = process.env.MAIL_FROM || 'register@enterpriserm.com';
+
+// Optional SMTP for sending verification emails (register@)
+let mailTransporter = null;
+if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+    mailTransporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT, 10) || 587,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS || ''
+        }
+    });
+}
+
+// Optional SMTP for welcome email (no_reply@, same server)
+let noReplyTransporter = null;
+if (process.env.SMTP_HOST && process.env.NOREPLY_SMTP_USER) {
+    noReplyTransporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT, 10) || 587,
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: {
+            user: process.env.NOREPLY_SMTP_USER,
+            pass: process.env.NOREPLY_SMTP_PASS || ''
+        }
+    });
+}
+
+const NOREPLY_FROM = process.env.NOREPLY_MAIL_FROM || 'no_reply@enterpriserm.com';
+
+async function sendVerificationEmail(toEmail, userName, verificationLink) {
+    if (!mailTransporter) {
+        if (process.env.NODE_ENV === 'development') {
+            console.warn('SMTP not configured. Verification link (dev only):', verificationLink);
+        }
+        return;
+    }
+    await mailTransporter.sendMail({
+        from: MAIL_FROM,
+        to: toEmail,
+        subject: 'Verify your email - Enterprise Room Business Hub',
+        text: `Hello ${userName || 'there'},\n\nPlease verify your email by clicking this link:\n\n${verificationLink}\n\nThis link expires in 1 hour. If you did not register, you can ignore this email.\n\n— Enterprise Room Business Hub`,
+        html: `<p>Hello ${userName || 'there'},</p><p>Please verify your email by clicking the link below:</p><p><a href="${verificationLink}">Verify my email</a></p><p>This link expires in 1 hour. If you did not register, you can ignore this email.</p><p>— Enterprise Room Business Hub</p>`
+    });
+}
+
+async function sendWelcomeEmail(toEmail, userName) {
+    if (!noReplyTransporter) return;
+    const name = userName || 'there';
+    const text = `Hello ${name},\n\nWelcome to Enterprise Room Business Hub. Your email is verified and your account is ready to use.\n\nWhat you can do next:\n\n• Explore events and RSVP to upcoming sessions\n• Read our blog and stay updated\n• Use our tools and resources\n• Browse and join our directories (businesses and members)\n• Enter pitch competitions and grow your business\n• Manage your profile and keep your details up to date\n\nIf you have any questions, visit our Contact page or reach out through the platform.\n\nWe're glad to have you.\n\n— The Enterprise Room Business Hub Team`;
+    const html = `<p>Hello ${name},</p><p>Welcome to Enterprise Room Business Hub. Your email is verified and your account is ready to use.</p><p><strong>What you can do next:</strong></p><ul><li>Explore events and RSVP to upcoming sessions</li><li>Read our blog and stay updated</li><li>Use our tools and resources</li><li>Browse and join our directories (businesses and members)</li><li>Enter pitch competitions and grow your business</li><li>Manage your profile and keep your details up to date</li></ul><p>If you have any questions, visit our Contact page or reach out through the platform.</p><p>We're glad to have you.</p><p>— The Enterprise Room Business Hub Team</p>`;
+    await noReplyTransporter.sendMail({
+        from: NOREPLY_FROM,
+        to: toEmail,
+        subject: 'Welcome to Enterprise Room Business Hub',
+        text,
+        html
+    });
+}
 
 // JWT Secret - use environment variable or default (for local development)
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
@@ -62,14 +127,29 @@ if (process.env.DB_SSL === 'true') {
 // Create connection pool
 const pool = mysql.createPool(dbConfig);
 
+/** Log sent email to email_sent_log for records (verification, welcome, verification_resend). */
+async function logEmailSent(options) {
+    const { type, to_email, user_id = null, from_address = null } = options;
+    try {
+        await pool.execute(
+            'INSERT INTO email_sent_log (email_type, to_email, user_id, from_address) VALUES (?, ?, ?, ?)',
+            [type, to_email, user_id, from_address]
+        );
+    } catch (e) {
+        console.error('email_sent_log insert failed:', e.message);
+    }
+}
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Create uploads directories if they don't exist
-const blogUploadsDir = path.join(__dirname, 'uploads', 'blog');
-const avatarUploadsDir = path.join(__dirname, 'uploads', 'avatars');
+// Create uploads directories (use /tmp on Vercel - ephemeral)
+const isVercel = process.env.VERCEL === '1';
+const uploadsBase = isVercel ? path.join('/tmp', 'uploads') : path.join(__dirname, 'uploads');
+const blogUploadsDir = path.join(uploadsBase, 'blog');
+const avatarUploadsDir = path.join(uploadsBase, 'avatars');
 if (!fs.existsSync(blogUploadsDir)) {
     fs.mkdirSync(blogUploadsDir, { recursive: true });
 }
@@ -135,8 +215,8 @@ const avatarUpload = multer({
 
 // Serve static files (HTML, CSS, JS, images)
 app.use(express.static(__dirname));
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve uploaded files (same path as uploadsBase)
+app.use('/uploads', express.static(uploadsBase));
 // Serve template files
 app.use('/templates', express.static(path.join(__dirname, 'templates')));
 
@@ -144,10 +224,8 @@ app.use('/templates', express.static(path.join(__dirname, 'templates')));
 async function testConnection() {
     try {
         const connection = await pool.getConnection();
-        console.log('✅ Database connection pool created successfully!');
         const [rows] = await connection.execute('SELECT 1 as test');
         connection.release();
-        console.log('✅ Database connection test passed!');
         return true;
     } catch (error) {
         console.error('❌ Database connection failed:', error.message);
@@ -272,7 +350,7 @@ app.post('/api/auth/login', async (req, res) => {
         }
 
         const [users] = await pool.execute(
-            'SELECT id, email, password_hash, name, avatar_url, is_active FROM users WHERE email = ?',
+            'SELECT id, email, password_hash, name, avatar_url, is_active, email_verified FROM users WHERE email = ?',
             [email]
         );
 
@@ -291,6 +369,14 @@ app.post('/api/auth/login', async (req, res) => {
                 error: true,
                 message: 'Account is inactive',
                 code: 'ACCOUNT_INACTIVE'
+            });
+        }
+
+        if (user.email_verified === 0 || user.email_verified === false) {
+            return res.status(403).json({
+                error: true,
+                message: 'Please verify your email before logging in. Check your inbox for the verification link.',
+                code: 'EMAIL_NOT_VERIFIED'
             });
         }
 
@@ -392,10 +478,6 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         // In production, remove the token from the response and send it via email
         const resetLink = `${req.protocol}://${req.get('host')}/reset-password.html?token=${resetToken}`;
 
-        console.log(`Password reset requested for: ${email}`);
-        console.log(`Reset token: ${resetToken}`);
-        console.log(`Reset link: ${resetLink}`);
-
         res.json({
             message: 'If an account with that email exists, a password reset link has been sent.',
             // Remove this in production - only for development
@@ -479,7 +561,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
     }
 });
 
-// User Register
+// User Register (email not verified until they click the link)
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { name, email, password, phone } = req.body;
@@ -492,8 +574,10 @@ app.post('/api/auth/register', async (req, res) => {
             });
         }
 
+        const emailNorm = email.trim().toLowerCase();
+
         // Check if user already exists
-        const [existing] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
+        const [existing] = await pool.execute('SELECT id, email_verified FROM users WHERE email = ?', [emailNorm]);
         if (existing.length > 0) {
             return res.status(409).json({
                 error: true,
@@ -505,32 +589,26 @@ app.post('/api/auth/register', async (req, res) => {
         // Hash password
         const passwordHash = await bcrypt.hash(password, 10);
 
-        // Generate UUID for new user
         const { randomUUID } = require('crypto');
         const uuid = randomUUID();
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-        // Create user with UUID
+        // Create user (email_verified = 0 until they click the link)
         const [result] = await pool.execute(
-            'INSERT INTO users (uuid, name, email, password_hash, phone) VALUES (?, ?, ?, ?, ?)',
-            [uuid, name, email, passwordHash, phone || null]
+            `INSERT INTO users (uuid, name, email, password_hash, phone, email_verified, verification_token, verification_token_expires_at)
+             VALUES (?, ?, ?, ?, ?, 0, ?, ?)`,
+            [uuid, name, emailNorm, passwordHash, phone || null, verificationToken, expiresAt]
         );
 
-        // Generate JWT token
-        const token = jwt.sign(
-            { id: result.insertId, uuid: uuid, email: email, isAdmin: false },
-            JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+        const verificationLink = `${SITE_URL}/verify-email.html?token=${verificationToken}`;
+        await sendVerificationEmail(emailNorm, name, verificationLink);
+        await logEmailSent({ type: 'verification', to_email: emailNorm, user_id: result.insertId, from_address: MAIL_FROM });
 
         res.status(201).json({
-            token,
-            user: {
-                id: result.insertId,
-                uuid: uuid,
-                name,
-                email,
-                phone
-            }
+            message: 'Account created. Please check your email and click the verification link to sign in.',
+            email: emailNorm,
+            verifyRequired: true
         });
     } catch (error) {
         console.error('Registration error:', error);
@@ -539,6 +617,130 @@ app.post('/api/auth/register', async (req, res) => {
             message: 'Server error during registration',
             code: 'SERVER_ERROR'
         });
+    }
+});
+
+// Verify email (user clicks link: /verify-email.html?token=...)
+app.get('/api/auth/verify-email', async (req, res) => {
+    try {
+        const token = (req.query.token || '').trim();
+        if (!token) {
+            return res.status(400).json({
+                error: true,
+                message: 'Verification token is required',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        const [users] = await pool.execute(
+            'SELECT id, email, name, verification_token_expires_at FROM users WHERE verification_token = ?',
+            [token]
+        );
+        if (users.length === 0) {
+            return res.status(400).json({
+                error: true,
+                message: 'Invalid or expired verification link',
+                code: 'INVALID_TOKEN'
+            });
+        }
+
+        const user = users[0];
+        const expiresAt = user.verification_token_expires_at ? new Date(user.verification_token_expires_at) : null;
+        if (expiresAt && expiresAt < new Date()) {
+            return res.status(400).json({
+                error: true,
+                message: 'Verification link has expired. Please request a new one.',
+                code: 'TOKEN_EXPIRED'
+            });
+        }
+
+        await pool.execute(
+            'UPDATE users SET email_verified = 1, verification_token = NULL, verification_token_expires_at = NULL WHERE id = ?',
+            [user.id]
+        );
+
+        sendWelcomeEmail(user.email, user.name)
+            .then(() => logEmailSent({ type: 'welcome', to_email: user.email, user_id: user.id, from_address: NOREPLY_FROM }))
+            .catch(err => console.error('Welcome email failed:', err));
+
+        res.json({
+            message: 'Email verified. You can now sign in.',
+            email: user.email
+        });
+    } catch (error) {
+        console.error('Verify email error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Resend verification email (rate-limited by email)
+app.post('/api/auth/resend-verification', async (req, res) => {
+    try {
+        const { email } = req.body;
+        const emailNorm = (email || '').trim().toLowerCase();
+        if (!emailNorm) {
+            return res.status(400).json({
+                error: true,
+                message: 'Email is required',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+
+        const [users] = await pool.execute(
+            'SELECT id, name, email_verified, verification_token, verification_token_expires_at FROM users WHERE email = ?',
+            [emailNorm]
+        );
+        if (users.length === 0) {
+            return res.json({ message: 'If that email is registered, a new verification link has been sent.' });
+        }
+
+        const user = users[0];
+        if (user.email_verified) {
+            return res.json({ message: 'This email is already verified. You can sign in.' });
+        }
+
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+        await pool.execute(
+            'UPDATE users SET verification_token = ?, verification_token_expires_at = ? WHERE id = ?',
+            [verificationToken, expiresAt, user.id]
+        );
+
+        const verificationLink = `${SITE_URL}/verify-email.html?token=${verificationToken}`;
+        await sendVerificationEmail(emailNorm, user.name, verificationLink);
+        await logEmailSent({ type: 'verification_resend', to_email: emailNorm, user_id: user.id, from_address: MAIL_FROM });
+
+        res.json({ message: 'If that email is registered, a new verification link has been sent.' });
+    } catch (error) {
+        console.error('Resend verification error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// Check if email is verified (for pending page: auto-redirect when user verifies in another tab)
+// Returns only { verified: true/false } to avoid leaking whether the email exists
+app.get('/api/auth/verification-status', async (req, res) => {
+    try {
+        const email = (req.query.email || '').trim().toLowerCase();
+        if (!email) {
+            return res.status(400).json({ verified: false });
+        }
+        const [rows] = await pool.execute(
+            'SELECT email_verified FROM users WHERE email = ?',
+            [email]
+        );
+        const verified = rows.length > 0 && (rows[0].email_verified === 1 || rows[0].email_verified === true);
+        return res.json({ verified: !!verified });
+    } catch (err) {
+        res.json({ verified: false });
     }
 });
 
@@ -1489,7 +1691,6 @@ app.get('/api/events', async (req, res) => {
 // Get Pitch Events
 app.get('/api/events/pitch', async (req, res) => {
     try {
-        console.log('Fetching pitch events from database...');
         // Include all pitch events (upcoming, live, featured, and historical)
         // Use LOWER() to handle any case sensitivity issues
         const [events] = await pool.execute(
@@ -1507,15 +1708,6 @@ app.get('/api/events/pitch', async (req, res) => {
         
         // Filter out archived events in application logic (if column exists)
         const filteredEvents = events.filter(event => event.is_archived !== true);
-
-        console.log(`Found ${filteredEvents.length} pitch event(s) in database`);
-        if (filteredEvents.length > 0) {
-            console.log('Pitch events:', filteredEvents.map(e => ({ id: e.id, title: e.title, status: e.status, event_type: e.event_type })));
-        } else {
-            console.log('No pitch events found. Checking all events...');
-            const [allEvents] = await pool.execute('SELECT id, title, event_type FROM events ORDER BY id DESC LIMIT 5');
-            console.log('Recent events:', allEvents.map(e => ({ id: e.id, title: e.title, event_type: e.event_type })));
-        }
 
         res.json({ events: filteredEvents });
     } catch (error) {
@@ -1928,7 +2120,6 @@ app.get('/api/blog/popular', async (req, res) => {
              LIMIT ${safeLimit}`
         );
 
-        console.log(`[Popular Posts] Found ${posts.length} published posts`);
         res.json({ posts: posts || [] });
     } catch (error) {
         console.error('Get popular posts error:', error);
@@ -3296,8 +3487,6 @@ app.post('/api/admin/events', authenticateAdmin, async (req, res) => {
         const normalizedEventType = (event_type || 'regular').toLowerCase().trim();
         const validEventType = (normalizedEventType === 'pitch') ? 'pitch' : 'regular';
         
-        console.log('Creating event with event_type:', validEventType, '(original:', event_type, ')');
-        
         const [result] = await pool.execute(
             `INSERT INTO events (
                 title, description, event_date, event_time, date_display,
@@ -3376,7 +3565,6 @@ app.put('/api/admin/events/:id', authenticateAdmin, async (req, res) => {
             // Normalize event_type to lowercase
             const normalizedEventType = event_type.toLowerCase().trim();
             const validEventType = (normalizedEventType === 'pitch') ? 'pitch' : 'regular';
-            console.log('Updating event', eventId, 'event_type to:', validEventType, '(original:', event_type, ')');
             updates.push('event_type = ?'); 
             values.push(validEventType); 
         }
@@ -4460,7 +4648,6 @@ app.post('/api/templates/:id/download', async (req, res) => {
                     userId = decoded.id || null;
                 } catch (jwtError) {
                     // Token invalid or expired, continue as anonymous
-                    console.log('Invalid token for template download, proceeding as anonymous');
                 }
             }
         } catch (authError) {
@@ -5008,5 +5195,9 @@ async function startServer() {
     });
 }
 
-startServer().catch(console.error);
+// Export app for Vercel serverless; only start server when not on Vercel
+module.exports = app;
+if (!process.env.VERCEL) {
+    startServer().catch(console.error);
+}
 

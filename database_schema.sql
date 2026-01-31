@@ -385,6 +385,23 @@ CREATE TABLE templates (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =====================================================
+-- 18. EMAIL_SENT_LOG TABLE
+-- =====================================================
+-- App-level record of sent emails (verification, welcome, verification_resend)
+CREATE TABLE IF NOT EXISTS email_sent_log (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email_type VARCHAR(50) NOT NULL,
+    to_email VARCHAR(255) NOT NULL,
+    user_id INT NULL,
+    from_address VARCHAR(255) NULL,
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_email_type (email_type),
+    INDEX idx_to_email (to_email),
+    INDEX idx_sent_at (sent_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =====================================================
 -- 19. TEMPLATE_DOWNLOADS TABLE
 -- =====================================================
 -- Tracks individual template downloads
