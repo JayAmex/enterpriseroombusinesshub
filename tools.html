@@ -576,7 +576,7 @@
                 </div>
                 <div class="input-group">
                     <label>Target Amount (₦)</label>
-                    <input type="text" id="targetAmount" value="500,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter target amount">
+                    <input type="text" id="targetAmount" value="500,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Enter target amount">
                 </div>
                 <div class="input-group">
                     <label>
@@ -625,16 +625,16 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Loan Amount (₦)</label>
-                    <input type="text" id="loanAmount" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')">
+                    <input type="text" id="loanAmount" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
                         <label>Interest Rate (Annual %)</label>
-                        <input type="number" id="loanRate" value="0" step="0.1" placeholder="">
+                        <input type="number" id="loanRate" value="0" step="0.1" placeholder="" onfocus="this.select();">
                     </div>
                     <div class="input-group">
                         <label>Term (Months)</label>
-                        <input type="number" id="loanTerm" value="0" placeholder="">
+                        <input type="number" id="loanTerm" value="0" placeholder="" onfocus="this.select();">
                     </div>
                 </div>
                 <button class="btn-calc" onclick="calculateLoan()">Calculate Repayment</button>
@@ -682,12 +682,12 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Property Price (₦)</label>
-                    <input type="text" id="propPrice" value="45,000,000.00" onblur="formatAmountInput(this); updateLoanAmount();" onfocus="this.value = this.value.replace(/,/g, '')">
+                    <input type="text" id="propPrice" value="45,000,000.00" onblur="formatAmountInput(this); updateLoanAmount();" onfocus="this.value = this.value.replace(/,/g, ''); this.select();">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
                         <label>Deposit (₦)</label>
-                        <input type="text" id="downPayment" value="0.00" onblur="formatAmountInput(this); updateLoanAmount();" onfocus="this.value = this.value.replace(/,/g, '')">
+                        <input type="text" id="downPayment" value="0.00" onblur="formatAmountInput(this); updateLoanAmount();" onfocus="this.value = this.value.replace(/,/g, ''); this.select();">
                     </div>
                     <div class="input-group">
                         <label>Loan Amount (₦)</label>
@@ -701,7 +701,7 @@
                     </div>
                     <div class="input-group">
                         <label>Term (Years)</label>
-                        <input type="number" id="mortgageTerm" value="0" placeholder="">
+                        <input type="number" id="mortgageTerm" value="0" placeholder="" onfocus="this.select();">
                     </div>
                 </div>
                 <button class="btn-calc" onclick="calculateMortgage()">Calculate Mortgage</button>
@@ -763,7 +763,7 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Annual Gross Salary (₦)</label>
-                    <input type="text" id="annualSalary" value="0.00" onblur="formatAmountInput(this); updatePensionContributionFromSalary();" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter your annual salary">
+                    <input type="text" id="annualSalary" value="0.00" onblur="formatAmountInput(this); updatePensionContributionFromSalary();" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Enter your annual salary">
                 </div>
                 <div class="input-group">
                     <label>Employment sector</label>
@@ -792,7 +792,7 @@
                                 <span class="tooltip">Your rent tax relief is 20% of your annual rent amount, capped at ₦500,000.</span>
                             </span>
                         </label>
-                        <input type="text" id="annualRent" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter annual rent">
+                        <input type="text" id="annualRent" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Enter annual rent">
                     </div>
                     <div class="input-group">
                         <label style="display: flex; align-items: center; gap: 5px;">
@@ -802,7 +802,7 @@
                                 <span class="tooltip">The amount you can claim for life insurance is up to but not more than ₦100,000.00</span>
                             </span>
                         </label>
-                        <input type="text" id="lifeInsurance" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter insurance premiums">
+                        <input type="text" id="lifeInsurance" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Enter insurance premiums">
                     </div>
                 </div>
                 <div class="input-grid">
@@ -836,11 +836,11 @@
                                 <span class="tooltip">Interest on Loans is the total interest paid if you took a mortgage to buy or build the house you are living in. Only the interest on the loan is deductible and not the principal. This does not include commercial properties. Tax authorities may request evidence of this.</span>
                             </span>
                         </label>
-                        <input type="text" id="interestOnLoans" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter interest on loans">
+                        <input type="text" id="interestOnLoans" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Enter interest on loans">
                     </div>
                     <div class="input-group">
                         <label>NHIS Contribution (₦)</label>
-                        <input type="text" id="nhisContribution" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter NHIS contribution">
+                        <input type="text" id="nhisContribution" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Enter NHIS contribution">
                     </div>
                 </div>
                 <button class="btn-calc" onclick="calculatePersonalIncomeTax()">Calculate Tax</button>
@@ -894,12 +894,12 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Annual Gross Turnover/Revenue (₦)</label>
-                    <input type="text" id="citTurnover" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter annual turnover">
+                    <input type="text" id="citTurnover" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Enter annual turnover">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
                         <label>Total Fixed Assets (₦)</label>
-                        <input type="text" id="citAssets" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter total fixed assets">
+                        <input type="text" id="citAssets" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Enter total fixed assets">
                     </div>
                     <div class="input-group">
                         <label>Company Type</label>
@@ -911,7 +911,7 @@
                 </div>
                 <div class="input-group">
                     <label>Operating Expenses/Deductions (₦)</label>
-                    <input type="text" id="citExpenses" value="20,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter total deductions">
+                    <input type="text" id="citExpenses" value="20,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Enter total deductions">
                 </div>
                 <button class="btn-calc" onclick="calculateCompanyIncomeTax()">Calculate Tax</button>
                 
@@ -964,16 +964,16 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Fixed Costs (₦)</label>
-                    <input type="text" id="beFixedCosts" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Rent, salaries, insurance, etc.">
+                    <input type="text" id="beFixedCosts" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Rent, salaries, insurance, etc.">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
                         <label>Variable Cost per Unit (₦)</label>
-                        <input type="text" id="beVariableCost" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Cost per item/service">
+                        <input type="text" id="beVariableCost" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Cost per item/service">
                     </div>
                     <div class="input-group">
                         <label>Selling Price per Unit (₦)</label>
-                        <input type="text" id="beSellingPrice" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Price per item/service">
+                        <input type="text" id="beSellingPrice" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Price per item/service">
                     </div>
                 </div>
                 <button class="btn-calc" onclick="calculateBreakEven()">Calculate Break-Even</button>
@@ -1023,19 +1023,19 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Starting Cash Balance (₦)</label>
-                    <input type="text" id="cfStartingBalance" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Current cash on hand">
+                    <input type="text" id="cfStartingBalance" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Current cash on hand">
                 </div>
                 <div class="input-group">
                     <label>Monthly Cash Inflows (₦)</label>
-                    <input type="text" id="cfInflows" value="2,500,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Sales, receivables, etc.">
+                    <input type="text" id="cfInflows" value="2,500,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Sales, receivables, etc.">
                 </div>
                 <div class="input-group">
                     <label>Monthly Cash Outflows (₦)</label>
-                    <input type="text" id="cfOutflows" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Expenses, payables, etc.">
+                    <input type="text" id="cfOutflows" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Expenses, payables, etc.">
                 </div>
                 <div class="input-group">
                     <label>Forecast Period (Months)</label>
-                    <input type="number" id="cfMonths" value="0" min="0" max="60" placeholder="Number of months to forecast">
+                    <input type="number" id="cfMonths" value="0" min="0" max="60" placeholder="Number of months to forecast" onfocus="this.select();">
                 </div>
                 <button class="btn-calc" onclick="calculateCashFlow()">Generate Forecast</button>
                 
@@ -1094,19 +1094,19 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Revenue/Sales (₦)</label>
-                    <input type="text" id="pmRevenue" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Total sales/revenue">
+                    <input type="text" id="pmRevenue" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Total sales/revenue">
                 </div>
                 <div class="input-group">
                     <label>Cost of Goods Sold (COGS) (₦)</label>
-                    <input type="text" id="pmCogs" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Direct costs of production">
+                    <input type="text" id="pmCogs" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Direct costs of production">
                 </div>
                 <div class="input-group">
                     <label>Operating Expenses (₦)</label>
-                    <input type="text" id="pmOperatingExpenses" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Rent, salaries, utilities, etc.">
+                    <input type="text" id="pmOperatingExpenses" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Rent, salaries, utilities, etc.">
                 </div>
                 <div class="input-group">
                     <label>Other Expenses (₦) <small style="color: var(--text-light);">(Optional - Taxes, Interest, etc.)</small></label>
-                    <input type="text" id="pmOtherExpenses" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Taxes, interest, one-time expenses">
+                    <input type="text" id="pmOtherExpenses" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Taxes, interest, one-time expenses">
                 </div>
                 <button class="btn-calc" onclick="calculateProfitMargin()">Calculate Margins</button>
                 
@@ -1163,7 +1163,7 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Monthly Gross Salary (₦)</label>
-                    <input type="text" id="payrollGrossSalary" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Monthly gross salary">
+                    <input type="text" id="payrollGrossSalary" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Monthly gross salary">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
@@ -1174,7 +1174,7 @@
                                 <span class="tooltip">For rent relief calculation (20% of annual rent, capped at ₦500,000)</span>
                             </span>
                         </label>
-                        <input type="text" id="payrollRent" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Annual rent">
+                        <input type="text" id="payrollRent" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Annual rent">
                     </div>
                     <div class="input-group">
                         <label style="display: flex; align-items: center; gap: 5px;">
@@ -1184,12 +1184,12 @@
                                 <span class="tooltip">Life insurance premium (up to ₦100,000 deductible)</span>
                             </span>
                         </label>
-                        <input type="text" id="payrollInsurance" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Annual insurance premium">
+                        <input type="text" id="payrollInsurance" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Annual insurance premium">
                     </div>
                 </div>
                 <div class="input-group">
                     <label>NHIS Contribution (₦) <small style="color: var(--text-light);">(Optional)</small></label>
-                    <input type="text" id="payrollNHIS" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="NHIS contribution">
+                    <input type="text" id="payrollNHIS" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="NHIS contribution">
                 </div>
                 <button class="btn-calc" onclick="calculatePayroll()">Calculate Payroll</button>
                 
@@ -1246,15 +1246,15 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Initial Investment (₦)</label>
-                    <input type="text" id="roiInitialInvestment" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Amount invested">
+                    <input type="text" id="roiInitialInvestment" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Amount invested">
                 </div>
                 <div class="input-group">
                     <label>Final Value / Return (₦)</label>
-                    <input type="text" id="roiFinalValue" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Total return or final value">
+                    <input type="text" id="roiFinalValue" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, ''); this.select();" placeholder="Total return or final value">
                 </div>
                 <div class="input-group">
                     <label>Investment Period (Years)</label>
-                    <input type="number" id="roiYears" value="0" step="0.1" min="0" placeholder="Number of years">
+                    <input type="number" id="roiYears" value="0" step="0.1" min="0" placeholder="Number of years" onfocus="this.select();">
                 </div>
                 <button class="btn-calc" onclick="calculateROI()">Calculate ROI</button>
                 
