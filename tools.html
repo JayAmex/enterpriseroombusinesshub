@@ -748,7 +748,7 @@
             <div class="tool-form">
                 <div class="input-group">
                     <label>Annual Gross Salary (₦)</label>
-                    <input type="text" id="annualSalary" value="5,000,000.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter your annual salary">
+                    <input type="text" id="annualSalary" value="5,000,000.00" onblur="formatAmountInput(this); updatePensionContributionFromSalary();" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter your annual salary">
                 </div>
                 <div class="input-grid">
                     <div class="input-group">
@@ -756,7 +756,7 @@
                             <span>Annual Rent (₦)</span>
                             <span class="info-icon">
                                 <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
-                                <span class="tooltip">Your rent tax relief is 20% of your annual rent amount, so insert your annual rent amount.</span>
+                                <span class="tooltip">Your rent tax relief is 20% of your annual rent amount, capped at ₦500,000.</span>
                             </span>
                         </label>
                         <input type="text" id="annualRent" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter annual rent">
@@ -778,10 +778,10 @@
                             <span>Pension Contribution (₦)</span>
                             <span class="info-icon">
                                 <span style="color: var(--accent); font-size: 1rem;">ℹ️</span>
-                                <span class="tooltip">Pension contribution is the total amount you contributed into your PFA/SRA, it excludes the amount contributed by your employer.</span>
+                                <span class="tooltip">Automatically calculated at 8% of your annual gross salary.</span>
                             </span>
                         </label>
-                        <input type="text" id="pensionContribution" value="0.00" onblur="formatAmountInput(this)" onfocus="this.value = this.value.replace(/,/g, '')" placeholder="Enter pension contribution">
+                        <input type="text" id="pensionContribution" value="0.00" readonly placeholder="Auto-calculated">
                     </div>
                     <div class="input-group">
                         <label style="display: flex; align-items: center; gap: 5px;">
@@ -1519,7 +1519,6 @@
         const grossSalary = parseAmountInput(document.getElementById('annualSalary').value);
         const annualRent = parseAmountInput(document.getElementById('annualRent').value);
         const lifeInsurance = parseAmountInput(document.getElementById('lifeInsurance').value);
-        const pensionContribution = parseAmountInput(document.getElementById('pensionContribution').value);
         const interestOnLoans = parseAmountInput(document.getElementById('interestOnLoans').value);
         const nhisContribution = parseAmountInput(document.getElementById('nhisContribution').value);
 
@@ -1528,9 +1527,10 @@
             return;
         }
 
+        const pensionContribution = grossSalary * 0.08;
         const nhfContribution = grossSalary * 0.025;
         const lifeInsuranceDeduction = Math.min(lifeInsurance, 100000);
-        const rentRelief = annualRent * 0.20;
+        const rentRelief = Math.min(annualRent * 0.20, 500000);
         const nhisDeduction = nhisContribution;
         
         const totalDeductions = pensionContribution + nhfContribution + lifeInsuranceDeduction + rentRelief + nhisDeduction + interestOnLoans;
@@ -1585,6 +1585,15 @@
         document.getElementById('taxGBP').innerText = formatForeign(totalTax / NGN_TO_GBP, 'GBP');
         
         document.getElementById('taxResultBox').classList.add('show');
+    }
+
+    function updatePensionContributionFromSalary() {
+        const salaryInput = document.getElementById('annualSalary');
+        const pensionInput = document.getElementById('pensionContribution');
+        if (!salaryInput || !pensionInput) return;
+        const grossSalary = parseAmountInput(salaryInput.value);
+        const pension = grossSalary > 0 ? grossSalary * 0.08 : 0;
+        pensionInput.value = formatNaira(pension).replace('₦', '');
     }
 
     function calculateCompanyIncomeTax() {
@@ -1985,6 +1994,12 @@
         formatAmountInput(document.getElementById('pmCogs'));
         formatAmountInput(document.getElementById('pmOperatingExpenses'));
         formatAmountInput(document.getElementById('pmOtherExpenses'));
+        formatAmountInput(document.getElementById('annualSalary'));
+        formatAmountInput(document.getElementById('annualRent'));
+        formatAmountInput(document.getElementById('lifeInsurance'));
+        formatAmountInput(document.getElementById('pensionContribution'));
+        formatAmountInput(document.getElementById('interestOnLoans'));
+        formatAmountInput(document.getElementById('nhisContribution'));
         formatAmountInput(document.getElementById('payrollGrossSalary'));
         formatAmountInput(document.getElementById('payrollRent'));
         formatAmountInput(document.getElementById('payrollInsurance'));
@@ -1994,6 +2009,8 @@
         
         // Update loan amount for mortgage calculator
         updateLoanAmount();
+
+        updatePensionContributionFromSalary();
         
         // Don't run calculations automatically - only when user clicks calculate button
     };
@@ -2040,6 +2057,7 @@
     window.calculateLoan = calculateLoan;
     window.calculateMortgage = calculateMortgage;
     window.calculatePersonalIncomeTax = calculatePersonalIncomeTax;
+    window.updatePensionContributionFromSalary = updatePensionContributionFromSalary;
     window.calculateCompanyIncomeTax = calculateCompanyIncomeTax;
     window.calculateBreakEven = calculateBreakEven;
     window.calculateCashFlow = calculateCashFlow;
