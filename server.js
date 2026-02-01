@@ -3174,11 +3174,11 @@ app.get('/api/admin/tools/:id', authenticateAdmin, async (req, res) => {
 // Public Homepage Statistics (no authentication required)
 app.get('/api/stats', async (req, res) => {
     try {
-        // Get active users count (users where is_active = TRUE)
-        const [activeUsersResult] = await pool.execute(
-            'SELECT COUNT(*) as count FROM users WHERE is_active = TRUE'
+        // Get registered users count (same as dashboard "Registered Users" – total users)
+        const [usersResult] = await pool.execute(
+            'SELECT COUNT(*) as count FROM users'
         );
-        const activeMembers = Number(activeUsersResult[0]?.count ?? 0);
+        const registeredUsers = Number(usersResult[0]?.count ?? 0);
         
         // Get businesses listed count (businesses table = single source of truth for directory)
         const [businessesResult] = await pool.execute(
@@ -3199,7 +3199,7 @@ app.get('/api/stats', async (req, res) => {
         const totalFunding = Number(fundingResult[0]?.total_funding ?? 0);
         
         res.json({
-            activeMembers: activeMembers,
+            registeredUsers: registeredUsers,
             businessesListed: businessesListed,
             fundingCommitted: totalFunding,
             eventsHosted: eventsHosted

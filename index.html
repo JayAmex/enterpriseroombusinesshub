@@ -100,7 +100,7 @@
         <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px;">
             <div class="stat-card" style="text-align: center; padding: 30px; background: linear-gradient(135deg, var(--primary), var(--accent)); color: var(--white); border-radius: 12px;">
                 <h3 id="stat-members" style="font-size: 3rem; margin: 0; color: var(--white);">0+</h3>
-                <p style="margin: 10px 0 0; font-size: 1.1rem; opacity: 0.9;">Active Members</p>
+                <p style="margin: 10px 0 0; font-size: 1.1rem; opacity: 0.9;">Registered Users</p>
             </div>
             <div class="stat-card" style="text-align: center; padding: 30px; background: linear-gradient(135deg, var(--success), #38a169); color: var(--white); border-radius: 12px;">
                 <h3 id="stat-businesses" style="font-size: 3rem; margin: 0; color: var(--white);">0+</h3>
@@ -222,10 +222,11 @@
             }
             const stats = await response.json();
             
-            // Update Active Members
+            // Update Registered Users (same count as dashboard)
             const membersEl = document.getElementById('stat-members');
             if (membersEl) {
-                membersEl.textContent = formatNumber(stats.activeMembers) + '+';
+                const usersCount = stats.registeredUsers ?? stats.registered_users ?? stats.activeMembers ?? 0;
+                membersEl.textContent = formatNumber(usersCount) + '+';
             }
             
             // Update Businesses Listed (same count as admin Business Directory)
