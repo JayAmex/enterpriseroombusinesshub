@@ -3893,6 +3893,55 @@ app.delete('/api/admin/users/:id', authenticateAdmin, async (req, res) => {
 });
 
 // =====================================================
+// ADMIN: CHANGE MY PASSWORD (any logged-in admin)
+// =====================================================
+
+app.put('/api/admin/me/password', authenticateAdmin, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                error: true,
+                message: 'Current password and new password are required',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        if (String(newPassword).length < 8) {
+            return res.status(400).json({
+                error: true,
+                message: 'New password must be at least 8 characters',
+                code: 'VALIDATION_ERROR'
+            });
+        }
+        const [rows] = await pool.execute(
+            'SELECT id, password_hash FROM admin_users WHERE id = ?',
+            [req.admin.id]
+        );
+        if (rows.length === 0) {
+            return res.status(404).json({ error: true, message: 'Admin not found', code: 'NOT_FOUND' });
+        }
+        const match = await bcrypt.compare(currentPassword, rows[0].password_hash);
+        if (!match) {
+            return res.status(401).json({
+                error: true,
+                message: 'Current password is incorrect',
+                code: 'AUTH_INVALID'
+            });
+        }
+        const newHash = await bcrypt.hash(newPassword, 10);
+        await pool.execute('UPDATE admin_users SET password_hash = ? WHERE id = ?', [newHash, req.admin.id]);
+        res.json({ success: true, message: 'Password changed successfully. You can keep using the dashboard.' });
+    } catch (error) {
+        console.error('Admin change password error:', error);
+        res.status(500).json({
+            error: true,
+            message: 'Server error',
+            code: 'SERVER_ERROR'
+        });
+    }
+});
+
+// =====================================================
 // ADMIN USERS & AUDIT LOG (Super Admin Only)
 // =====================================================
 

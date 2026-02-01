@@ -315,6 +315,7 @@
             <li><a href="#" data-role="super_admin" onclick="showSection('adminUsers', this); return false;">Admin Users</a></li>
             <li><a href="#" data-role="super_admin" onclick="showSection('adminActivity', this); return false;">Admin Activity Log</a></li>
             <li><a href="/" style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">← Back to Site</a></li>
+            <li><a href="#" onclick="openChangePasswordModal(); return false;" style="margin-top: 10px;">Change my password</a></li>
             <li><a href="#" onclick="logout(); return false;" style="margin-top: 10px; color: #fc8181;">Logout</a></li>
         </ul>
     </aside>
@@ -324,7 +325,38 @@
             <h1 style="margin: 0; color: var(--primary);">Content Management</h1>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <span style="color: var(--text-light);" id="welcomeMessage">Welcome, Admin</span>
+                <button type="button" onclick="openChangePasswordModal()" class="btn-small btn-edit" style="padding: 8px 15px;">Change my password</button>
                 <button onclick="logout()" class="btn-small btn-delete" style="padding: 8px 15px;">Logout</button>
+            </div>
+        </div>
+
+        <!-- Change my password modal -->
+        <div id="changePasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;" onclick="if (event.target === this) closeChangePasswordModal();">
+            <div style="background: white; border-radius: 8px; padding: 30px; max-width: 420px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" onclick="event.stopPropagation();">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: var(--primary);">Change my password</h3>
+                    <button type="button" onclick="closeChangePasswordModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); line-height: 1;">&times;</button>
+                </div>
+                <p style="color: var(--text-light); font-size: 0.9rem; margin-bottom: 20px;">Enter your current password and choose a new one. Use this after first login to set your own password.</p>
+                <form id="changePasswordForm" onsubmit="handleChangePassword(event); return false;">
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label>Current password</label>
+                        <input type="password" id="changePasswordCurrent" required placeholder="Your current/temporary password" minlength="1" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 5px;">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 15px;">
+                        <label>New password</label>
+                        <input type="password" id="changePasswordNew" required placeholder="At least 8 characters" minlength="8" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 5px;">
+                    </div>
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label>Confirm new password</label>
+                        <input type="password" id="changePasswordConfirm" required placeholder="Repeat new password" minlength="8" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 5px;">
+                    </div>
+                    <div id="changePasswordMessage" style="display: none; margin-bottom: 15px; padding: 10px; border-radius: 5px; font-size: 0.9rem;"></div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary" id="changePasswordSubmitBtn">Change password</button>
+                        <button type="button" class="btn" onclick="closeChangePasswordModal()" style="background: var(--white); border: 1px solid var(--border);">Cancel</button>
+                    </div>
+                </form>
             </div>
         </div>
 
@@ -4327,6 +4359,67 @@
             console.error('Error deleting template:', error);
             alert('Error deleting template: ' + error.message);
         }
+    }
+
+    // Change my password modal
+    function openChangePasswordModal() {
+        const modal = document.getElementById('changePasswordModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            document.getElementById('changePasswordCurrent').value = '';
+            document.getElementById('changePasswordNew').value = '';
+            document.getElementById('changePasswordConfirm').value = '';
+            const msg = document.getElementById('changePasswordMessage');
+            if (msg) { msg.style.display = 'none'; msg.textContent = ''; }
+        }
+    }
+    function closeChangePasswordModal() {
+        const modal = document.getElementById('changePasswordModal');
+        if (modal) modal.style.display = 'none';
+    }
+    async function handleChangePassword(e) {
+        e.preventDefault();
+        const currentEl = document.getElementById('changePasswordCurrent');
+        const newEl = document.getElementById('changePasswordNew');
+        const confirmEl = document.getElementById('changePasswordConfirm');
+        const msgEl = document.getElementById('changePasswordMessage');
+        const btn = document.getElementById('changePasswordSubmitBtn');
+        const currentPassword = (currentEl && currentEl.value) || '';
+        const newPassword = (newEl && newEl.value) || '';
+        const confirmPassword = (confirmEl && confirmEl.value) || '';
+        if (newPassword !== confirmPassword) {
+            if (msgEl) { msgEl.style.display = 'block'; msgEl.style.background = '#fee2e2'; msgEl.style.color = '#b91c1c'; msgEl.textContent = 'New password and confirm do not match.'; }
+            return;
+        }
+        if (newPassword.length < 8) {
+            if (msgEl) { msgEl.style.display = 'block'; msgEl.style.background = '#fee2e2'; msgEl.style.color = '#b91c1c'; msgEl.textContent = 'New password must be at least 8 characters.'; }
+            return;
+        }
+        const token = sessionStorage.getItem('adminToken');
+        if (!token) {
+            if (msgEl) { msgEl.style.display = 'block'; msgEl.style.background = '#fee2e2'; msgEl.style.color = '#b91c1c'; msgEl.textContent = 'Session expired. Please log in again.'; }
+            return;
+        }
+        if (btn) { btn.disabled = true; btn.textContent = 'Updating...'; }
+        if (msgEl) msgEl.style.display = 'none';
+        try {
+            const response = await fetch('/api/admin/me/password', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+            const data = await response.json();
+            if (response.ok && data.success) {
+                if (msgEl) { msgEl.style.display = 'block'; msgEl.style.background = '#d1fae5'; msgEl.style.color = '#065f46'; msgEl.textContent = data.message || 'Password changed successfully.'; }
+                currentEl.value = ''; newEl.value = ''; confirmEl.value = '';
+                setTimeout(closeChangePasswordModal, 1500);
+            } else {
+                if (msgEl) { msgEl.style.display = 'block'; msgEl.style.background = '#fee2e2'; msgEl.style.color = '#b91c1c'; msgEl.textContent = data.message || 'Failed to change password.'; }
+            }
+        } catch (err) {
+            if (msgEl) { msgEl.style.display = 'block'; msgEl.style.background = '#fee2e2'; msgEl.style.color = '#b91c1c'; msgEl.textContent = 'Network error. Please try again.'; }
+        }
+        if (btn) { btn.disabled = false; btn.textContent = 'Change password'; }
     }
 
     // Logout function
