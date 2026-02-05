@@ -529,7 +529,7 @@
         <div id="overview" class="admin-section active">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin: 0;">Dashboard Overview</h3>
-                <button type="button" onclick="updateOverviewStats()" class="btn-small btn-edit" style="padding: 8px 15px;">🔄 Refresh Stats</button>
+                <button type="button" onclick="handleRefreshStats()" class="btn-small btn-edit" style="padding: 8px 15px;">🔄 Refresh Stats</button>
             </div>
             <div class="stats-grid">
                 <div class="stat-card">
@@ -1524,6 +1524,13 @@
         sessionStorage.removeItem('adminToken');
         sessionStorage.removeItem('adminAuthenticated');
         window.location.href = '/admin-login';
+    };
+    window.updateOverviewStats = window.updateOverviewStats || function() {
+        if (typeof updateOverviewStats === 'function') {
+            updateOverviewStats();
+        } else {
+            window.location.reload();
+        }
     };
 })();
 </script>
@@ -4998,7 +5005,7 @@
     }
     
     // Update overview stats from API
-    async function updateOverviewStats() {
+    window.updateOverviewStats = async function updateOverviewStats() {
         const adminToken = sessionStorage.getItem('adminToken');
 
         // Map API response to stat elements
