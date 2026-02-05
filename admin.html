@@ -299,7 +299,8 @@
 <body>
 
 <div class="admin-container">
-    <aside class="admin-sidebar">
+    <div class="admin-sidebar-overlay" id="adminSidebarOverlay" onclick="toggleAdminSidebar()" aria-hidden="true"></div>
+    <aside class="admin-sidebar" id="adminSidebar">
         <h2>Admin Dashboard</h2>
         <ul class="admin-menu">
             <li><a href="#" class="active" onclick="showSection('overview', this); return false;">Overview</a></li>
@@ -326,7 +327,7 @@
             <div style="display: flex; align-items: center; gap: 15px;">
                 <span style="color: var(--text-light);" id="welcomeMessage">Welcome, Admin</span>
                 <button type="button" onclick="openChangePasswordModal()" class="btn-small btn-edit" style="padding: 8px 15px;">Change my password</button>
-                <button onclick="logout()" class="btn-small btn-delete" style="padding: 8px 15px;">Logout</button>
+                <button type="button" onclick="logout()" class="btn-small btn-delete" style="padding: 8px 15px;">Logout</button>
             </div>
         </div>
 
@@ -364,7 +365,7 @@
         <div id="overview" class="admin-section active">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin: 0;">Dashboard Overview</h3>
-                <button onclick="updateOverviewStats()" class="btn-small btn-edit" style="padding: 8px 15px;">🔄 Refresh Stats</button>
+                <button type="button" onclick="updateOverviewStats()" class="btn-small btn-edit" style="padding: 8px 15px;">🔄 Refresh Stats</button>
             </div>
             <div class="stats-grid">
                 <div class="stat-card">
@@ -422,7 +423,7 @@
                     <option value="100" selected>100 per page</option>
                     <option value="200">200 per page</option>
                 </select>
-                <button onclick="refreshUsers()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
+                <button type="button" onclick="refreshUsers()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
             </div>
             
             <div style="overflow-x: auto;">
@@ -475,7 +476,7 @@
                     </select>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center; white-space: nowrap;">
-                    <button onclick="refreshMembers()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
+                    <button type="button" onclick="refreshMembers()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
                     <button onclick="openNewMemberForm()" class="btn-small btn-edit" style="padding: 8px 15px; background: #10b981; color: white; border: none;">+ Add New Member</button>
                 </div>
             </div>
@@ -514,7 +515,7 @@
         <div id="events" class="admin-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin: 0;">Manage Events</h3>
-                <button class="btn-add" onclick="showEventForm()">+ Add New Event</button>
+                <button type="button" class="btn-add" onclick="showEventForm()">+ Add New Event</button>
             </div>
             
             <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
@@ -538,8 +539,8 @@
                     <option value="100" selected>100 per page</option>
                     <option value="200">200 per page</option>
                 </select>
-                <button onclick="refreshEvents()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
-                <button onclick="bulkUpdateEventStatuses()" class="btn-small btn-edit" style="padding: 8px 15px; background: #10b981; color: white; border: none;">🔄 Auto-Update Statuses</button>
+                <button type="button" onclick="refreshEvents()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
+                <button type="button" onclick="bulkUpdateEventStatuses()" class="btn-small btn-edit" style="padding: 8px 15px; background: #10b981; color: white; border: none;">🔄 Auto-Update Statuses</button>
             </div>
             
             <div style="overflow-x: auto;">
@@ -653,8 +654,8 @@
                     <p><strong>Author:</strong> Sarah Jenkins</p>
                     <p><strong>Published:</strong> Dec 15, 2025</p>
                     <div class="content-actions">
-                        <button class="btn-small btn-edit" onclick="editBlog(1)">Edit</button>
-                        <button class="btn-small btn-delete" onclick="deleteBlog(1)">Delete</button>
+                        <button type="button" class="btn-small btn-edit" onclick="editBlog(1)">Edit</button>
+                        <button type="button" class="btn-small btn-delete" onclick="deleteBlog(1)">Delete</button>
                     </div>
                 </div>
                 <div class="content-item" data-blog-id="2">
@@ -663,8 +664,8 @@
                     <p><strong>Author:</strong> David Chen</p>
                     <p><strong>Published:</strong> Dec 10, 2025</p>
                     <div class="content-actions">
-                        <button class="btn-small btn-edit" onclick="editBlog(2)">Edit</button>
-                        <button class="btn-small btn-delete" onclick="deleteBlog(2)">Delete</button>
+                        <button type="button" class="btn-small btn-edit" onclick="editBlog(2)">Edit</button>
+                        <button type="button" class="btn-small btn-delete" onclick="deleteBlog(2)">Delete</button>
                     </div>
                 </div>
                 <div class="content-item" data-blog-id="3">
@@ -673,8 +674,8 @@
                     <p><strong>Author:</strong> Enterprise Research Team</p>
                     <p><strong>Published:</strong> Nov 28, 2025</p>
                     <div class="content-actions">
-                        <button class="btn-small btn-edit" onclick="editBlog(3)">Edit</button>
-                        <button class="btn-small btn-delete" onclick="deleteBlog(3)">Delete</button>
+                        <button type="button" class="btn-small btn-edit" onclick="editBlog(3)">Edit</button>
+                        <button type="button" class="btn-small btn-delete" onclick="deleteBlog(3)">Delete</button>
                     </div>
                 </div>
             </div>
@@ -748,9 +749,9 @@
             </p>
             
             <div style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <button class="btn-small btn-edit" id="businessTabBtn" onclick="showDirectoryTab('business')">Business Directory</button>
-                <button class="btn-small btn-edit" id="membersTabBtn" onclick="showDirectoryTab('members')">Members Directory</button>
-                <button class="btn-small btn-edit" id="partnersTabBtn" onclick="showDirectoryTab('partners')">Partner Directory</button>
+<button type="button" class="btn-small btn-edit" id="businessTabBtn" onclick="showDirectoryTab('business')">Business Directory</button>
+            <button type="button" class="btn-small btn-edit" id="membersTabBtn" onclick="showDirectoryTab('members')">Members Directory</button>
+            <button type="button" class="btn-small btn-edit" id="partnersTabBtn" onclick="showDirectoryTab('partners')">Partner Directory</button>
             </div>
 
             <!-- Business Directory -->
@@ -793,7 +794,7 @@
             <!-- Members Directory -->
             <div id="membersDir" class="directory-tab-content" style="display: none;">
                 <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                    <button class="btn-add" onclick="showDirectoryForm('members')">+ Add New Member</button>
+                    <button type="button" class="btn-add" onclick="showDirectoryForm('members')">+ Add New Member</button>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <label style="font-size: 0.9rem; color: var(--text-light);">Entries per page:</label>
                         <select id="dirMemberPageSize" onchange="changeDirMemberPageSize()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px;">
@@ -831,7 +832,7 @@
             <!-- Partners Directory -->
             <div id="partnersDir" class="directory-tab-content" style="display: none;">
                 <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                    <button class="btn-add" onclick="showDirectoryForm('partners')">+ Add New Partner</button>
+                    <button type="button" class="btn-add" onclick="showDirectoryForm('partners')">+ Add New Partner</button>
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <label style="font-size: 0.9rem; color: var(--text-light);">Entries per page:</label>
                         <select id="dirPartnerPageSize" onchange="changeDirPartnerPageSize()" style="padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px;">
@@ -1009,7 +1010,7 @@
 
             <div class="card" style="margin-top: 20px;">
                 <h4>Manage Custom Tools</h4>
-                <button class="btn-add" onclick="showToolForm()" style="margin-bottom: 20px;">+ Add New Tool</button>
+                <button type="button" class="btn-add" onclick="showToolForm()" style="margin-bottom: 20px;">+ Add New Tool</button>
                 
                 <div id="toolsList" class="content-grid">
                     <!-- Tools will be loaded here -->
@@ -1101,8 +1102,8 @@
             <div class="card">
                 <h4>Download Statistics</h4>
                 <div style="margin-bottom: 20px;">
-                    <button onclick="refreshTemplateStats()" class="btn-small btn-edit" style="padding: 8px 15px;">🔄 Refresh Stats</button>
-                    <button onclick="resetTemplateStats()" class="btn-small btn-delete" style="padding: 8px 15px; margin-left: 10px;">Reset All Counts</button>
+<button type="button" onclick="refreshTemplateStats()" class="btn-small btn-edit" style="padding: 8px 15px;">🔄 Refresh Stats</button>
+            <button type="button" onclick="resetTemplateStats()" class="btn-small btn-delete" style="padding: 8px 15px; margin-left: 10px;">Reset All Counts</button>
                 </div>
                 
                 <div style="margin-bottom: 15px; padding: 15px; background: var(--light); border-radius: 8px;">
@@ -1132,8 +1133,8 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="margin: 0;">Admin Users</h3>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <button onclick="refreshAdminUsers()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
-                    <button onclick="openAdminUserForm()" class="btn-small btn-edit" style="padding: 8px 15px; background: #10b981; color: white; border: none;">+ Add Admin</button>
+<button type="button" onclick="refreshAdminUsers()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
+            <button type="button" onclick="openAdminUserForm()" class="btn-small btn-edit" style="padding: 8px 15px; background: #10b981; color: white; border: none;">+ Add Admin</button>
                 </div>
             </div>
             <p style="color: var(--text-light); margin-bottom: 20px;">Add, edit, and deactivate admin accounts. Only super admins can manage admins.</p>
@@ -1273,7 +1274,7 @@
                     <option value="100">100 per page</option>
                     <option value="200">200 per page</option>
                 </select>
-                <button onclick="refreshNewsletterSubscribers()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
+                <button type="button" onclick="refreshNewsletterSubscribers()" class="btn-small btn-edit" style="padding: 8px 15px;">Refresh</button>
             </div>
             
             <div style="margin-bottom: 15px; padding: 15px; background: var(--light); border-radius: 8px;">
@@ -1652,12 +1653,12 @@
                         <td style="padding: 10px 8px; border: none; vertical-align: middle; white-space: nowrap;">
                             <div style="display: flex; align-items: center; gap: 5px; justify-content: center; flex-wrap: nowrap;">
                                 ${event.status === 'Historical' ? `
-                                    <button class="btn-small btn-edit" onclick="copyEvent('${event.id}')" style="margin: 0; font-size: 0.85rem; padding: 6px 12px;">Copy</button>
-                                    <button class="btn-small btn-delete" onclick="archiveEvent('${event.id}', '${(event.title || 'Untitled Event').replace(/'/g, "\\'")}')" style="margin: 0; font-size: 0.85rem; padding: 6px 12px; background: #6b7280; border-color: #6b7280;">Archive</button>
+                                    <button type="button" class="btn-small btn-edit" onclick="copyEvent('${event.id}')" style="margin: 0; font-size: 0.85rem; padding: 6px 12px;">Copy</button>
+                                    <button type="button" class="btn-small btn-delete" onclick="archiveEvent('${event.id}', '${(event.title || 'Untitled Event').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" style="margin: 0; font-size: 0.85rem; padding: 6px 12px; background: #6b7280; border-color: #6b7280;">Archive</button>
                                 ` : `
-                                    <button class="btn-small btn-edit" onclick="viewEventRSVPs('${event.id}', '${(event.title || 'Untitled Event').replace(/'/g, "\\'")}')" style="margin: 0; font-size: 0.85rem; padding: 6px 10px;">View RSVPs</button>
-                                    <button class="btn-small btn-edit" onclick="editEvent('${event.id}')" style="margin: 0; font-size: 0.85rem; padding: 6px 10px;">Edit</button>
-                                    <button class="btn-small btn-delete" onclick="deleteEvent('${event.id}')" style="margin: 0; font-size: 0.85rem; padding: 6px 10px;">Delete</button>
+                                    <button type="button" class="btn-small btn-edit" onclick="viewEventRSVPs('${event.id}', '${(event.title || 'Untitled Event').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" style="margin: 0; font-size: 0.85rem; padding: 6px 10px;">View RSVPs</button>
+                                    <button type="button" class="btn-small btn-edit" onclick="editEvent('${event.id}')" style="margin: 0; font-size: 0.85rem; padding: 6px 10px;">Edit</button>
+                                    <button type="button" class="btn-small btn-delete" onclick="deleteEvent('${event.id}')" style="margin: 0; font-size: 0.85rem; padding: 6px 10px;">Delete</button>
                                 `}
                             </div>
                         </td>
@@ -1681,13 +1682,13 @@
             if (paginationDiv && pagination.pages > 1) {
                 let paginationHTML = '<div style="display: flex; align-items: center; gap: 10px;">';
                 if (pagination.has_prev) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadEvents(${currentEventsPage - 1})" style="padding: 8px 15px;">Previous</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadEvents(${currentEventsPage - 1})" style="padding: 8px 15px;">Previous</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Previous</button>`;
                 }
                 paginationHTML += `<span style="padding: 0 15px;">Page ${pagination.page} of ${pagination.pages} (${pagination.total} total)</span>`;
                 if (pagination.has_next) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadEvents(${currentEventsPage + 1})" style="padding: 8px 15px;">Next</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadEvents(${currentEventsPage + 1})" style="padding: 8px 15px;">Next</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Next</button>`;
                 }
@@ -1940,7 +1941,7 @@
                     <div style="background: white; border-radius: 8px; padding: 30px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <h2 style="margin: 0; color: var(--primary);">RSVPs for: ${eventTitle}</h2>
-                            <button onclick="closeRSVPModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-light);">&times;</button>
+                            <button type="button" onclick="closeRSVPModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-light);">&times;</button>
                         </div>
                         <p style="color: var(--text-light); margin-bottom: 20px;">Total Registered: <strong style="color: var(--primary);">${total}</strong></p>
                         <div style="overflow-x: auto;">
@@ -2084,6 +2085,69 @@
         } catch (error) {
             console.error('Error bulk updating event statuses:', error);
             alert('Failed to update event statuses: ' + error.message);
+        }
+    }
+
+    async function copyEvent(eventId) {
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Authentication required. Please log in again.');
+            window.location.href = '/admin-login';
+            return;
+        }
+        try {
+            const response = await fetch(`/api/admin/events/${eventId}/copy`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' }
+            });
+            if (!response.ok) {
+                if (response.status === 401) {
+                    sessionStorage.removeItem('adminToken');
+                    sessionStorage.removeItem('adminAuthenticated');
+                    window.location.href = '/admin-login';
+                    return;
+                }
+                const err = await response.json();
+                throw new Error(err.message || 'Failed to copy event');
+            }
+            const data = await response.json();
+            alert(data.message || 'Event copied successfully!');
+            loadEvents(currentEventsPage);
+        } catch (error) {
+            console.error('Error copying event:', error);
+            alert('Failed to copy event: ' + error.message);
+        }
+    }
+
+    async function archiveEvent(eventId, eventTitle) {
+        if (!confirm(`Archive "${eventTitle || 'this event'}"? It will be hidden from public display.`)) return;
+        const adminToken = sessionStorage.getItem('adminToken');
+        if (!adminToken) {
+            alert('Authentication required. Please log in again.');
+            window.location.href = '/admin-login';
+            return;
+        }
+        try {
+            const response = await fetch(`/api/admin/events/${eventId}/archive`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${adminToken}`, 'Content-Type': 'application/json' }
+            });
+            if (!response.ok) {
+                if (response.status === 401) {
+                    sessionStorage.removeItem('adminToken');
+                    sessionStorage.removeItem('adminAuthenticated');
+                    window.location.href = '/admin-login';
+                    return;
+                }
+                const err = await response.json();
+                throw new Error(err.message || 'Failed to archive event');
+            }
+            const data = await response.json();
+            alert(data.message || 'Event archived successfully!');
+            loadEvents(currentEventsPage);
+        } catch (error) {
+            console.error('Error archiving event:', error);
+            alert('Failed to archive event: ' + error.message);
         }
     }
 
@@ -2715,8 +2779,8 @@
                         <p><strong>Published:</strong> ${publishedDate}</p>
                         <p><strong>Status:</strong> ${post.is_published ? '<span style="color: var(--success);">Published</span>' : '<span style="color: var(--text-light);">Draft</span>'}</p>
                         <div class="content-actions">
-                            <button class="btn-small btn-edit" onclick="editBlog(${post.id})">Edit</button>
-                            <button class="btn-small btn-delete" onclick="deleteBlog(${post.id})">Delete</button>
+                            <button type="button" class="btn-small btn-edit" onclick="editBlog(${post.id})">Edit</button>
+                            <button type="button" class="btn-small btn-delete" onclick="deleteBlog(${post.id})">Delete</button>
                         </div>
                     </div>
                 `;
@@ -3315,13 +3379,13 @@
             if (paginationDiv && pagination.pages > 1) {
                 let paginationHTML = '<div style="display: flex; align-items: center; gap: 10px;">';
                 if (pagination.has_prev) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadBusinessDirectory(${currentDirBusinessPage - 1})" style="padding: 8px 15px;">Previous</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadBusinessDirectory(${currentDirBusinessPage - 1})" style="padding: 8px 15px;">Previous</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Previous</button>`;
                 }
                 paginationHTML += `<span style="padding: 0 15px;">Page ${pagination.page} of ${pagination.pages} (${pagination.total} total)</span>`;
                 if (pagination.has_next) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadBusinessDirectory(${currentDirBusinessPage + 1})" style="padding: 8px 15px;">Next</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadBusinessDirectory(${currentDirBusinessPage + 1})" style="padding: 8px 15px;">Next</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Next</button>`;
                 }
@@ -3444,8 +3508,8 @@
                         </td>
                         <td style="padding: 10px 8px; border: none; vertical-align: middle; white-space: nowrap;">
                             <div style="display: flex; align-items: center; gap: 5px; justify-content: center; flex-wrap: nowrap;">
-                                <button class="btn-small btn-edit" onclick="editDirectoryEntry('members', '${member.id}')" style="margin: 0; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Edit</button>
-                                <button class="btn-small btn-delete" onclick="deleteDirectoryEntry('members', '${member.id}')" style="margin: 0; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Delete</button>
+                                <button type="button" class="btn-small btn-edit" onclick="editDirectoryEntry('members', '${member.id}')" style="margin: 0; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Edit</button>
+                                <button type="button" class="btn-small btn-delete" onclick="deleteDirectoryEntry('members', '${member.id}')" style="margin: 0; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Delete</button>
                             </div>
                         </td>
                     </tr>
@@ -3456,13 +3520,13 @@
             if (paginationDiv && pagination.pages > 1) {
                 let paginationHTML = '<div style="display: flex; align-items: center; gap: 10px;">';
                 if (pagination.has_prev) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadMembersDirectory(${currentDirMemberPage - 1})" style="padding: 8px 15px;">Previous</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadMembersDirectory(${currentDirMemberPage - 1})" style="padding: 8px 15px;">Previous</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Previous</button>`;
                 }
                 paginationHTML += `<span style="padding: 0 15px;">Page ${pagination.page} of ${pagination.pages} (${pagination.total} total)</span>`;
                 if (pagination.has_next) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadMembersDirectory(${currentDirMemberPage + 1})" style="padding: 8px 15px;">Next</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadMembersDirectory(${currentDirMemberPage + 1})" style="padding: 8px 15px;">Next</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Next</button>`;
                 }
@@ -3545,8 +3609,8 @@
                     <td style="padding: 10px 8px; border: none; vertical-align: middle;">${partner.website ? `<a href="${partner.website}" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: none;">${partner.website.replace(/^https?:\/\//, '')}</a>` : 'N/A'}</td>
                     <td style="padding: 10px 8px; border: none; vertical-align: middle; white-space: nowrap;">
                         <div style="display: flex; align-items: center; gap: 5px; justify-content: center; flex-wrap: nowrap;">
-                            <button class="btn-small btn-edit" onclick="editDirectoryEntry('partners', '${partner.id}')" style="margin: 0; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Edit</button>
-                            <button class="btn-small btn-delete" onclick="deleteDirectoryEntry('partners', '${partner.id}')" style="margin: 0; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Delete</button>
+                            <button type="button" class="btn-small btn-edit" onclick="editDirectoryEntry('partners', '${partner.id}')" style="margin: 0; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Edit</button>
+                            <button type="button" class="btn-small btn-delete" onclick="deleteDirectoryEntry('partners', '${partner.id}')" style="margin: 0; padding: 6px 12px; font-size: 0.85rem; white-space: nowrap;">Delete</button>
                         </div>
                     </td>
                 </tr>
@@ -3556,13 +3620,13 @@
             if (paginationDiv && pagination.pages > 1) {
                 let paginationHTML = '<div style="display: flex; align-items: center; gap: 10px;">';
                 if (pagination.has_prev) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadPartnersDirectory(${currentDirPartnerPage - 1})" style="padding: 8px 15px;">Previous</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadPartnersDirectory(${currentDirPartnerPage - 1})" style="padding: 8px 15px;">Previous</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Previous</button>`;
                 }
                 paginationHTML += `<span style="padding: 0 15px;">Page ${pagination.page} of ${pagination.pages} (${pagination.total} total)</span>`;
                 if (pagination.has_next) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadPartnersDirectory(${currentDirPartnerPage + 1})" style="padding: 8px 15px;">Next</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadPartnersDirectory(${currentDirPartnerPage + 1})" style="padding: 8px 15px;">Next</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Next</button>`;
                 }
@@ -3961,8 +4025,8 @@
                         <p><strong>Input Fields:</strong> ${inputs ? inputs.length : 0}</p>
                         <p><strong>Result Label:</strong> ${tool.result_label || 'N/A'}</p>
                         <div class="content-actions">
-                            <button class="btn-small btn-edit" onclick="editTool('${tool.id}')">Edit</button>
-                            <button class="btn-small btn-delete" onclick="deleteTool('${tool.id}')">Delete</button>
+                            <button type="button" class="btn-small btn-edit" onclick="editTool('${tool.id}')">Edit</button>
+                            <button type="button" class="btn-small btn-delete" onclick="deleteTool('${tool.id}')">Delete</button>
                         </div>
                     </div>
                 `;
@@ -4199,8 +4263,8 @@
                         <td style="padding: 12px 8px; border-bottom: 1px solid var(--border); color: var(--text-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${template.category || 'N/A'}</td>
                         <td style="padding: 12px 8px; border-bottom: 1px solid var(--border); text-align: center; font-weight: bold; color: var(--primary);">${count}</td>
                         <td style="padding: 8px 4px; border-bottom: 1px solid var(--border); text-align: center; white-space: nowrap;">
-                            <button onclick="toggleTemplateVisibility('${template.template_id}', ${!isActive})" class="btn-small" style="padding: 4px 8px; font-size: 0.7rem; margin: 0 1px; background: ${hideButtonColor}; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">${hideButtonText}</button>
-                            <button onclick="resetTemplateCount('${template.template_id}')" class="btn-small" style="padding: 4px 8px; font-size: 0.7rem; margin: 0 1px; background: #2b6cb0; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">Reset</button>
+                            <button type="button" onclick="toggleTemplateVisibility('${template.template_id}', ${!isActive})" class="btn-small" style="padding: 4px 8px; font-size: 0.7rem; margin: 0 1px; background: ${hideButtonColor}; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">${hideButtonText}</button>
+                            <button type="button" onclick="resetTemplateCount('${template.template_id}')" class="btn-small" style="padding: 4px 8px; font-size: 0.7rem; margin: 0 1px; background: #2b6cb0; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">Reset</button>
                             <button onclick="deleteTemplate('${template.template_id}', '${templateNameEscaped}')" class="btn-small" style="padding: 4px 8px; font-size: 0.7rem; margin: 0 1px; background: #2b6cb0; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; min-width: 50px;">Delete</button>
                         </td>
                     </tr>
@@ -4597,8 +4661,8 @@
                         <td style="padding: 10px 8px; border: none; vertical-align: middle;"><span style="color: ${user.is_active ? 'var(--success)' : 'var(--live)'};">${user.is_active ? 'Active' : 'Inactive'}</span></td>
                         <td style="padding: 10px 8px; border: none; vertical-align: middle; white-space: nowrap;">
                             <div style="display: flex; align-items: center; gap: 5px; justify-content: center;">
-                                <button class="btn-small btn-edit" onclick="editUser(${user.id}, '${user.email}', '${(user.name || '').replace(/'/g, "\\'")}', '${(user.phone || '').replace(/'/g, "\\'")}')" style="margin: 0;">Edit</button>
-                                <button class="btn-small btn-delete" onclick="deleteUser(${user.id}, '${user.email}')" style="margin: 0;">Delete</button>
+                                <button type="button" class="btn-small btn-edit" onclick="editUser(${user.id}, '${(user.email || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${(user.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${(user.phone || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" style="margin: 0;">Edit</button>
+                                <button type="button" class="btn-small btn-delete" onclick="deleteUser(${user.id}, '${(user.email || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" style="margin: 0;">Delete</button>
                             </div>
                         </td>
                     </tr>
@@ -4621,13 +4685,13 @@
             if (paginationDiv && pagination.pages > 1) {
                 let paginationHTML = '<div style="display: flex; align-items: center; gap: 10px;">';
                 if (pagination.has_prev) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadUsers(${currentUsersPage - 1})" style="padding: 8px 15px;">Previous</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadUsers(${currentUsersPage - 1})" style="padding: 8px 15px;">Previous</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Previous</button>`;
                 }
                 paginationHTML += `<span style="padding: 0 15px;">Page ${pagination.page} of ${pagination.pages} (${pagination.total} total)</span>`;
                 if (pagination.has_next) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadUsers(${currentUsersPage + 1})" style="padding: 8px 15px;">Next</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadUsers(${currentUsersPage + 1})" style="padding: 8px 15px;">Next</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Next</button>`;
                 }
@@ -4982,8 +5046,8 @@
                         </td>
                         <td style="padding: 10px 8px; border: none; vertical-align: middle; white-space: nowrap;">
                             <div style="display: flex; align-items: center; gap: 5px; justify-content: center;">
-                                <button class="btn-small btn-edit" onclick="editMember(${member.id}, '${(member.email || '').replace(/'/g, "\\'")}', '${(member.name || '').replace(/'/g, "\\'")}', '${(member.title || '').replace(/'/g, "\\'")}', '${(member.organization || '').replace(/'/g, "\\'")}', '${(member.website || '').replace(/'/g, "\\'")}', '${(member.linkedin_url || '').replace(/'/g, "\\'")}', '${(member.twitter_url || '').replace(/'/g, "\\'")}', '${(member.avatar_url || '').replace(/'/g, "\\'")}')" style="margin: 0;">Edit</button>
-                                <button class="btn-small btn-delete" onclick="deleteMember(${member.id}, '${(member.name || '').replace(/'/g, "\\'")}')" style="margin: 0;">Delete</button>
+                                <button type="button" class="btn-small btn-edit" onclick="editMember(${member.id}, '${(member.email || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${(member.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${(member.title || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${(member.organization || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${(member.website || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${(member.linkedin_url || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${(member.twitter_url || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${(member.avatar_url || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" style="margin: 0;">Edit</button>
+                                <button type="button" class="btn-small btn-delete" onclick="deleteMember(${member.id}, '${(member.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')" style="margin: 0;">Delete</button>
                             </div>
                         </td>
                     </tr>
@@ -5008,7 +5072,7 @@
                 
                 // Previous button
                 if (pagination.has_prev) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadMembers(${currentMembersPage - 1})" style="padding: 8px 15px;">Previous</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadMembers(${currentMembersPage - 1})" style="padding: 8px 15px;">Previous</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Previous</button>`;
                 }
@@ -5018,7 +5082,7 @@
                 
                 // Next button
                 if (pagination.has_next) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadMembers(${currentMembersPage + 1})" style="padding: 8px 15px;">Next</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadMembers(${currentMembersPage + 1})" style="padding: 8px 15px;">Next</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Next</button>`;
                 }
@@ -5245,8 +5309,8 @@
                         <td style="padding: 10px 8px; border: none; vertical-align: middle;">${lastLogin}</td>
                         <td style="padding: 10px 8px; border: none; vertical-align: middle; text-align: center;">
                             <div style="display: flex; gap: 8px; justify-content: center;">
-                                <button class="btn-small btn-edit" onclick="editAdminUser(${admin.id})">Edit</button>
-                                <button class="btn-small btn-delete" onclick="deleteAdminUser(${admin.id})" ${isSelf ? 'disabled style="opacity:0.6; cursor:not-allowed;"' : ''}>Delete</button>
+                                <button type="button" class="btn-small btn-edit" onclick="editAdminUser(${admin.id})">Edit</button>
+                                <button type="button" class="btn-small btn-delete" onclick="deleteAdminUser(${admin.id})" ${isSelf ? 'disabled style="opacity:0.6; cursor:not-allowed;"' : ''}>Delete</button>
                             </div>
                         </td>
                     </tr>
@@ -5407,13 +5471,13 @@
                 if (pagination.pages > 1) {
                     let paginationHTML = '<div style="display: flex; align-items: center; gap: 10px;">';
                     if (pagination.page > 1) {
-                        paginationHTML += `<button class="btn-small btn-edit" onclick="loadAdminActivity(${pagination.page - 1})" style="padding: 8px 15px;">Previous</button>`;
+                        paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadAdminActivity(${pagination.page - 1})" style="padding: 8px 15px;">Previous</button>`;
                     } else {
                         paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Previous</button>`;
                     }
                     paginationHTML += `<span style="padding: 0 15px;">Page ${pagination.page} of ${pagination.pages} (${pagination.total} total)</span>`;
                     if (pagination.page < pagination.pages) {
-                        paginationHTML += `<button class="btn-small btn-edit" onclick="loadAdminActivity(${pagination.page + 1})" style="padding: 8px 15px;">Next</button>`;
+                        paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadAdminActivity(${pagination.page + 1})" style="padding: 8px 15px;">Next</button>`;
                     } else {
                         paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Next</button>`;
                     }
@@ -5586,13 +5650,13 @@
             if (paginationDiv && pagination.pages > 1) {
                 let paginationHTML = '<div style="display: flex; align-items: center; gap: 10px;">';
                 if (pagination.has_prev) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadBusinesses(${currentBusinessesPage - 1})" style="padding: 8px 15px;">Previous</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadBusinesses(${currentBusinessesPage - 1})" style="padding: 8px 15px;">Previous</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Previous</button>`;
                 }
                 paginationHTML += `<span style="padding: 0 15px;">Page ${pagination.page} of ${pagination.pages} (${pagination.total} total)</span>`;
                 if (pagination.has_next) {
-                    paginationHTML += `<button class="btn-small btn-edit" onclick="loadBusinesses(${currentBusinessesPage + 1})" style="padding: 8px 15px;">Next</button>`;
+                    paginationHTML += `<button type="button" class="btn-small btn-edit" onclick="loadBusinesses(${currentBusinessesPage + 1})" style="padding: 8px 15px;">Next</button>`;
                 } else {
                     paginationHTML += `<button class="btn-small" disabled style="padding: 8px 15px; opacity: 0.5; cursor: not-allowed;">Next</button>`;
                 }
