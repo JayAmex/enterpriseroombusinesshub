@@ -21,13 +21,14 @@
             display: flex;
             min-height: 100vh;
             background: linear-gradient(to bottom, #e6f2ff, #f0f8ff);
+            overflow-x: hidden;
         }
 
         .admin-sidebar {
             width: 250px;
             background: var(--primary);
             color: var(--white);
-            padding: 20px;
+            padding: max(20px, var(--safe-top)) max(20px, var(--safe-right)) 20px max(20px, var(--safe-left));
             position: fixed;
             height: 100vh;
             overflow-y: auto;
@@ -57,6 +58,7 @@
             color: var(--white);
             text-decoration: none;
             padding: 12px 15px;
+            min-height: var(--touch-min);
             border-radius: 5px;
             transition: all 0.3s;
             opacity: 0.8;
@@ -70,13 +72,14 @@
 
         .admin-content {
             flex: 1;
+            min-width: 0;
             margin-left: 250px;
-            padding: 30px;
+            padding: max(30px, var(--safe-top)) max(30px, var(--safe-right)) max(30px, var(--safe-bottom)) max(30px, var(--safe-left));
         }
 
         .admin-header {
             background: var(--white);
-            padding: 20px 30px;
+            padding: max(20px, var(--safe-top)) max(30px, var(--safe-right)) 20px max(30px, var(--safe-left));
             border-radius: 8px;
             margin-bottom: 30px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
@@ -88,7 +91,7 @@
         .admin-section {
             display: none;
             background: var(--white);
-            padding: 30px;
+            padding: max(30px, var(--safe-left)) max(30px, var(--safe-right)) 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
         }
@@ -279,19 +282,177 @@
             margin: 0;
         }
 
+        /* Mobile: hamburger + slide-in sidebar (same pattern as main site nav) */
+        .admin-menu-toggle {
+            display: none;
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.25rem;
+            min-width: var(--touch-min);
+            min-height: var(--touch-min);
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .admin-sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 1001;
+        }
+
+        .admin-sidebar-overlay.show {
+            display: block;
+        }
+
         @media (max-width: 768px) {
+            .admin-menu-toggle {
+                display: flex;
+            }
+
             .admin-sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 280px;
+                max-width: 85vw;
+                height: 100vh;
+                z-index: 1002;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
+            }
+
+            .admin-sidebar.open {
+                transform: translateX(0);
+            }
+
+            .admin-sidebar {
+                padding-top: max(20px, var(--safe-top));
             }
 
             .admin-content {
                 margin-left: 0;
+                padding: 16px;
+                padding-left: max(16px, var(--safe-left));
+                padding-right: max(16px, var(--safe-right));
+                padding-bottom: max(16px, var(--safe-bottom));
+            }
+
+            .admin-header {
+                flex-wrap: wrap;
+                gap: 12px;
+                padding: 16px 20px;
+                padding-top: max(16px, var(--safe-top));
+                padding-left: max(20px, var(--safe-left));
+                padding-right: max(20px, var(--safe-right));
+            }
+
+            .admin-header h1 {
+                flex: 1;
+                min-width: 0;
+                font-size: 1.25rem;
+            }
+
+            .admin-header > div {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .admin-header #welcomeMessage {
+                font-size: 0.9rem;
+                min-height: var(--touch-min);
+                display: inline-flex;
+                align-items: center;
+            }
+
+            .admin-section {
+                padding: 16px max(16px, var(--safe-right)) 16px max(16px, var(--safe-left));
+            }
+
+            .admin-section h3 {
+                font-size: 1.1rem;
             }
 
             .form-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .stat-card .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .content-actions {
+                flex-wrap: wrap;
+            }
+
+            .directory-table th,
+            .directory-table td {
+                padding: 8px 6px;
+                font-size: 0.8rem;
+            }
+
+            .btn-small {
+                min-height: 44px;
+                padding: 10px 14px;
+            }
+
+            #changePasswordModal {
+                padding: max(16px, var(--safe-top)) max(16px, var(--safe-right)) max(16px, var(--safe-bottom)) max(16px, var(--safe-left));
+            }
+
+            #changePasswordModal > div {
+                padding: 20px;
+                max-width: calc(100% - var(--safe-left) - var(--safe-right));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .admin-content {
+                padding: 12px;
+                padding-left: max(12px, var(--safe-left));
+                padding-right: max(12px, var(--safe-right));
+            }
+
+            .admin-section {
+                padding: 12px max(12px, var(--safe-right)) 12px max(12px, var(--safe-left));
+            }
+
+            .admin-header #welcomeMessage {
+                max-width: none;
+                white-space: normal;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .admin-header h1 {
+                font-size: 1.1rem;
+            }
+
+            .admin-header > div {
+                width: 100%;
+            }
+
+            .admin-header .btn-small {
+                flex: 1;
+                min-width: 0;
             }
         }
     </style>
@@ -323,6 +484,7 @@
 
     <main class="admin-content">
         <div class="admin-header">
+            <button type="button" class="admin-menu-toggle" id="adminMenuToggle" onclick="toggleAdminSidebar()" aria-label="Open menu">☰</button>
             <h1 style="margin: 0; color: var(--primary);">Content Management</h1>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <span style="color: var(--text-light);" id="welcomeMessage">Welcome, Admin</span>
@@ -1347,6 +1509,7 @@
 <script>
     // Make showSection globally available (full version; bootstrap above ensures nav works if this block fails)
     window.showSection = function(sectionId, clickedElement) {
+        if (window.innerWidth <= 768) window.closeAdminSidebar && window.closeAdminSidebar();
         // Hide all sections
         document.querySelectorAll('.admin-section').forEach(section => {
             section.classList.remove('active');
@@ -4427,6 +4590,7 @@
 
     // Change my password modal
     function openChangePasswordModal() {
+        if (window.innerWidth <= 768) window.closeAdminSidebar && window.closeAdminSidebar();
         const modal = document.getElementById('changePasswordModal');
         if (modal) {
             modal.style.display = 'flex';
