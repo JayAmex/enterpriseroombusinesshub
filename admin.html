@@ -1525,7 +1525,7 @@
         sessionStorage.removeItem('adminAuthenticated');
         window.location.href = '/admin-login';
     };
-    window.updateOverviewStats = window.updateOverviewStats || function() {
+    window.handleRefreshStats = function() {
         if (typeof updateOverviewStats === 'function') {
             updateOverviewStats();
         } else {
